@@ -594,7 +594,7 @@ def  name m = gate                  -- m is a parameter, standing for a gate
 <h2 id="appendix-a-program-and-its-circuit"><a class="anchor" href="#appendix-a-program-and-its-circuit" aria-label="Link to this section">#</a>Appendix: a program and its circuit</h2>
 <p>§9.4 says a Q42 definition lowers to OpenQASM 3 and that most of the language costs nothing to execute. This appendix does it once, in full, on the smallest program worth the trouble.</p>
 <h3 id="the-program"><a class="anchor" href="#the-program" aria-label="Link to this section">#</a>The program</h3>
-<p><code>bell</code> prepares the entangled pair of §8.2. Two operators:</p>
+<p><code>bell</code> prepares the entangled pair of §3.6. Two operators:</p>
 <div class="code"><pre><code>$ 42q show gates bell
 bell   = h * id ; cx
 bell!  = cx! ; h! * id!</code></pre></div>

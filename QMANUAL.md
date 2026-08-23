@@ -1369,7 +1369,7 @@ program worth the trouble.
 
 ### The program
 
-`bell` prepares the entangled pair of §8.2. Two operators:
+`bell` prepares the entangled pair of §3.6. Two operators:
 
 ```
 $ 42q show gates bell
