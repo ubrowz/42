@@ -42,8 +42,7 @@ append!([1, 2, 3]) =
   ([1, 2, 3], [])
 ```
 
-**Reading the command.** The three words after `42` are a **file**, a
-**program in it**, and an **input**:
+The three words after `42` are a file, a program in it, and an input:
 
 ```
 42   prelude   append   "([1,2], [3])"
@@ -53,7 +52,7 @@ append!([1, 2, 3]) =
                in it
 ```
 
-`prelude` is `prelude.42`, a file of worked examples that comes with 42 — the
+`prelude` is `prelude.42`, a file of worked examples that comes with 42. The
 `.42` is optional, so you may write either. And `append` is not built in. It is
 defined in that file, on one line:
 
@@ -95,8 +94,8 @@ Unanswerable. The old value is gone.
 
 So 42 has no assignment. It has no variables at all. Instead, a program is a
 *sequence of reshapings applied to one value*. If a step turns `A` into `B`,
-there must be enough information in `B` to get back to `A` — or, if there
-isn't, the backward direction must be allowed to return several candidates.
+there must be enough information in `B` to get back to `A`; if there is not,
+the backward direction must be allowed to return several candidates.
 
 This is why the language looks unfamiliar. It is not stylistic. Variables are
 absent because assigning to a variable is exactly the operation the language
@@ -156,15 +155,15 @@ bizarre. But your familiar types are already built from exactly two ideas, and
 | **OR** | this *or* that | tagged `union` | `enum` | `Either a b` | `L a` / `R b` |
 | **nothing** | carries no information | `void` | `()` | `()` | `()` |
 
-Haskell's `Either` is the closest match — its two constructors are literally
+Haskell's `Either` is the closest match, with two constructors literally
 called `Left` and `Right`. 42's entire value model is one declaration:
 
 ```haskell
 data Value = Unit | L Value | R Value | Pair Value Value
 ```
 
-A boolean genuinely *is* a two-case choice carrying no data — `enum Bool {
-False, True }`. Your language names those cases and hides the tag inside the
+A boolean is a two-case choice carrying no data, which is what `enum Bool {
+False, True }` says. Your language names those cases and hides the tag inside the
 compiler. 42 names nothing, so you see the tag:
 
 ```
@@ -172,13 +171,13 @@ false = L ()
 true  = R ()
 ```
 
-**That assignment is arbitrary.** `L` and `R` mean nothing beyond "case one"
-and "case two". Which one you call `true` is a convention you impose from
+That assignment is arbitrary. `L` and `R` mean nothing beyond "case one" and
+"case two". Which one you call `true` is a convention you impose from
 outside; the language has no opinion. (This manual uses `false = L ()`
 throughout, matching `prelude.42`.)
 
-A value in 42 is still "one thing" — `L ()` is one thing. It is one thing
-wearing a visible label. You already work with tagged values; Python attaches
+A value in 42 is still one thing. `L ()` is one thing, with a visible label
+on it. You already work with tagged values; Python attaches
 a type tag to every object at runtime. 42 just makes the tag part of the
 value's structure instead of hiding it in the runtime.
 
@@ -207,7 +206,8 @@ $ join  applied to  L ()   ->  ()
 $ join  applied to  R ()   ->  ()
 ```
 
-`join` deletes the tag. Going forwards, harmless — both cases give `()`.
+`join` deletes the tag. Going forwards that is harmless, since both cases
+give `()`.
 
 ```
 $ join!  applied to  ()    ->  L ()   and   R ()
@@ -225,8 +225,8 @@ mechanical reason `append!` enumerates every split (§10).
 
 A pair `(a, b)` holds two values at once. It is a struct, a tuple, a record.
 
-**There are no triples.** You nest instead, and *the nesting is part of the
-value*:
+There are no triples. You nest instead, and the nesting is part of the
+value:
 
 ```
 (1, (2, 3))        and        ((1, 2), 3)
@@ -244,11 +244,11 @@ $ assocprod!  on  ((1, 2), 3)   ->  (1, (2, 3))
 `assocprod` converts between the two groupings. Getting the nesting wrong is
 one of the most common causes of an unexpected empty result (§15).
 
-**Pairs are how a program takes two arguments.** 42 has no multi-argument
+Pairs are how a program takes two arguments. 42 has no multi-argument
 application. `add` does not take two numbers; it takes one pair `(m, n)`.
 
-**To work on part of a pair, use `f * g`** — it applies `f` to the left half
-and `g` to the right half simultaneously:
+To work on part of a pair, use `f * g`. It applies `f` to the left half and
+`g` to the right half at once:
 
 ```
 $ id * succ   on  (1, 2)   ->  (1, 3)      -- leave the left, bump the right
@@ -258,7 +258,7 @@ $ succ * id   on  (1, 2)   ->  (2, 2)      -- bump the left, leave the right
 `id` is the do-nothing program, so `id * g` is the idiom for "act on the
 second component only."
 
-#### The rule that will surprise you: you cannot take a pair apart
+#### You cannot take a pair apart
 
 In every other language, this is the most basic operation there is:
 
@@ -266,12 +266,12 @@ In every other language, this is the most basic operation there is:
 fst((a, b)) == a
 ```
 
-**42 does not have it, and cannot have it.** `fst` throws `b` away. Run it
-backwards and you would have to invent a `b` out of nothing — there is no way
-to know what it was. Discarding is exactly what §2 forbids.
+42 does not have it and cannot have it. `fst` throws `b` away. Run it
+backwards and you would have to invent a `b` out of nothing, with no way to
+know what it was. Discarding is what §2 forbids.
 
-So a pair is easy to *build* and impossible to *reduce* — unless you can show
-that nothing is lost. There are exactly two ways to do that:
+So a pair is easy to build and impossible to reduce, unless you can show that
+nothing is lost. There are two ways to do that:
 
 ```
 $ unitprod  on  ((), 5)   ->  5           -- () carries no information, so
@@ -301,8 +301,8 @@ That is the complete list. Everything else you can do to a pair merely
 | remove a duplicate | `copy!` | `(a, a)` → `a`, else nothing |
 | push a pair inside a label | `dist` | `(L a, c)` → `L (a, c)` |
 
-**Cannot be done at all:** `fst`, `snd`, or anything else that silently drops
-a component.
+Cannot be done at all: `fst`, `snd`, or anything else that silently drops a
+component.
 
 This is the deep reason §4 says you must "rearrange the shape until the pieces
 are in the right place." You are not choosing to program that way for style.
@@ -375,15 +375,15 @@ Three real prices, worth knowing up front:
   arithmetic walks them one at a time. This is inherent to the encoding.
 - **Everything is verbose.** `[1, 2]` is really `R (1, R (2, L ()))`. The
   display sugar hides it; `--raw` shows you the truth.
-- **Encodings collide.** `0`, `[]` and `L ()` are *the same value* — both
-  numbers and lists use `L ()` for their base case, so the value alone cannot
-  say which was meant. This is real, not a display bug.
+- **Encodings collide.** `0`, `[]` and `L ()` are the same value: both numbers
+  and lists use `L ()` for their base case, so the value alone cannot say which
+  was meant. This is real, not a display bug.
 
 The first is intrinsic and will not go away.
 
 The second and third are helped by the *shapes* of section 3.7. 42 works out
-what shape each program expects and produces, and prints values against it — so
-an empty list now shows as `[]` and not as `0`:
+what shape each program expects and produces, and prints values against it, so
+an empty list shows as `[]` and not as `0`:
 
 ```
 $ 42 prelude append "[1,2]" --backward
@@ -394,9 +394,9 @@ append!([1, 2]) =
 ```
 
 It is not a complete cure. Under `--raw` there is no shape to consult, and where
-a program's shape is genuinely vaguer than what you had in mind — `succ` works
-on *anything* with a label on it, not only numbers — 42 falls back to guessing,
-and guesses "number".
+a program's shape is vaguer than what you had in mind (`succ` works on
+anything with a label on it, not only numbers), 42 falls back to guessing, and
+guesses "number".
 
 ---
 
@@ -412,11 +412,11 @@ $ 42 type prelude swap
 swap  : a x b <-> b x a
 ```
 
-Read that as **"in, out"**. The `<->` separates the shape `swap` accepts from the
-shape it produces — and it is a double-headed arrow because 42 programs run both
-ways, so which side is "in" depends only on which direction you ran it.
+Read that as "in, out". The `<->` separates the shape `swap` accepts from the
+shape it produces. It is a double-headed arrow because 42 programs run both
+ways, so which side is "in" depends on which direction you ran it.
 
-The notation is five things, and that is all of it:
+The notation has five parts:
 
 | written | means |
 |---|---|
@@ -430,10 +430,10 @@ So `swap : a x b <-> b x a` says: *hand me a pair of anything and anything, and
 I hand back a pair of those two, swapped.* Which is exactly what `swapprod`
 does, now stated rather than demonstrated.
 
-**Shapes that refer to themselves.** Section 3.5 described a list in English:
-*empty, or a head paired with a tail.* That sentence mentions lists twice —
-a list is defined in terms of itself. Writing it down needs a way to say "and
-here the shape starts over", and that is what `mu` is for:
+Some shapes refer to themselves. Section 3.5 described a list in English:
+*empty, or a head paired with a tail.* That sentence mentions lists twice, so a
+list is defined in terms of itself. Writing it down needs a way to say "and here
+the shape starts over", which is what `mu` is for:
 
 ```
 mu X. 1 + (a x X)
@@ -447,9 +447,9 @@ mu X. 1 + (a x X)
 where the shape refers back to itself. Compare it to the English and it is the
 same sentence. A number, *zero or one-more-than a number*, is `mu X. 1 + X`.
 
-**Naming them.** Correct, and unreadable — a list of numbers is a list whose
-heads are themselves `mu`, and comes out as `mu X. 1 + (mu Y. 1 + Y) x X`. So a
-file may give its shapes names:
+That is correct and unreadable. A list of numbers is a list whose heads are
+themselves `mu`, and comes out as `mu X. 1 + (mu Y. 1 + Y) x X`, so a file may
+give its shapes names:
 
 ```
 type nat    = mu X. 1 + X
@@ -466,23 +466,18 @@ rev  : list a <-> list a          -- was: mu X. 1 + a x X <-> mu Y. 1 + a x Y
 `list a` takes a parameter, so `list nat` is a list of numbers and `list b` a
 list of whatever `b` turns out to be.
 
-**Two things to know.**
+Two things to know. Inside a shape, `x` means "pair", so it cannot also be used
+as a name: write `a x b`, never `x x b`.
 
-Inside a shape, `x` means "pair", so it cannot also be used as a name — write
-`a x b`, never `x x b`.
-
-And a `type` line changes **nothing but the printing.** It is not a definition
-of a new kind of value; 42 has no such thing, and every value is still built
-from the same four pieces of section 3.1. It is a nickname for a shape 42 had
-already worked out on its own. Delete every `type` line from a file and exactly
-the same programs are accepted and rejected — the reports just get harder to
-read.
+And a `type` line changes nothing but the printing. It does not define a new
+kind of value; 42 has no such thing, and every value is still built from the
+same four pieces of section 3.1. It is a nickname for a shape 42 had already
+worked out on its own. Delete every `type` line from a file and the same
+programs are accepted and rejected. The reports just get harder to read.
 
 ---
 
 ## 4. Programs are pipelines, not functions
-
-**This is the section that makes the rest make sense.**
 
 In an ordinary language you write:
 
@@ -514,15 +509,15 @@ So how do you write a program that takes *two* inputs? You don't. The two
 inputs arrive packed into one pair `(x, y)`, and it is the program's job to
 take the pair apart.
 
-And here is the thing that makes 42 feel alien at first:
+One consequence is what makes 42 feel alien at first:
 
 > Because you cannot name the parts of a value, you cannot say *"take the `h`
 > out of that pair and put it next to `ys`."* Instead you **rearrange the
 > shape of the value until the pieces are already in the right place.**
 
-That rearranging is what most of 42's built-in programs are for. They are not
-doing arithmetic or logic. They are moving parentheses around. Once you see
-them as plumbing rather than computation, they stop being mysterious.
+That rearranging is what most of 42's built-in programs are for. They do no
+arithmetic or logic; they move parentheses around. They make more sense read as
+plumbing than as computation.
 
 ---
 
@@ -546,9 +541,9 @@ swapprod ; inr        -- swap the pair, then tag the result "right"
      (f a, g b)
 ```
 
-This is how you operate on *part* of a value without naming it — and, as §3.4
-explains, it is the *only* way, since you cannot pull a component out of a
-pair. The idiom to memorise:
+This is how you operate on part of a value without naming it, and by §3.4 it is
+the only way, since you cannot pull a component out of a pair. The idiom to
+memorise:
 
 ```
 id * g        -- leave the left component alone, apply g to the right one
@@ -569,8 +564,7 @@ of the pair, leave the first."
 This is 42's `switch` / `match`. If the value is labelled left, run `f` on
 what's inside; if labelled right, run `g` on what's inside.
 
-**Important:** the label survives. `f + g` puts the result back inside `L` or
-`R`. Almost always you then want to forget which branch you took, which is
+The label survives: `f + g` puts the result back inside `L` or `R`. Almost always you then want to forget which branch you took, which is
 what `join` does (§6). This is why you constantly see:
 
 ```
@@ -621,7 +615,7 @@ def flip2  = ctrl flip
 ```
 
 One new name there: `not` is the built-in `swapsum`, which does nothing but
-exchange the two labels — §6 tabulates it with the other rearrangements:
+exchange the two labels. §6 tabulates it with the other rearrangements:
 
 ```
 $ not  on  L ()   ->  R ()
@@ -630,8 +624,8 @@ $ not  on  R ()   ->  L ()
 
 `dist` and `unitprod` are the ones from §3, and `id` does nothing at all.
 
-**What `ctrl` actually does.** It is worth walking through once, because the
-definition is four operators and none of them is a conditional. Feed `flip` a pair
+It is worth walking through `ctrl` once, because the definition is four
+operators and none of them is a conditional. Feed `flip` a pair
 whose label is `R` and whose payload is `L ()`:
 
 ```
@@ -660,14 +654,14 @@ $ flip(L (), L ())    =  (L (), L ())
 
 Nothing happens, because `id + not` runs `id` on the `L` branch.
 
-Two things to take from this. The middle step is doing the work of an
-if-then-else, and it is the `f + g` of a few pages back — you are not testing
-anything, you are acting on whichever branch the value was already in. And **at no
-point can the label change**: `dist` turns it into a tag, `id + not` can act inside
-a branch but cannot move a value between branches, and `mat!` puts back the tag it
-finds. That last fact is what the paragraphs on reversing below rest on.
+Two things to take from this. The middle step does the work of an if-then-else,
+and it is the `f + g` of a few pages back: you are not testing anything, you are
+acting on whichever branch the value was already in. And at no point can the
+label change. `dist` turns it into a tag, `id + not` can act inside a branch but
+cannot move a value between branches, and `mat!` puts back the tag it finds.
+That last fact is what the paragraphs on reversing below rest on.
 
-Application is just juxtaposition — `ctrl not` — and it binds tighter than every
+Application is juxtaposition, as in `ctrl not`, and it binds tighter than every
 operator, so `ctrl not ; f` means `(ctrl not) ; f`. `!` binds tighter still, so
 `ctrl m!` means `ctrl (m!)`, which is the reading you want: the argument is the
 thing being reversed.
@@ -685,9 +679,9 @@ It does **not** mean "test R, and if it held, undo `m`". That reading raises a
 fair objection: running forwards, `m` might have changed things so that R no
 longer holds, and then running backwards there would be nothing left to test.
 Languages whose conditionals really do test a predicate over the state have
-exactly that problem, and pay for it — Janus makes the programmer supply a
-*second* predicate at the end of every conditional, purely so that backward
-execution can tell which branch it came from, and a program whose second
+exactly that problem and pay for it. Janus makes the programmer supply a second
+predicate at the end of every conditional, purely so that backward execution can
+tell which branch it came from, and a program whose second
 predicate is wrong has no defined meaning at all.
 
 What saves `ctrl` is that **the label is never touched**. `mat` lifts it out to
@@ -717,9 +711,9 @@ directions.
 
 More generally, 42 has **no test operator at all**. Branching here is not "evaluate
 a predicate and choose"; it is the sum functor, acting on whichever branch the data
-was already in. That is why there is no assertion to supply and nothing that can be
-got wrong — the question Janus answers with a proof obligation, this language
-answers by not raising it.
+was already in. That is why there is no assertion to supply and nothing that can
+be got wrong: the question Janus answers with a proof obligation, this language
+does not raise.
 
 And a parameter may be used more than once, or reversed in one place and not
 another:
@@ -729,7 +723,7 @@ def there_and_back m = m ; m!
 ```
 
 Two rules. A parameter stands for a program, never for another parameterised
-program — so you cannot pass `ctrl` itself as an argument. And a parameterised
+program, so you cannot pass `ctrl` itself as an argument. And a parameterised
 definition is not a program until you supply the argument, so you cannot run it:
 
 ```
@@ -756,9 +750,8 @@ None of them compute anything; they move data around.
 | `unitprod!` | `a` | `((), a)` |
 
 `unitprod!` is worth dwelling on: it conjures a `()` out of nowhere. That is
-allowed precisely because `()` carries no information — running it backwards,
-there was only ever one thing that `()` could have been, so nothing is
-guessed. This is how you create structure in a language that cannot invent
+allowed because `()` carries no information. Running it backwards, there was
+only ever one thing that `()` could have been, so nothing is guessed. This is how you create structure in a language that cannot invent
 data.
 
 ### Labels
@@ -776,7 +769,7 @@ data.
 `join` and `join!` deserve attention, because they are where multiple answers
 come from:
 
-> `join` throws away one bit of information — *which* label was there. Run it
+> `join` throws away one bit of information, namely which label was there. Run it
 > backwards and that bit cannot be recovered, so `join!` has to return both
 > possibilities. **Every time a 42 program gives you more than one answer, it
 > is because a `join` was run backwards.**
@@ -819,10 +812,10 @@ keeping the other component available in both branches. See §10.
 
 ## 7. None, one, or many answers
 
-A 42 program returns a **set**. This takes getting used to.
+A 42 program returns a set, which takes some getting used to.
 
-**No answers (`{}`) is normal and is not an error.** It means "this input is
-not something I apply to."
+No answers, written `{}`, is normal and is not an error. It means "this input
+is not something I apply to."
 
 ```
 $ 42 tour pred 0
@@ -834,8 +827,8 @@ Zero has no predecessor, so there is nothing to return.
 
 A **shape** mismatch is different, and the two are worth keeping apart. As a
 matter of meaning, `swapprod` applied to something that isn't a pair also denotes
-`{}` — the program simply doesn't apply there, rather than crashing. But you
-almost never mean that, so the command line now type-checks first and refuses:
+`{}`: the program does not apply there, rather than crashing. But you almost
+never mean that, so the command line type-checks first and refuses:
 
 ```
 $ 42 prelude swap 5
@@ -844,9 +837,10 @@ error: the argument does not fit the domain of `swap`
   you gave     : 5
 ```
 
-`pred 0` above is *not* refused, because `0` is a perfectly good input to `pred`
-— it just has no image. Emptiness because a relation is partial is normal;
-emptiness because the shapes never lined up was almost certainly a typo.
+`pred 0` above is not refused, because `0` is a perfectly good input to `pred`
+that happens to have no image. Emptiness because a relation is partial is
+normal; emptiness because the shapes never lined up was almost certainly a
+typo.
 
 Add `--untyped` to see the underlying relational answer anyway:
 
@@ -889,8 +883,8 @@ whose halves differ. `double! 6` is `{3}`, and `double! 7` is `{}`.
 
 ## 8. How to read a program
 
-**The technique: write the shape of the value after each step.** That is all.
-Do it on paper the first few times.
+The technique is to write the shape of the value after each step. That is all
+of it; do it on paper the first few times.
 
 Take:
 
@@ -910,7 +904,7 @@ Feed it `7`, and annotate:
 
 Result: `[7]`. The program wraps a value into a one-element list.
 
-Now read it backwards — same steps, reverse order, each one reversed:
+Now read it backwards. Same steps, reverse order, each one reversed:
 
 ```
                           [7]  =  R (7, L ())
@@ -921,10 +915,10 @@ Now read it backwards — same steps, reverse order, each one reversed:
 ```
 
 It unwraps a one-element list. Fed `[7, 8]`, the `inl!` step would find `R (8, ...)`
-where it wanted `L`, produce nothing, and the whole thing would return `{}` —
+where it wanted `L`, produce nothing, and the whole thing would return `{}`,
 correctly, since `[7,8]` is not a one-element list.
 
-**This is the skill.** Everything else is vocabulary.
+That is the skill. Everything else is vocabulary.
 
 ---
 
@@ -970,8 +964,8 @@ tells you the next step to write, in reverse.**
 
 A definition may refer to itself by name.
 
-Recursive data in 42 is always "base case, or something bigger" — that is, a
-labelled value. So a recursive program is always a switch on that label, and
+Recursive data in 42 is always "base case, or something bigger", which is to
+say a labelled value. So a recursive program is always a switch on that label, and
 it always has the same skeleton.
 
 ### For a program taking one argument
@@ -994,8 +988,8 @@ The value is a pair `(xs, ys)` where `xs` is the one you want to switch on.
 dist ; (base + step) ; join
 ```
 
-`dist` turns `(L a, ys)` into `L (a, ys)` and `(R b, ys)` into `R (b, ys)` —
-so after it, each branch still has `ys` in hand.
+`dist` turns `(L a, ys)` into `L (a, ys)` and `(R b, ys)` into `R (b, ys)`, so
+after it each branch still has `ys` in hand.
 
 ### Worked example: append
 
@@ -1028,7 +1022,7 @@ And the base case: fed `([], [3])`, that is `(L (), [3])`.
   join                      [3]
 ```
 
-Correct — appending anything to the empty list gives it back.
+Correct: appending anything to the empty list gives it back.
 
 Now notice what running this backwards does. The final `join` becomes the
 *first* step, and `join!` cannot know which branch the answer came from, so it
@@ -1054,8 +1048,8 @@ Everything here is in `arith.42`, and every example below is runnable.
 ### 11.1 The governing question
 
 You cannot write an operation that throws its inputs away. But you can nearly
-always write the same operation in a form that *keeps just enough to
-reconstruct them* — and that form is usually only one component bigger.
+always write the same operation in a form that keeps just enough to reconstruct
+them, and that form is usually only one component bigger.
 
 So the question is never "can 42 compute this?" It is:
 
@@ -1063,7 +1057,7 @@ So the question is never "can 42 compute this?" It is:
 
 Answer that, and the operation follows. Better still, the *inverse* operation
 comes free, which is why `arith.42` contains algorithms for addition,
-multiplication and comparison — and none at all for subtraction or division.
+multiplication and comparison, and none at all for subtraction or division.
 
 ### 11.2 Addition
 
@@ -1085,9 +1079,9 @@ Nothing is truly lost, it is merely spread across six answers.
 ### 11.3 Multiplication, and what it must carry
 
 Here the naive version fails. `(m, n) ↦ m × n` has base case `0 × n = 0`,
-which must discard `n` outright — and §3.4 established that nothing in the
+which must discard `n` outright, and §3.4 established that nothing in the
 language can do that. Unlike `add`, you cannot even recover it as a set: `mul`
-would have to work for *every* `n`, so the base case has nowhere to put it.
+would have to work for every `n`, so the base case has nowhere to put it.
 
 The fix is to carry the multiplier along:
 
@@ -1108,7 +1102,7 @@ $ mul(0, 7)  =  (7, 0)
 
 One extra component in the output, and the whole thing works. Note the `copy`
 in the step branch: the recursive call returns `(n, p)`, and we need `n` both
-to add to `p` and to hand back — so we duplicate it rather than trying (and
+to add to `p` and to hand back, so we duplicate it rather than trying (and
 failing) to use it twice.
 
 ### 11.4 Division is multiplication backwards
@@ -1175,7 +1169,7 @@ $ lt(5, 2)  =  {}          -- rejected
 
 Two idioms there worth stealing. `inr! ; inr` means "check this is nonzero and
 put it back exactly as it was". And `dist ; (f + g) ; dist!` is the
-case-analysis skeleton for a program that must hand back its *input* — `dist!`
+case-analysis skeleton for a program that must hand back its input: `dist!`
 rebuilds what `dist` took apart, where `join` would have discarded the label.
 
 Now the easy direction, and its inverse:
@@ -1217,8 +1211,8 @@ Here is the reasoning, and it is the one piece that does not carry over from
 ordinary programming:
 
 > Reversing a pipeline reverses the order of its stages. A filter written
-> early — pruning beautifully as you go forwards — ends up running **last**
-> going backwards, long after the expensive work it was meant to prevent.
+> early, pruning as you go forwards, ends up running last going backwards,
+> long after the expensive work it was meant to prevent.
 
 In `undivmod`, `lt` sits near the front and guarantees `b > 0`. Reversed, it
 fires at the very end. By then `divmod(7, 0)` has already asked `mul!` to
@@ -1233,14 +1227,14 @@ $ divmod(7, 0)  =  {}        -- immediately, with the guard
 
 > **Rule of thumb: a constraint you rely on in both directions must be stated
 > at both ends.** Forwards, one of the two statements is redundant. That
-> redundancy is the price of a pipeline that prunes in both directions, and it
-> is not dead code — deleting it changes termination.
+> redundancy is the price of a pipeline that prunes in both directions. It is
+> not dead code; deleting it changes termination.
 
 ### 11.8 Exact rationals
 
 Everything here is in `rational.42`. A rational is a pair `(numerator,
-denominator)`, and every operation is exact — nothing is ever rounded,
-because rounding is discarding and this language cannot discard.
+denominator)`, and every operation is exact. Nothing is ever rounded, because
+rounding is discarding and this language cannot discard.
 
 The same carrying rule as before gives the inverses free:
 
@@ -1255,7 +1249,7 @@ qmul : (a, b) ↦ (b, a × b)          so   qdiv = qmul!
 def qmul = transpose ; (mul * mul) ; transpose
 ```
 
-`transpose` swaps the two inner components of a pair of pairs — and is its own
+`transpose` swaps the two inner components of a pair of pairs, and is its own
 inverse. Watch it work:
 
 ```
@@ -1270,7 +1264,7 @@ $ qdiv((3,4), (3,8))  =  ((1, 2), (3, 4))       -- and back
 ```
 
 Addition is the same idea over `(ps + qr, qs)`, but longer: the operands are
-used unevenly — `s` three times, `q` twice, `p` and `r` once each. Since `mul`
+used unevenly: `s` three times, `q` twice, `p` and `r` once each. Since `mul`
 hands back its second operand, `s` threads from one product into the next and
 only `q` needs a `copy`. See `rational.42`, where the steps are named.
 
@@ -1287,12 +1281,12 @@ design rather than a choice.
 Putting a fraction in lowest terms means dividing by the gcd. Computing a gcd
 means Euclid's algorithm, and **every step of Euclid throws away a quotient
 and keeps only a remainder.** 42 cannot throw anything away. So a gcd program
-written here is forced to hand back the quotients it generated — and that
-sequence is exactly the continued-fraction expansion, from which the original
-fraction can be rebuilt.
+written here is forced to hand back the quotients it generated, and that
+sequence is the continued-fraction expansion, from which the original fraction
+can be rebuilt.
 
-**Reduction cannot lose the thing it exists to lose.** So `rational.42` keeps
-fractions unreduced, and compares them with cross-multiplication instead:
+Reduction cannot lose the thing it exists to lose, so `rational.42` keeps
+fractions unreduced and compares them with cross-multiplication instead:
 
 ```
 def qeq = cross ; (id * copy!) ; withps!
@@ -1304,8 +1298,8 @@ $ qeq((1,2), (3,4))  =  {}                   -- not equal
 ```
 
 Note the shape of that definition, because the pattern is reusable: `qeq` is a
-filter, so it must return its input untouched — yet it needs two cross
-products to do its job. `cross` is what computes them, handing back the two
+filter, so it must return its input untouched, yet it needs two cross products
+to do its job. `cross` is what computes them, handing back the two
 fractions with `p×s` and `q×r` attached:
 
 ```
@@ -1389,10 +1383,10 @@ So a character is a byte, and a byte is eight booleans:
 'a'  =  (0, (1, (1, (0, (0, (0, (0, 1)))))))      -- 97 = 0b01100001
 ```
 
-**Why binary and not unary?** Numbers in 42 are unary (§3.5), so consistency
-would have made `'a'` a stack of 97 labels. Binary is not merely faster — it
-keeps the encodings *distinguishable*. A byte is a nest of **pairs**; a number
-is a chain of **labels**. Nothing can be read as both. So unlike `0`/`[]`
+Why binary and not unary? Numbers in 42 are unary (§3.5), so consistency would
+have made `'a'` a stack of 97 labels. Binary is faster, and it also keeps the
+encodings distinguishable. A byte is a nest of pairs; a number is a chain of
+labels. Nothing can be read as both. So unlike `0`/`[]`
 (§3.6), text collides with nothing:
 
 ```
@@ -1412,7 +1406,7 @@ constant low-level tax on reading output, and here it was avoidable.
 | `"héllo"` | its UTF-8 bytes — six of them |
 | `"a\nb"` | escapes: `\n` `\t` `\r` `\\` `\0` `\"` `\'` `\xNN` |
 
-A character literal must be exactly one byte, so `'é'` is rejected — write it
+A character literal must be exactly one byte, so `'é'` is rejected; write it
 as a string. And `""` is `L ()`, which is also `0` and `[]` (§3.6).
 
 ### 12.3 Every list program already works
@@ -1427,7 +1421,7 @@ $ palin("racecar")       =  "racecar"
 $ palin("apple")         =  {}
 ```
 
-and `split` is not an implementation at all — it is `concat` read backwards:
+and `split` is not an implementation at all. It is `concat` read backwards:
 
 ```
 def concat = append
@@ -1442,9 +1436,9 @@ Every way to cut a string in two, and nobody wrote a string-splitting routine.
 
 ### 12.4 Case conversion is one bit
 
-In ASCII, upper and lower case differ in exactly one bit — the one worth 32.
-So changing case is not arithmetic. It is reaching into the byte and flipping
-a single boolean:
+In ASCII, upper and lower case differ in one bit, the one worth 32. So changing
+case is not arithmetic; it is reaching into the byte and flipping a single
+boolean:
 
 ```
 byte = (b7, (b6, (b5, (b4, (b3, (b2, (b1, b0)))))))
@@ -1454,14 +1448,14 @@ def flipcase = id * (id * (swapsum * id))
 ```
 
 The `swapsum` does the work; the `id`s either side of it are pure navigation.
-And being a single `swapsum`, it is **its own inverse** — running `flipcase`
+And being a single `swapsum`, it is its own inverse: running `flipcase`
 backwards is `flipcase`.
 
 ### 12.5 How to write if-then-else
 
 Flipping bit 5 of *every* byte would be wrong: it turns a space into a NUL and
-a comma into a form feed. We want to flip it only for letters — which needs a
-conditional, and **42 does not have one.**
+a comma into a form feed. We want to flip it only for letters, which needs a
+conditional, and 42 does not have one.
 
 `|` is not if-then-else. It runs both branches and pools the answers, so `f | g`
 normally returns two results (§5). But if the branches are guarded by filters
@@ -1472,7 +1466,7 @@ the union collapses into an ordinary deterministic choice:
 > (guard ; then)  |  (complement-of-guard ; else)
 > ```
 >
-> **This is how you write if-then-else in 42** — and making the two guards
+> **This is how you write if-then-else in 42.** Making the two guards
 > disjoint is your job, not the language's. Get it wrong in one direction and
 > you silently get two answers; get it wrong in the other and you get none.
 
@@ -1500,7 +1494,7 @@ still its own inverse.
 The residual inaccuracy, stated precisely rather than waved at: the sixteen
 bytes `@[\]^_`{|}~` and DEL share the letters' top two bits, so they still get
 mapped onto each other. Excluding them needs a range check on the low five
-bits — real work for very little return. (There is a test asserting this
+bits, which is real work for very little return. (There is a test asserting this
 caveat is exactly true, so it cannot quietly become false.)
 
 ---
@@ -1510,7 +1504,7 @@ caveat is exactly true, so it cannot quietly become false.)
 Every program so far does one thing to a value and stops. This section builds a
 machine that *runs*: it keeps changing a value until it is finished, and only
 then gives an answer. That is the last thing a language has to be able to do,
-and in 42 it needs no new construct — just `^` and `!` from section 5.
+and in 42 it needs no new construct, just `^` and `!` from section 5.
 
 The file is `tm.42`. The machine adds one to a binary number.
 
@@ -1523,7 +1517,7 @@ do next. In 42 the whole of it is three programs joined by `;`:
 init ; step^ ; final
 ```
 
-- `init` turns the input into a starting **configuration** — tape, head and
+- `init` turns the input into a starting **configuration**: tape, head and
   state, all in one value.
 - `step` is **one** move of the machine: `configuration <-> configuration`.
 - `step^` is section 5's "repeat any number of times", so it relates the start
@@ -1533,8 +1527,8 @@ init ; step^ ; final
 
 There is no loop construct, no counter and no test for "am I done yet". `^`
 does the repeating, and the machine stops on its own because the halted state
-has no transition — `step` is simply **empty** there, and section 7 already
-told you what an empty result means.
+has no transition. `step` is empty there, and section 7 already told you what
+an empty result means.
 
 ### 13.2 The tape is a list with a hole in it
 
@@ -1552,8 +1546,8 @@ tape = bits x (sym x bits)
 
 Now moving the head one cell right is: take the head cell and put it on the
 front of the left list, take the front of the right list and make it the new
-head. Every part of that is `inr` or `inr!` from section 6 — putting something
-on the front of a list, and taking it off:
+head. Every part of that is `inr` or `inr!` from section 6, putting something
+on the front of a list and taking it off:
 
 ```
 def right = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
@@ -1598,8 +1592,8 @@ def readhead = focus ; dist ; (unitprod + unitprod)
 ```
 
 `readhead` turns a tape into a labelled value: the `L` branch means the head was
-`0`, the `R` branch means it was `1`. And now the useful part — run it backwards
-and it *writes* the head instead, with the label choosing what to write:
+`0`, the `R` branch means it was `1`. Run it backwards and it writes the head
+instead, with the label choosing what to write:
 
 ```
 def write0 = inl ; readhead!
@@ -1633,7 +1627,7 @@ def stepover = ((id * (id * iscons)) ; right) | (pad ; right)
 
 If there is a cell to the right, move onto it; if there is not, add a `0` first.
 Note that `|` is doing this with no requirement that the two branches be
-distinct — they happen to be, because `iscons` and `isnil` cannot both apply, but
+distinct. They happen to be, because `iscons` and `isnil` cannot both apply, but
 nothing made you prove it.
 
 ### 13.6 Running it
@@ -1673,8 +1667,8 @@ dec([L (), L (), R ()]) =
   -- 2 results
 ```
 
-Two answers, and both are right. `1,1` is 3, and `1,1,0` is also 3 — the same
-number with a trailing zero, which is a different *list* but the same value:
+Two answers, and both are right. `1,1` is 3, and `1,1,0` is also 3: the same
+number with a trailing zero, which is a different list but the same value:
 
 ```
 $ 42 tm value "[R (), R (), L ()]"
@@ -1688,8 +1682,8 @@ being stopped from writing it. A language that insisted on one answer backwards
 would have made you strip trailing zeros before this program could exist.
 
 There is a lesson in here worth the detour. The first version of `init` was
-just `carry`, which labels *any* configuration as a starting one — including
-ones with the head halfway along the tape. Forwards that made no difference and
+just `carry`, which labels any configuration as a starting one, including ones
+with the head halfway along the tape. Forwards that made no difference and
 every test passed. Backwards it produced five answers instead of two, and the
 three extra ones were half-finished machines. The fix is one filter:
 
@@ -1704,9 +1698,9 @@ That check does not exist in a language that only runs forwards.
 ### 13.8 What this does and does not show
 
 It shows that a Turing machine fits in 42 with nothing added, and that the shape
-it takes — `init ; step^ ; final` — needs only `;`, `^` and the plumbing of
+it takes, `init ; step^ ; final`, needs only `;`, `^` and the plumbing of
 section 6. The transition table is a `+` over states and a `|` over the rows in
-each state, so a *different* machine is a different table in the same frame.
+each state, so a different machine is a different table in the same frame.
 
 It does not prove that 42 can compute everything computable. That would need an
 argument covering every machine, not one machine, and 42 has no such theorem
@@ -1773,7 +1767,7 @@ L x   R x     labelled
 ```
 
 `42` is shorthand. It assumes `run` when you do not name a subcommand, and the
-`.42` on a file name is optional — so `42 prelude append "([1,2], [3])"` is the
+`.42` on a file name is optional, so `42 prelude append "([1,2], [3])"` is the
 whole thing.
 
 It is a script in the repository root, so either put that directory on your
@@ -1785,8 +1779,8 @@ Options: `--raw` turns off number/list display sugar (useful when you are not
 sure what shape you actually have), `--limit` bounds recursion depth,
 `--orbit` bounds how far `^` will search before giving up.
 
-`show` is handy for building intuition — it prints what a program's reverse
-actually is:
+`show` is handy for building intuition. It prints what a program's reverse
+is:
 
 ```
 $ 42 show prelude double
@@ -1818,7 +1812,7 @@ Definitions may refer to each other and to themselves, in any order.
 `{}` means no answer. In order of likelihood:
 
 1. **Shape mismatch.** The most common cause by far. A program got a value of
-   the wrong shape — `swapprod` on something that isn't a pair, `unitprod` on
+   the wrong shape: `swapprod` on something that isn't a pair, `unitprod` on
    something that isn't a pair-with-unit-on-the-left.
 
    *Diagnosis:* ask for the type. `42 type FILE` reports any
@@ -1831,10 +1825,10 @@ Definitions may refer to each other and to themselves, in any order.
    Failing that, run with `--raw` to see the true shape of your input, then walk
    the pipeline writing down shapes as in §8. The step where your written shape
    stops matching the table in §14 is the bug. If a pair is involved, check the
-   *nesting* first — `(a, (b, c))` and `((a, b), c)` are different values (§3.4).
+   nesting first: `(a, (b, c))` and `((a, b), c)` are different values (§3.4).
 
 2. **A label was wrong.** `inl!` on an `R`-labelled value gives nothing, and
-   vice versa. This is on purpose — that is how case analysis rejects.
+   vice versa. This is on purpose; it is how case analysis rejects.
 
 3. **`copy!` on a mismatched pair.** It only succeeds when both halves are
    equal.
@@ -1862,13 +1856,13 @@ Note that a program can be fine in one direction and not the other:
 
 Expected, and it is information-theoretic rather than a bug: every extra
 answer corresponds to a `join` that discarded which branch was taken. If you
-want fewer, arrange for the forward direction to destroy less — `copy` before
-an operation, then `copy!` after, is the standard trick (see `double` in §7).
+want fewer, arrange for the forward direction to destroy less. `copy` before an
+operation, then `copy!` after, is the standard trick (see `double` in §7).
 
 ### "Empty list prints as `0`"
 
-They really are the same value — `L ()` is the empty list, the nat zero, and
-`false` all at once (§3.6). What tells them apart is the *type*, so `run` and
+They really are the same value: `L ()` is the empty list, the nat zero, and
+`false` all at once (§3.6). What tells them apart is the type, so `run` and
 `law` print using the type they inferred and get this right:
 
 ```
@@ -1881,7 +1875,7 @@ append!([1, 2, 3]) =
 Two cases still print `0`. Under `--raw` and `--untyped` there is no type to
 consult, by design. And where the inferred type is more general than the one you
 had in mind, there may be nothing to consult either: `succ = inr` has type
-`a <-> b + a`, which does not say "nat", so the printer falls back to guessing —
+`a <-> b + a`, which does not say "nat", so the printer falls back to guessing
 and guesses `0`.
 
 ---

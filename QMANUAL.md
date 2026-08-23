@@ -42,7 +42,7 @@ sits in the cells.
 
 ### 1.1 A program is a grid
 
-Take a shape with finitely many values — the two-value shape `1 + 1`, whose
+Take a shape with finitely many values, say the two-value shape `1 + 1`, whose
 values are `L ()` and `R ()` (`MANUAL.md` §3.1). A program from that shape to
 itself either can or cannot turn each input into each output, so you can write
 the whole program down as a grid: one row per input, one column per output, and a
@@ -61,7 +61,7 @@ Read a **row** as "what this input can produce". `L ()` produces only `R ()`,
 which is what negation does.
 
 A program need not have exactly one mark per row. `inl!` removes an `L` label
-and rejects anything else, so its row for `R ()` is empty — that is 42's `{}`,
+and rejects anything else, so its row for `R ()` is empty. That is 42's `{}`,
 drawn:
 
 ```
@@ -71,8 +71,8 @@ drawn:
   R ()        .
 ```
 
-And `join!` — which forgets nothing going backwards and so must offer both
-labels — has *two* marks in one row. That is a set of two answers, drawn:
+And `join!`, which forgets nothing going backwards and so must offer both
+labels, has two marks in one row. That is a set of two answers, drawn:
 
 ```
         to  L ()  R ()
@@ -86,8 +86,8 @@ Nothing new has been said yet. This is the same "a program returns a set" from
 ### 1.2 Running backwards is reading the other way
 
 Now the useful part. To run a program backwards you ask, of an output, which
-inputs could have produced it — and that is reading the grid down a **column**
-instead of along a row.
+inputs could have produced it, which is reading the grid down a column instead
+of along a row.
 
 So `!` **is the grid, flipped about its diagonal.** Compare `join!` above with
 `join`:
@@ -110,11 +110,11 @@ there is some middle value `y` with `f` reaching `y` and `g` reaching `z` from
 it. In grid terms: to fill in cell `(x, z)`, walk along row `x` of `f` and down
 column `z` of `g`, and look for a position where **both** have a mark.
 
-That rule — *for each middle value, take AND; across all middle values, take OR*
-— is what mathematicians call **matrix multiplication**, with `and` in place of
-`×` and `or` in place of `+`. So 42's grids are matrices whose entries are `0`
-and `1`, and `;` is matrix multiplication over those. That is the whole of what
-"42 is matrices over the booleans" means, and you have just derived it.
+That rule, *for each middle value take AND, and across all middle values take
+OR*, is what mathematicians call **matrix multiplication**, with `and` in place
+of `×` and `or` in place of `+`. So 42's grids are matrices whose entries are
+`0` and `1`, and `;` is matrix multiplication over those. That is all that "42
+is matrices over the booleans" means.
 
 ### 1.4 Q42 puts numbers in the cells
 
@@ -130,15 +130,15 @@ h : qubit <-> qubit
      |1>  [  0.707107  -0.707107 ]
 ```
 
-Same 2×2 grid as `not`, but with numbers, and — this is the point — **one of them
-is negative.**
+Same 2×2 grid as `not`, but with numbers, and one of them is negative. That is
+the point.
 
 One wrinkle before going on. The grids in §1.1 put inputs in rows, which reads
 naturally as "from, to". `42q matrix` prints them the other way up: its **rows are
 outputs and its columns are inputs**. That is the universal convention in physics,
 because a gate is written as acting on a column of amplitudes, `U|ψ>`. The two
-pictures hold the same information — one is the other transposed — and it does not
-show on `h`, whose grid happens to be symmetric. It does show on, say, `x ; s`,
+pictures hold the same information, one being the other transposed, and the
+difference does not show on `h`, whose grid happens to be symmetric. It does show on, say, `x ; s`,
 where the lone `i` sits in row `|1>`, column `|0>`: the gate takes input `|0>` to
 output `i|1>`.
 
@@ -188,9 +188,9 @@ Two names for the record, since the literature uses them. A system with an
 addition and a multiplication but no need for subtraction is a **semiring**;
 `{0,1}` with `or`/`and` is one, and ℂ is another, so "Q42 is 42 over a different
 semiring" is a one-line way to say all of the above. And flipping-and-conjugating
-a matrix is called taking its **adjoint**, written `M†` — so `!` denotes the
-converse of a relation in 42 and the adjoint of a matrix in Q42, which §4.1 shows
-is the same operation twice.
+a matrix is called taking its **adjoint**, written `M†`. So `!` denotes the
+converse of a relation in 42 and the adjoint of a matrix in Q42, which §4.1
+shows is the same operation twice.
 
 ## 2. Why reversibility is forced
 
@@ -200,8 +200,8 @@ Before the physics, the engineering reason a computer scientist should care.
 
 **Landauer's principle** (1961): erasing one bit of information in a computer at
 temperature `T` must dissipate at least `kT ln 2` joules as heat, where `k` is
-Boltzmann's constant. At room temperature that is about `2.9 × 10⁻²¹` joules —
-utterly negligible per bit today, and a hard floor that no cleverness removes.
+Boltzmann's constant. At room temperature that is about `2.9 × 10⁻²¹` joules,
+negligible per bit today, and a floor that no cleverness removes.
 
 The point is *why* there is a floor. Information that is destroyed has to go
 somewhere; it becomes entropy in the environment. A computation that never
@@ -223,8 +223,8 @@ So the familiar irreversible operations are simply unavailable:
 c = a AND b
 ```
 
-destroys information — knowing `c = 0` tells you almost nothing about `a` and
-`b` — so there is no two-input AND gate. What exists instead is the **Toffoli**
+destroys information, since knowing `c = 0` tells you almost nothing about `a`
+and `b`, so there is no two-input AND gate. What exists instead is the **Toffoli**
 gate, which keeps its inputs and writes the answer into a third wire:
 
 ```
@@ -232,18 +232,18 @@ gate, which keeps its inputs and writes the answer into a third wire:
 ```
 
 Set `c = 0` and the third component becomes `a AND b`, with `a` and `b` still
-there. This is exactly the padding trick from `MANUAL.md` §11.3, where `mul`
-keeps its multiplier in order to stay invertible. The same pressure produces the
-same answer in both places.
+there. This is the padding trick from `MANUAL.md` §11.3, where `mul` keeps its
+multiplier in order to stay invertible; the same pressure produces the same
+answer in both places.
 
 ### Uncomputation
 
 Padding has a cost: the kept-around values pile up. If you compute an
-intermediate `x`, use it, and no longer want it, you cannot simply drop it —
-that would be erasing information. You must **uncompute** it by running its
-producer backwards.
+intermediate `x`, use it, and no longer want it, you cannot drop it, since that
+would be erasing information. You must **uncompute** it by running its producer
+backwards.
 
-The pattern is `P ; Q ; P!` — do the work, use it, undo the work. In Q42 that
+The pattern is `P ; Q ; P!`: do the work, use it, undo the work. In Q42 that
 is an ordinary term, because `!` is part of the language, and because every Q42
 term is invertible `P!` really is `P`'s inverse. Languages like Silq spend
 considerable machinery on *inferring* where to insert this; here you write it,
@@ -273,9 +273,8 @@ attached to each of those two possibilities:
 |psi>  =  c0 |0>  +  c1 |1>          c0, c1 in C
 ```
 
-`|0>` and `|1>` are just names for the two basis vectors — the notation `|x>`
-is called a *ket* and is nothing more than a way of writing "the basis vector
-labelled `x`". The `cᵢ` are **amplitudes**.
+`|0>` and `|1>` are names for the two basis vectors. The notation `|x>` is
+called a *ket* and is a way of writing "the basis vector labelled `x`". The `cᵢ` are **amplitudes**.
 
 For `n` qubits there are `2ⁿ` basis states, `|000…>` through `|111…>`, and a
 state is `2ⁿ` amplitudes. That exponential is the whole reason simulating
@@ -284,7 +283,7 @@ worth it.
 
 ### 3.2 Amplitudes are not probabilities
 
-The probability of seeing outcome `x` if you look is `|cₓ|²` — the squared
+The probability of seeing outcome `x` if you look is `|cₓ|²`, the squared
 magnitude. This is the **Born rule**, and it is where the physics enters; the
 rest is linear algebra.
 
@@ -319,8 +318,8 @@ a program backwards. It is not an analogy: in 42 the operation is the converse
 of a relation, in Q42 the adjoint of a matrix, and they are the same structural
 operation in two different settings (§4).
 
-Q42 never checks unitarity, because it never has to — every primitive is
-unitary and every way of combining them preserves unitarity (§6). You can audit
+Q42 never checks unitarity, because it never has to: every primitive is unitary
+and every way of combining them preserves unitarity (§6). You can audit
 the claim:
 
 ```
@@ -373,12 +372,12 @@ This is **destructive interference**, and it has no classical counterpart:
 probabilities are non-negative and adding more routes to an outcome can only
 make it likelier. Amplitudes are not so constrained.
 
-Every quantum algorithm that beats its classical rival does it this way —
-arrange for the wrong answers' amplitudes to cancel and the right answer's to
+Every quantum algorithm that beats its classical rival does it this way, by
+arranging for the wrong answers' amplitudes to cancel and the right answer's to
 reinforce. Grover's search and Shor's factoring are both this, elaborately.
 
-**This is precisely what 42 cannot express.** Over the booleans the two routes
-to `|1>` would be `1 ∨ 1 = 1`: still possible. There is no `−1` to cancel with.
+This is what 42 cannot express. Over the booleans the two routes to `|1>` would
+be `1 ∨ 1 = 1`, still possible, and there is no `−1` to cancel with.
 42 tells you which outcomes are *reachable*; it cannot tell you that two ways of
 reaching one annihilate.
 
@@ -413,7 +412,7 @@ of a compound system is not in general a pair of states.
 Stated plainly, because a manual that quietly omits these would be misleading.
 
 - **Measurement, except at the end.** Q42 computes the unitary. You may measure
-  the *result* (§7.5) — that is the Born rule applied to a finished state — but
+  the *result* (§7.5), which is the Born rule applied to a finished state, but
   nothing collapses mid-program, so there is no measuring, branching on the
   outcome, and carrying on. §9.2 is precise about the difference.
 - **Normalisation.** Q42 does not enforce `Σ|cᵢ|² = 1`. It does not need to: a
@@ -436,7 +435,7 @@ accidental.
 
 ### 4.1 `inv` and `†` are the same operation
 
-Both settings are **dagger categories** — a structure with composition, an
+Both settings are **dagger categories**: a structure with composition, an
 identity, and an inversion operation `†` satisfying
 
 ```
@@ -472,9 +471,9 @@ law holds
 ### 4.2 42's primitives were the right ones already
 
 42's primitives are the isomorphisms witnessing that `0, 1, +, ×` form a
-commutative semiring — `a + b ↔ b + a`, `1 × a ↔ a`, `(a + b) × c ↔ a×c + b×c`
-and so on. That collection has a name: it is a presentation of a **rig
-groupoid**, and it is essentially the language **Π** of James & Sabry, arrived
+commutative semiring: `a + b ↔ b + a`, `1 × a ↔ a`, `(a + b) × c ↔ a×c + b×c`
+and so on. That collection has a name. It is a presentation of a **rig
+groupoid**, and is close to the language **Π** of James & Sabry, arrived
 at independently in 42.
 
 This matters because of a result of Carette, Heunen, Kaarsgaard & Sabry
@@ -499,13 +498,13 @@ check, not by taste.
 
 ### 5.1 `|` and `^` need `1 + 1 = 1`
 
-This one is exact. Over the booleans `x ∨ x = x` — adding is **idempotent**.
+This one is exact. Over the booleans `x ∨ x = x`, so adding is **idempotent**.
 Over ℂ, `1 + 1 = 2`.
 
 `f | g` means "either", which as a matrix is `⟦f⟧ + ⟦g⟧`. Over the booleans
 `f | f` is `f`; over ℂ it would be `2f`, which is not the same relation and not
-even unitary. And `f^` is a least fixed point computed by saturation — repeat
-until nothing new appears — which is only meaningful when repetition stabilises.
+even unitary. And `f^` is a least fixed point computed by saturation, repeating
+until nothing new appears, which is only meaningful when repetition stabilises.
 
 Write `def bad = id | id` in a Q42 file and it is refused before it runs, with
 the reason: *"over C it would denote the sum of two matrices, so `f | f` would be
@@ -524,7 +523,7 @@ states can't be copied".
 
 The **no-cloning theorem** says there is no unitary `U` with
 `U(|ψ> ⊗ |0>) = |ψ> ⊗ |ψ>` for *every* `ψ`. 42's `copy` does not attempt that.
-It maps each *basis* state `|x>` to `|x,x>`, and extends linearly — so it sends
+It maps each *basis* state `|x>` to `|x,x>` and extends linearly, so it sends
 `|0>+|1>` to `|00>+|11>`, which is the Bell state, not `(|0>+|1>)⊗(|0>+|1>)`.
 That is a perfectly legitimate quantum operation. In categorical quantum
 mechanics this map, with its adjoint, is a **classical structure**, and Coecke
@@ -549,17 +548,17 @@ has no adjoint that inverts it
 `inl`, `inr` and `zero` go for the same dimensional reason: `inl : a ↔ a + b`
 embeds `ℂⁿ` in `ℂⁿ⁺ᵐ`, and `zero` is the zero matrix, which inverts nothing.
 `join : a + a ↔ a` maps down rather than up, and is the mirror image of the same
-problem — and it was 42's only source of many-valued answers, so with it goes
-all nondeterminism.
+problem. It was 42's only source of many-valued answers, so with it goes all
+nondeterminism.
 
 ### 5.3 Where the restriction actually bites
 
 A useful sanity check, because "not unitary" sounds more restrictive than it is.
-**In finite dimensions, an isometry from a space to itself is automatically
-unitary.** So the restriction has exactly two ways to catch you:
+In finite dimensions, an isometry from a space to itself is automatically
+unitary, so the restriction has only two ways to catch you:
 
-1. **The spaces differ in size** — `copy`, `inl`, `inr`. Nothing can be done;
-   these are genuinely not gates.
+1. **The spaces differ in size**: `copy`, `inl`, `inr`. Nothing can be done;
+   these are not gates.
 2. **The space is infinite-dimensional.** This is the subtler one and it is why
    Q42 has no arithmetic on unbounded numbers; §8 is the worked case.
 
@@ -582,8 +581,8 @@ omega : 1 <-> 1            a scalar; an 8th root of 1
 v     : 1+1 <-> 1+1        a square root of `swapsum`
 ```
 
-`omega` acts on the unit type — it is a number, not a gate, and multiplies
-whatever it is combined with. `v` acts on one qubit and squares to negation:
+`omega` acts on the unit type. It is a number rather than a gate, and
+multiplies whatever it is combined with. `v` acts on one qubit and squares to negation:
 apply it twice and you have flipped the bit, so it is "half a NOT", which has no
 classical meaning at all.
 
@@ -598,7 +597,7 @@ They satisfy three equations, where `S = id + (omega ; omega)`:
 (E1) and (E2) only say the two square roots exist. **(E3) is the one that does
 the work.** Without it, `omega = id` would satisfy everything and the language
 would collapse to classical reversible computing. (E3) says that two ways of
-decomposing a rotation — around one axis then another, or the other way about —
+decomposing a rotation, around one axis then another or the other way about,
 agree. That is the *Euler decomposition* of the Hadamard gate, and pinning it
 down is what forces `omega` to be a genuine eighth root of unity rather than 1.
 
@@ -609,8 +608,8 @@ the NOT matrix. You never write a complex number in a Q42 program; you write
 ### 6.2 Phases are the sum functor
 
 A phase gate multiplies `|1>` by a constant and leaves `|0>` alone. In 42's
-notation that is exactly `id + <something>` — the sum functor, acting on the
-right branch only:
+notation that is `id + <something>`, the sum functor acting on the right branch
+only:
 
 ```
 def t = id + omega                              -- diag(1, e^{i pi/4})
@@ -637,9 +636,9 @@ def h = <scale by omega> (x ; s ; v ; s ; x)
 which is the Euler decomposition of §6.1 written out. Note that `x ; s ; v ; s ; x`
 is a palindrome, so for once it reads the same in either direction.
 
-The `omega` in front is a **global phase**. Physically it is undetectable — no
-measurement can distinguish `|ψ>` from `e^{iθ}|ψ>` — so many gate identities in
-the literature hold only "up to phase". Q42 tracks it exactly anyway, which is
+The `omega` in front is a **global phase**. Physically it is undetectable, since
+no measurement can distinguish `|ψ>` from `e^{iθ}|ψ>`, so many gate identities
+in the literature hold only "up to phase". Q42 tracks it exactly anyway, which is
 why `h` comes out as the textbook matrix on the nose rather than nearly:
 
 ```
@@ -675,8 +674,8 @@ The inferred type says what control requires and nothing more:
 ctrl : (a <-> a) -> (qubit x a <-> qubit x a)
 ```
 
-the target must be an *endo*-relation — same type in and out — because both
-branches of `id + m` have to meet the `A + A` that `mat` produces.
+the target must be an *endo*-relation, with the same type in and out, because
+both branches of `id + m` have to meet the `A + A` that `mat` produces.
 
 And its adjoint needs no definition. `ctrl! m` is `ctrl m!`, which in physics is
 `(Ctrl U)† = Ctrl U†`: the adjoint of a controlled gate is the controlled
@@ -712,9 +711,9 @@ Several qubits are a nested pair, to the right:
 |abc>   is   (a, (b, c))
 ```
 
-You write states as kets on the command line — `"|0110>"`, or just `"0110"`.
-Only *basis* states can be written down, and that is deliberate: you make
-superpositions by applying a gate, which is the entire point.
+You write states as kets on the command line: `"|0110>"`, or just `"0110"`.
+Only *basis* states can be written down, which is deliberate. You make
+superpositions by applying a gate.
 
 ### 7.3 The commands
 
@@ -730,9 +729,9 @@ superpositions by applying a gate, which is the entire point.
 ```
 
 `matrix` and `unitary` need to know how big the space is, and the *type* is what
-tells them. Most gates are more polymorphic than "a gate on n qubits" — `x` is
-just `swapsum`, so its type is `a + b <-> b + a` — so those two commands take
-`--qubits N` to read a type at a given width:
+tells them. Most gates are more polymorphic than "a gate on n qubits": `x` is
+just `swapsum`, so its type is `a + b <-> b + a`. Those two commands therefore
+take `--qubits N`, to read a type at a given width:
 
 ```
 $ 42q matrix gates cswap --qubits 3
@@ -749,9 +748,9 @@ cswap : qubit x (qubit x qubit) <-> qubit x (qubit x qubit)
 42 applies a program to one value at a time and unions the results. Q42 cannot
 quite do that, and the reason is entanglement.
 
-A *basis* value like `(a, b)` is always a product — qubit `a` and qubit `b`,
+A *basis* value like `(a, b)` is always a product: qubit `a` and qubit `b`,
 separately. So applying `f * g` to a basis value can be done componentwise, and
-Q42's evaluator does exactly what 42's does there. Entanglement appears only
+Q42's evaluator does what 42's does there. Entanglement appears only
 when you **add** such results together, which happens when the input is already
 a superposition. So Q42 has one function 42 has no need for, `apply_vec`, which
 applies a gate to a whole state rather than to a basis value.
@@ -779,8 +778,8 @@ is all a real machine would give you. Seeing them together is the point: it show
 what measurement costs you.
 
 `--shots N` sets how many draws, and `--seed S` fixes them so a transcript stays
-true. Note that the probabilities never need renormalising — a Q42 program starts
-from a unit vector and every term is unitary, so they already sum to 1.
+true. The probabilities never need renormalising: a Q42 program starts from a
+unit vector and every term is unitary, so they already sum to 1.
 
 **Measuring only some qubits.** `--bits` takes the positions you care about,
 counting from 0, and reports the distribution over those alone:
@@ -794,9 +793,9 @@ $ 42q sample deutsch dnot "|01>" --bits 0
 The `_` marks a qubit that was not measured. That is §8.4's algorithm answering
 its question: **one query, one qubit, and the answer is certain.**
 
-**What this is and is not.** Measurement is *terminal*: it happens after the
-program, never inside it. That is not a limitation of the command but a deliberate
-line, and §9.2 explains what it costs and why.
+Measurement is *terminal*: it happens after the program, never inside it. That
+is a deliberate line rather than a limitation of the command, and §9.2 explains
+what it costs and why.
 
 ---
 
@@ -817,7 +816,7 @@ In a reversible functional language you would write Fibonacci over the natural
 numbers, `fib : nat <-> nat * nat`. Q42 cannot have that, and not for want of a
 feature.
 
-`nat` is `mu X. 1 + X` — an *infinite* type. Its space is infinite-dimensional,
+`nat` is `mu X. 1 + X`, an infinite type. Its space is infinite-dimensional,
 and Q42 has only finite-dimensional spaces. Ask for a basis and it says so:
 
 ```
@@ -826,7 +825,7 @@ infinite-dimensional spaces
 ```
 
 Underneath that is something sharper. `succ` is `inr`. On `nat`, `succ` is
-injective — no two numbers have the same successor — but **not surjective**,
+injective, since no two numbers have the same successor, but **not surjective**,
 because zero is nobody's successor. In finite dimensions that combination is
 impossible (§5.3); in infinite dimensions it is the standard example of an
 isometry that is not unitary, called the **unilateral shift**. Its adjoint is
@@ -845,9 +844,9 @@ Real quantum hardware has registers of fixed size and does arithmetic **mod
 (a, b)  |->  (b, a + b  mod 2^n)
 ```
 
-becomes a *permutation* of the `2ⁿ × 2ⁿ` basis states — the matrix `[[0,1],[1,1]]`
-has determinant `−1`, which is invertible mod `2ⁿ` — hence unitary, hence
-expressible. `q42/fib.42` does it on two 2-bit registers:
+becomes a *permutation* of the `2ⁿ × 2ⁿ` basis states. The matrix `[[0,1],[1,1]]`
+has determinant `−1`, which is invertible mod `2ⁿ`, so the permutation is
+unitary and therefore expressible. `q42/fib.42` does it on two 2-bit registers:
 
 ```
 def add4     = cc03 ; cx02 ; cx13              -- (x,y) -> (x, x+y mod 4)
@@ -857,7 +856,7 @@ def fib      = swapregs ; add4
 
 `add4` is three gates because `y += x` is "if `x₀` then `y += 1`" followed by
 "if `x₁` then `y += 2`", and a two-bit increment is `CNOT` then `X`. `swapregs`
-is three *primitives* and no gates at all — reassociate so the halves are
+is three *primitives* and no gates at all: reassociate so the halves are
 adjacent, swap them, reassociate back.
 
 Iterating gives the Fibonacci numbers mod 4:
@@ -869,8 +868,8 @@ step  5: register = (1, 0)     F_5  = 5,  mod 4 = 1
 step 10: register = (3, 1)     F_10 = 55, mod 4 = 3
 ```
 
-and since it is unitary, running it backwards recovers the seed *exactly* — not
-"a set containing the seed", which is what 42 would give you. Its order is 6,
+and since it is unitary, running it backwards recovers the seed exactly, rather
+than "a set containing the seed", which is what 42 would give you. Its order is 6,
 which is the Pisano period of 4.
 
 ### 8.3 The quantum part
@@ -888,16 +887,16 @@ thing still inverts exactly.
 
 ### 8.4 Deutsch's algorithm, and what Q42 shows you
 
-Fibonacci is arithmetic. Here is a real quantum algorithm — the smallest one
-there is, and the first ever found to beat its classical rival.
+Fibonacci is arithmetic. Deutsch's algorithm is a real quantum algorithm, the
+smallest one there is and the first found to beat its classical rival.
 
-**The problem.** You are handed a black box computing an unknown one-bit function
-`f`, and asked one question: is `f` **constant** (`f(0) = f(1)`) or **balanced**
-(`f(0) ≠ f(1)`)? Classically you must evaluate `f` twice — one evaluation tells
-you nothing about the other. Deutsch's algorithm answers after **one**.
+The problem: you are handed a black box computing an unknown one-bit function
+`f`, and asked whether `f` is **constant** (`f(0) = f(1)`) or **balanced**
+(`f(0) ≠ f(1)`). Classically you must evaluate `f` twice, since one evaluation
+tells you nothing about the other. Deutsch's algorithm answers after one.
 
-**The oracle.** A black box has to be reversible like everything else, so it
-takes the standard shape `(x, y) ↦ (x, y XOR f(x))` — the Toffoli trick from §2,
+The oracle has to be reversible like everything else, so it takes the standard
+shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §2,
 which is also `mul` keeping its multiplier in `MANUAL.md` §11.3. There are only
 four one-bit functions, so `q42/deutsch.42` writes all four out:
 
@@ -944,7 +943,7 @@ But the *state* is the more instructive output, and worth pausing on. A device
 hands you one bit and hides the mechanism. Q42 shows you the amplitudes, so you
 can see the second qubit's `+/-0.707107` carrying the phase the oracle deposited
 and the final Hadamard converts into the answer. For understanding *why* an
-algorithm works — as opposed to what it returns — that is worth more than a
+algorithm works, as opposed to what it returns, that is worth more than a
 sample. §9.1 returns to this.
 
 ### 8.5 Teleportation, without measuring in the middle
@@ -958,7 +957,7 @@ It is not, and the reason is a theorem. The **principle of deferred measurement*
 (Nielsen & Chuang §4.4) says that any circuit with mid-circuit measurements and
 classically-controlled gates can be rewritten with every measurement moved to the
 *end*, each classical control replaced by a **quantum** control. Q42 has quantum
-control — it is `ctrl` — so the rewritten circuit is an ordinary Q42 term.
+control, namely `ctrl`, so the rewritten circuit is an ordinary Q42 term.
 
 `q42/teleport.42` is that circuit, and the deferral is visible in one line:
 
@@ -979,9 +978,8 @@ $ 42q unitary teleport tele --qubits 3
   [ok ] tele ; tele! = id on 8 dimension(s)
 ```
 
-**Checking that it works.** Sending `|0>` proves little, so prepare a real state
-on `q0` — a superposition *with a phase* — teleport it, and apply the preparing
-gate's inverse to `q2`. If the state genuinely arrived, amplitudes and phase
+Sending `|0>` proves little, so prepare a real state on `q0`, a superposition
+with a phase, teleport it, and apply the preparing gate's inverse to `q2`. If the state genuinely arrived, amplitudes and phase
 intact, `q2` must return to `|0>` with certainty:
 
 ```
@@ -989,7 +987,7 @@ $ 42q sample teleport check "|000>" --bits 2
     |__0>  100.0%    100  ##############################
 ```
 
-It does. And the deferred measurements have not vanished — they are the other two
+It does. The deferred measurements have not vanished: they are the other two
 qubits, which end up spread evenly over all four outcomes, exactly the four
 results Alice would have read:
 
@@ -1015,37 +1013,36 @@ That is the strongest single argument in §9.2 for leaving the language alone.
 A fair reading of a list of limitations is "then what use is it?", so the useful
 part first.
 
-**It expresses every quantum circuit.** This is the thing most easily missed.
-`omega` and `v` generate Clifford+T, which is the standard universal gate set —
-any unitary can be approximated to any precision you like, and Clifford+T
-circuits are represented exactly. Grover's diffusion operator, Shor's modular
-arithmetic, the quantum Fourier transform: all writable. **The gap is not
-expressiveness.** §8.4 writes out Deutsch's algorithm in six lines.
+**Expressiveness.** `omega` and `v` generate Clifford+T, the standard universal
+gate set, so any unitary can be approximated to any precision you like and
+Clifford+T circuits are represented exactly. Grover's diffusion operator, Shor's
+modular arithmetic, the quantum Fourier transform: all writable. §8.4 writes out
+Deutsch's algorithm in six lines.
 
-**It checks gate identities mechanically.** `√Π`'s contribution is an *equational
-theory* — a set of rules for proving two circuits equal — and Q42 makes it
+**Gate identities, checked mechanically.** `√Π`'s contribution is an *equational
+theory*, a set of rules for proving two circuits equal, and Q42 makes it
 executable. `42q law` checks that `!` really is the adjoint; `42q unitary` checks
 `t ; t! = id` across a whole library; `42q matrix` prints the matrix so you can
 compare. The three axioms, `H ; H = id`, `H ; X ; H = Z`, `S ; S = Z`,
-`(Ctrl U)† = Ctrl U†` — all of these are things you can *run*, and each one is a
-test in `tests/test_q42.py`.
+`(Ctrl U)† = Ctrl U†`: all of these can be run, and each is a test in
+`tests/test_q42.py`.
 
-**It shows you amplitudes *and* samples, side by side.** `42q sample` measures a
-result as a device would, and prints the exact Born probabilities next to the
-draw (§7.5). So Deutsch's question gets an answer — `|1_> 100.0%` — while the
-state that produced it stays visible: `-0.707107|10> + 0.707107|11>`, from which
-you can see *why* the first qubit is certainly `|1>`. A real machine can only
-give you the right-hand column. For learning a circuit, or debugging one, having
-both is worth more than either.
+**Amplitudes and samples, side by side.** `42q sample` measures a result as a
+device would, and prints the exact Born probabilities next to the draw (§7.5).
+So Deutsch's question gets an answer, `|1_> 100.0%`, while the state that
+produced it stays visible: `-0.707107|10> + 0.707107|11>`, from which you can
+see why the first qubit is certainly `|1>`. A real machine gives you only the
+right-hand column, and for learning or debugging a circuit, having both is worth
+more than either.
 
-**Uncomputation is a term, not an inference problem.** `P ; Q ; P!` — and `P!`
-really is `P`'s inverse, so it is exact. Silq spends substantial machinery
+**Uncomputation as a term rather than an inference problem.** It is `P ; Q ; P!`,
+and `P!` really is `P`'s inverse, so it is exact. Silq spends substantial machinery
 *inferring* where to insert this; here it is three characters, because `!` is part
 of the language.
 
-**And it is evidence for a claim about language design.** `q42/` shares `Value`,
-`Term`, the parser and the whole type checker with `rel42/`, and
-`q42.dagger is rel42.dagger` — the *same function object*. The claim being
+**Evidence for a claim about language design.** `q42/` shares `Value`, `Term`,
+the parser and the whole type checker with `rel42/`, and `q42.dagger is
+rel42.dagger`, the same function object. The claim being
 demonstrated is that 42's primitives are not a curated set but a forced one, so
 that reaching quantum computing is a change of number system rather than a new
 language. Q42 existing, and being this small, is the argument.
@@ -1053,8 +1050,8 @@ language. Q42 existing, and being this small, is the argument.
 ### 9.2 Where the language stops
 
 Q42 is a language for the **unitary layer** of quantum computing, with
-measurement at its edge. That single sentence is the boundary, and the boundary
-is chosen rather than unfinished — it is what buys every property in §9.1.
+measurement at its edge. That sentence is the boundary, and it is chosen rather
+than unfinished: it is what buys every property in §9.1.
 
 **Inside the line.** Every term denotes a unitary, so `!` is defined on every
 term with no side conditions, `t ; t! = id` holds by construction, and
@@ -1065,7 +1062,7 @@ exactly why it costs the language nothing.
 
 **Outside the line: measuring half way through, branching on the result, and
 carrying on.** Q42 has no such term and is not going to acquire one. Measurement
-is not unitary — it is not linear, not invertible and not deterministic — so a
+is not unitary, being neither linear, invertible nor deterministic, so a
 `measure` term would be one for which `!` has no answer, and every property in
 the paragraph above would become conditional: unitary *except* where a
 measurement appears. The literature reaches the same conclusion and treats
@@ -1082,12 +1079,12 @@ that it is only applied to total maps".
 That is the formal content of the line drawn here. Adding measurement is not an
 addition to a unitary language; it is leaving the unitary category. Q42 stays.
 
-**And the line costs no expressiveness.** This is the part that settles it. The
-**principle of deferred measurement** (Nielsen & Chuang §4.4) is a theorem: any
+The line also costs no expressiveness. The **principle of deferred
+measurement** (Nielsen & Chuang §4.4) is a theorem: any
 circuit that measures mid-way and applies gates conditioned on the classical
 outcome can be rewritten with the measurements moved to the end and the control
-made quantum — which is what `ctrl` does. So the missing construct is a
-convenience of execution, not a source of computational power.
+made quantum, which is what `ctrl` does. So the missing construct is a
+convenience of execution rather than a source of computational power.
 
 `q42/teleport.42` is that theorem made concrete. Quantum teleportation is the
 example usually offered as *the* reason a language needs mid-circuit
@@ -1132,11 +1129,11 @@ It does **not** distinguish Q42 from other quantum languages. Every classical
 simulator of quantum circuits pays this, Qiskit's included; it is a fact about
 simulating quantum mechanics on a classical machine, not about this
 implementation. A quantum *language* is not in competition with quantum
-*hardware* — Q42's peers are Silq, Π and Quipper, not a superconducting chip.
+*hardware*: Q42's peers are Silq, Π and Quipper, not a superconducting chip.
 
 There is one genuine nuance. By the **Gottesman–Knill theorem**, circuits built
 only from Clifford gates (`h`, `s`, `cx`) are efficiently simulable classically,
-despite looking thoroughly quantum — entanglement and interference included. So
+despite looking thoroughly quantum, entanglement and interference included. So
 "quantum-looking" and "hard to simulate" are not the same property. It is `t`
 that takes a circuit beyond Clifford, and Q42 has `t`.
 
@@ -1151,10 +1148,10 @@ definition out as OpenQASM 3, which every mainstream toolchain reads. This
 section says why the language sits well for that, what the emitter does, and
 where the real limit is.
 
-**Why it is well placed.** A Q42 program already *is* a unitary circuit in a
-fault-tolerant gate set: `omega` and `v` generate Clifford+T, which is what
-surface-code architectures target and what T-count — the standard cost measure
-for such machines — is counted in. Nothing needs translating into another model of
+The language is well placed for it. A Q42 program already is a unitary circuit
+in a fault-tolerant gate set: `omega` and `v` generate Clifford+T, which is what
+surface-code architectures target, and what T-count, the standard cost measure
+for such machines, is counted in. Nothing needs translating into another model of
 computation.
 
 Better, most of the language costs nothing to execute. Classifying each primitive
@@ -1172,7 +1169,7 @@ Only **three of the ten** are physical operations, and they are exactly X, phase
 and √X. Everything else is the semiring plumbing of §1.5, and plumbing is
 compile-time bookkeeping: `assocprod` regroups `a × (b × c)` into `(a × b) × c`
 and the bit string is untouched, while `unitsum` removes a tag whose other branch
-is uninhabited — `0 + qubit` and `qubit` are both two-dimensional, so there was
+is uninhabited, `0 + qubit` and `qubit` being both two-dimensional, so there was
 never a bit there to move.
 
 Inlining the library bears this out:
@@ -1188,9 +1185,9 @@ A Toffoli is fourteen structural steps and **one** real gate. Every `ctrl` is
 `dist`-plumbing wrapped round a single operation, which is a direct consequence of
 the primitives being the semiring isomorphisms rather than a hand-picked set.
 
-**Which types are qubit registers.** Not all of them: `a + b` has dimension
-`dim(a) + dim(b)`, which need not be a power of two — `1 + (1 + 1)` is a
-*qutrit*, a perfectly good three-dimensional space with no qubit realisation.
+Not every type is a qubit register. `a + b` has dimension `dim(a) + dim(b)`,
+which need not be a power of two: `1 + (1 + 1)` is a *qutrit*, a perfectly good
+three-dimensional space with no qubit realisation.
 Q42 itself does not care, because it evaluates in any finite dimension; a
 compiler would, and the condition it needs is not "is the dimension a power of
 two" but a recursive width:
@@ -1204,16 +1201,16 @@ width(a + b)  = 1 + width(a),  provided width(a) = width(b)
 a sum is a register exactly when both branches are the same width, and then the
 tag is one qubit and the branches share the rest. That correctly accepts
 `(1+1) + (1+1)` as two qubits and rejects `1 + (1+1)`. It is `q42.types.width`,
-and it returns `None` for the types that are not registers — `0`, a variable
-and a `mu` among them, the last because Q42 has no infinite-dimensional spaces.
+and it returns `None` for the types that are not registers, among them `0`, a
+variable and a `mu`, the last because Q42 has no infinite-dimensional spaces.
 
 In practice it does not bite: **every non-combinator definition in every Q42
 library is register-shaped**, across `gates.42`, `fib.42`, `deutsch.42`,
 `teleport.42`, `grover.42`, `gsum.42`, `qft3.42` and `classical.42`, with none
 rejected. Programs people actually write in this language are already circuits.
 
-**Measurement.** *Terminal* measurement is part of the tooling today (§7.5) — run
-the unitary, then sample the result — and it is the Born rule and a random
+**Measurement.** *Terminal* measurement is part of the tooling today (§7.5):
+run the unitary, then sample the result. It is the Born rule and a random
 number, nothing more. It covers every algorithm whose last step is a single
 measurement: Deutsch, Bernstein–Vazirani, Grover, and the quantum subroutine of
 Shor.
@@ -1231,15 +1228,15 @@ and what a compiler could do about it, is the last paragraph below.
 
 **An emitter, not a backend.** Q42 writes circuits; it does not drive machines,
 and the distinction is smaller than "no backend" makes it sound. The hard parts
-of getting a circuit onto a device — **routing**, because real hardware cannot
-apply a two-qubit gate to an arbitrary pair, and **rotation synthesis**, because
-`omega` is only an *eighth* root of unity so finer angles must be approximated
-into many T gates — are commodity. Any existing quantum compiler does them for
+of getting a circuit onto a device are commodity. Those are **routing**, because
+real hardware cannot apply a two-qubit gate to an arbitrary pair, and **rotation
+synthesis**, because `omega` is only an eighth root of unity, so finer angles
+must be approximated into many T gates. Any existing quantum compiler does them for
 anything handed over as OpenQASM 3 or QIR. They are not Q42's to write.
 
-What is genuinely Q42's is the lowering, and it is short — two parts:
+What is Q42's own is the lowering, and it is short. Two parts:
 
-- **wire assignment** — which physical qubit is which position in the nested pair,
+- **wire assignment**: which physical qubit is which position in the nested pair,
   the width rule above read constructively, plus tracking `swapprod` as a
   permutation carried to the end so that it costs nothing instead of three CNOTs.
   That is exactly what `q42/emit.py` does, and it is why **seven of the ten
@@ -1247,34 +1244,35 @@ What is genuinely Q42's is the lowering, and it is short — two parts:
   re-bracket, `swapprod` is carried in the layout, and `assocsum` and `unitsum`
   cannot occur at a register type in the first place. Only `swapsum`, `omega` and
   `v` produce output.
-- **depth bounding** — a circuit is finite, so a recursive definition must unroll
+- **depth bounding**: a circuit is finite, so a recursive definition must unroll
   to a fixed depth, and the emitter does not check that it does; it stops on a
   depth budget rather than proving termination.
 
 Control needs no rule of its own, which is worth knowing: at a type `a + b` the
 first qubit is the tag, and `f + g` means f under tag 0 and g under tag 1. From
-that alone, `cx`, `ccx` and the Fredkin come out as single gates, and `t = id + omega` derives as the T gate — a controlled *global* phase
-being a relative one. The emitter never mentions `ctrl`, which is right, `ctrl`
+that alone, `cx`, `ccx` and the Fredkin come out as single gates, and
+`t = id + omega` derives as the T gate, a controlled global phase being a
+relative one. The emitter never mentions `ctrl`, which is right, `ctrl`
 being a library definition rather than a language feature.
 
 Every definition in every Q42 library emits, and each is checked against Q42's own
 matrix by a simulator in `tools/qasm_sim.py` that deliberately shares no code with
-the evaluator. What comes out is unoptimised — `z` leaves as four eighth-turn
-phases — because correctness came first and the downstream transpiler folds most
-of it.
+the evaluator. What comes out is unoptimised, with `z` leaving as four
+eighth-turn phases, because correctness came first and the downstream transpiler
+folds most of it.
 
 There is also one piece that is not commodity, because no previous language
 needed it. Q42 defers every measurement (§9.2), and on hardware deferral is not
 free: it spends coherence time and forbids reusing a qubit. So a serious lowering
-would want to run the deferred measurement principle *backwards* — recognise a
+would want to run the deferred measurement principle backwards: recognise a
 `ctrl` whose control qubit is never touched again, and emit measure-and-branch
 where the term says quantum control. That is a rewrite over a program Q42 already
 expresses, not a feature the language lacks.
 
-**The summary.** Q42 is a plausible front end and not a plausible toolchain, and
-that is the shape to aim at rather than a shortfall. Its semantics are already the
-right ones, its plumbing is free, its own libraries all describe genuine
-registers, and the measurement it does not have is one a compiler can do without.
+In summary, Q42 is a plausible front end and not a plausible toolchain, which is
+the shape to aim at rather than a shortfall. Its semantics are the right ones,
+its plumbing is free, its libraries all describe genuine registers, and the
+measurement it does not have is one a compiler can do without.
 It translates into a circuit format the rest of the world already compiles, so
 the remaining limit is not the emitter but the gate set: `omega`
 is an eighth root of unity, so Q42 expresses only Clifford+T and is therefore
@@ -1344,7 +1342,7 @@ def  name m = gate                  -- m is a parameter, standing for a gate
 ```
 
 `q42/classical.42` uses only primitives that 42 *also* has, so the same file runs
-under either interpreter — which is one way to see that `omega` and `v` buy
+under either interpreter, which is one way to see that `omega` and `v` buy
 nothing classical.
 
 ### Further reading

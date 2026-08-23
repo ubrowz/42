@@ -51,14 +51,14 @@ it to two people:
 
 **Where it came from.** The *motivation* was machine translation, not reversible
 computing: the Rosetta project at Philips, and a formalism of "M-rules" for
-writing natural-language grammars that had to run in both directions — parse one
+writing natural-language grammars that had to run in both directions: parse one
 way, generate the other. When Rosetta closed the language was generalised rather
 than abandoned. Bidirectionality was the requirement first, and reversible
 computation the frame applied afterwards.
 
 That is about motivation only. The thesis was **not** working in ignorance of
 reversible computing: its bibliography cites Landauer (1961) and Bennett (1973)
-directly, alongside the program-inversion literature — Dijkstra's `EWD671`
+directly, alongside the program-inversion literature: Dijkstra's `EWD671`
 (1978), Gries (1981), Gries & van de Snepscheut (1989), Chen & Udding (1990).
 §0.4 lists what was in view.
 
@@ -112,7 +112,7 @@ and failure is emptiness, not error:
 > transformer will produce an empty set of output states.
 
 **The operators.** Sequence, union `|`, intersection `&`, repetition `{R}`, test
-`R?`, relation call — with the lineage named:
+`R?`, relation call, with the lineage named:
 
 > This enumeration defines the so called class of regular relations extended with
 > an intersection operator and a possibility to do tests. In modal logic it
@@ -130,15 +130,15 @@ of a decidable language (§2.2), and complement is deliberately absent:
 > level of complex relations is not implemented. The reason for this is the
 > requirement of finiteness of result
 
-Those are the two ingredients of `THEOREM.md`'s soundness proof — decidable
+Those are the two ingredients of `THEOREM.md`'s soundness proof: decidable
 primitives, and only positive operators over them. The 1993 reason is not the
 2026 reason: theirs is that a complement in an infinite universe is not finitely
 presentable, mine is that it leaves Σ⁰₁. Convergent instinct, different argument.
 
 ### 0.2 What is not there
 
-**The point-free core.** 4₂ is imperative, and says so. It has variables —
-topics, state variables, match variables — and its atomic construct is
+**The point-free core.** 4₂ is imperative, and says so. It has variables
+(topics, state variables, match variables) and its atomic construct is
 assignment-shaped, `topic := t₁ ! t₂`, with the two terms read in opposite
 orders depending on direction. There are no `0, 1, +, ×` primitives, no semiring
 isomorphisms, and nothing resembling a rig groupoid. §6's claim that 42's
@@ -169,8 +169,8 @@ and returning the copy on success:
 **42 is the language in which every operator is syntactically reversible**, and
 that is what going point-free buys. There is no conditional to fail the property,
 because branching is `+`; and there is no test operator, because filtering is the
-composite `copy ; (test * id) ; unitprod` — which is `THEOREM.md`'s Lemma 5, and
-which is its own dagger for *any* test, with no restriction to symmetrical
+composite `copy ; (test * id) ; unitprod`. That is `THEOREM.md`'s Lemma 5, and
+it is its own dagger for *any* test, with no restriction to symmetrical
 programs:
 
 ```
@@ -189,9 +189,9 @@ keepd(R ()) =
 
 The expressiveness half of the 1993 question is settled by `THEOREM.md`'s Theorem
 12: filters of exactly this shape reach every r.e. subset, so nothing is lost by
-having no primitive test at all. Intersection goes the same way — 4₂'s `&` is
-`copy ; (f * g) ; copy!`, run both and insist the answers agree — so the operator
-was absorbed rather than dropped.
+having no primitive test at all. Intersection goes the same way: 4₂'s `&` is
+`copy ; (f * g) ; copy!`, running both and insisting the answers agree, so the
+operator was absorbed rather than dropped.
 
 Because `dagger` is total on every construct, `!` can be eliminated at parse time,
 which is the syntactic form of the 1993 property:
@@ -219,7 +219,7 @@ otherwise have to guess at: what a designer in 1993 could see. Five groups.
 - **Relational and modal semantics.** Pratt (1980), Harel (1984), Plotkin's
   powerdomain construction (1976). §0.1's operators come from here.
 - **Denotational semantics as a craft.** Stoy (1977), Gordon (1979), Schmidt
-  (1986), Watt (1991) — four textbooks, which is what a thesis with two chapters
+  (1986), Watt (1991): four textbooks, which is what a thesis with two chapters
   of formal semantics in it looks like from the outside.
 - **Rosetta and compilers.** Landsbergen's *M-Rules* (1985) and *Control
   Expressions* (1986), Leermakers (1986), Appelo & Landsbergen (1986), Odijk
@@ -228,7 +228,7 @@ otherwise have to guess at: what a designer in 1993 could see. Five groups.
 Notably absent: Lutz & Derby's Janus (1986). It was invisible until Yokoyama &
 Glück revived it in 2007, and its absence here is direct evidence of that.
 
-And one entry that is not a source but a plan — the last one alphabetically
+And one entry that is not a source but a plan, the last one alphabetically
 before Schmidt:
 
 > Rous, J. and Jansen, P.G.M., *Reversible Programming in 4₂*, forthcoming.
@@ -325,7 +325,7 @@ observation.** Inv, §2:
 > components are equal. That explains the observation that to "undo" a
 > duplication, we have to perform an equality test.
 
-42's primitive table: *"`copy` — the diagonal `a → a×a`; its converse is the
+42's primitive table: *"`copy`, the diagonal `a → a×a`; its converse is the
 partial 'these agree'."* The fact and its framing are Inv's, from 2004.
 
 Three languages solve it three ways, and the third is the most ingenious. Inv
@@ -344,30 +344,30 @@ of its result:
 > result tuple whether the arguments were equal or not; and if the input is a
 > unary tuple, the result is a duplication of the value.
 
-RFUN pays no partiality at all here — where 42 pays it in `copy!` and Inv in
+RFUN pays no partiality at all here, where 42 pays it in `copy!` and Inv in
 `eq`. That is worth recording as a case where the injective setting produces the
-*neater* construct, not the clumsier one.
+neater construct rather than the clumsier one.
 
 **Where 42 differs from Inv.** Three differences. The first two are trade-offs
 in expressiveness; the third is the one §6 claims as new.
 
 1. *Inv restricts to injective functions; 42 does not.* Inv's whole discipline is
-   "injectivity by construction" — the problematic constructs of its ambient
+   "injectivity by construction": the problematic constructs of its ambient
    language `Fun` (constant functions, `fst`, `snd`, the split) are replaced by
    more structured ones. 42 admits the whole of Rel and takes the many-valued
    dagger as a feature.
 2. *Inv's `dup`/`eq` are parameterised families; 42's `copy` is one primitive.*
    Inv's `dup :: (Fa → a) → Fa → (Fa × a)` takes a selector argument, and Inv
    also has a primitive `neq`. In 42 selection is done by composition and there
-   is no inequality test at all — simpler, and less expressive.
+   is no inequality test at all, which is simpler and less expressive.
 3. **Inv's primitive set is chosen; 42's is forced.** Inv has `swap`, `assocr`,
    `dup`, `eq`, `neq`, and constructors `succ | cons`; `assocl` is derived rather
    than primitive. Its core carries no coproduct, no `dist` and no unit
-   isomorphisms — sum types arrive only in §6, as `inl`/`inr`/`unit`/`in`
+   isomorphisms. Sum types arrive only in §6, as `inl`/`inr`/`unit`/`in`
    introduced for the history-logging translation, with the core deferring them
    (*"some more operators will be introduced in sections to come to deal with the
    sum type, trees, etc."*). 42's primitives are exactly the isomorphisms
-   witnessing the commutative-semiring structure of `(0, 1, +, ×)` — which is to
+   witnessing the commutative-semiring structure of `(0, 1, +, ×)`, which is to
    say a *rig groupoid presentation*, which is to say Π. That is what makes the
    primitive table forced rather than curated, and it is what makes the Q42
    extension of §5 possible: Inv cannot be taken to ℂ by the same route, because
@@ -403,7 +403,7 @@ Its typing rule for a case-expression carries two premises beyond the types:
 ```
 
 with orthogonality defined as `p₁ ⊥ p₂ ⇔ σ(p₁) ≠ σ(p₂)` for every substitution
-`σ`, decided by unification — the type system Mu et al. left unexplored.
+`σ`, decided by unification: the type system Mu et al. left unexplored.
 
 Theseus **[read]** — *the same condition, on both sides, as the language's only
 rule*. §3.1 states it as the single constraint a programmer must maintain:
@@ -419,7 +419,7 @@ exhaustivity dropped*. Non-overlap is kept and made formal as an orthogonality
 relation `v₁ ⊥ v₂` decided structurally, appearing as two premises `∀i ≠ j, vᵢ ⊥
 vⱼ` and `∀i ≠ j, eᵢ ⊥ eⱼ` in the typing rule for an iso; exhaustivity goes,
 deliberately, "*in order to allow non-terminating behaviour*". So within one
-lineage the condition survives on both sides while totality is given up — which
+lineage the condition survives on both sides while totality is given up, which
 is a useful data point for how load-bearing each half is.
 
 RFUN **[read]** — *the same condition, relaxed into an ordering*. Thomsen &
@@ -438,8 +438,8 @@ and RFUN's answer is not to forbid overlap but to order it:
 > branch may match several terminating left-expressions, but it must never match
 > a branch that textually precedes it.
 
-which is a genuinely third option — neither assumed, nor statically decided, but
-made harmless by fixing which branch wins. Note the connection RFUN draws and
+which is a third option: neither assumed nor statically decided, but made
+harmless by fixing which branch wins. Note the connection RFUN draws and
 Theseus draws independently: this is *if-then-else*, and it is the same construct
 the 1993 thesis found violating its own definition of syntactic reversibility
 (§0.3). Four languages, one conditional.
@@ -455,7 +455,7 @@ Janus **[read]** — *the same condition, discharged by the programmer*. Yokoyam
 
 The loop is symmetric, and the cost is stated as plainly: "*If the assertion does
 not have the required value, execution of the loop is undefined.*" So Janus does
-not decide the condition, nor assume it, nor order it — it obliges the programmer
+not decide the condition, nor assume it, nor order it. It obliges the programmer
 to supply a predicate that makes backward flow deterministic, and undefines the
 program when the predicate is wrong.
 
@@ -482,7 +482,7 @@ Stated as a progression, and now datable: **dropped (4₂, 1993) → assumed (In
 2004) → made the only rule (Theseus, 2014) → kept but shorn of exhaustivity
 (Chardonnet et al., 2024) → checked statically (PisoLang, 2026)**. That is not the order of a fix
 being found; it is three different answers, and the earliest is the one that
-declines the question. §0 gives the 1993 evidence — the defining law is stated
+declines the question. §0 gives the 1993 evidence: the defining law is stated
 there with the `∈` already in it, and nondeterminism is called a consequence to
 be accepted rather than a condition to be excluded.
 
@@ -510,7 +510,7 @@ Its `add` is 42's padding trick, arrived at independently:
 > The function `add` … takes two natural numbers `m` and `n` and returns a pair
 > `(m + n, n)` **in order to make the function injective**.
 
-Compare `README.md` on `mul : (m, n) → (n, m×n)` — *"keeping the multiplier costs
+Compare `README.md` on `mul : (m, n) → (n, m×n)`: *"keeping the multiplier costs
 one component and buys injectivity"*. Same move, same reason.
 
 **Where 42's generality earns something.** Beyond the disjointness condition of
@@ -518,7 +518,7 @@ one component and buys injectivity"*. Same move, same reason.
 
 - *No padding for `add`.* PisoLang's `add : nat*nat ↔ nat*nat` must keep `n`;
   42's `add` returns the sum alone, because `add!` is permitted to enumerate all
-  six preimages of 5. This does not generalise as far as it first appears —
+  six preimages of 5. This does not generalise as far as it first appears.
   PisoLang's `len : 'a list ↔ nat * 'a list` must return the list, and so must
   any 42 version, because forgetting the elements needs `discard`, which 42
   omits. The advantage is real for `add` and absent for `len`.
@@ -533,8 +533,8 @@ one component and buys injectivity"*. Same move, same reason.
   duplication. 42 has no variables, so there is no linear discipline to impose
   and no exception to carve.
 - *`copy` and `copy!` are one primitive and its dagger.* PisoLang needs two
-  separate syntactic affordances — repeated variables in *expressions*
-  (duplication) and repeated variables in *patterns* (equality constraints) —
+  separate syntactic affordances, repeated variables in *expressions*
+  (duplication) and repeated variables in *patterns* (equality constraints),
   and remarks that the latter *"is hard to express, despite being the inverse of
   duplication"*. In 42 that inverse relationship is structural. This is the same
   point Inv makes about `dup`/`eq`; PisoLang is where it costs something.
@@ -551,13 +551,13 @@ one component and buys injectivity"*. Same move, same reason.
   a relation, never another combinator, where PisoLang's `T₁ → T₂` nests freely.
   And 42's inversion convention differs: PisoLang fixes variables under
   inversion (`ϕ⁻¹ := ϕ`) and inverts an application's argument, while 42 flips
-  the variable and leaves the argument alone — a matched pair either way, but 42
-  needs its version because `!` is eliminated at parse time, so a variable
+  the variable and leaves the argument alone. Either way it is a matched pair,
+  but 42 needs its version because `!` is eliminated at parse time, so a variable
   without its own flag would make `m!` and `m` parse identically.
 
   **On `map`, this document was wrong, and the truth is more specific.** It is
   not that a parameter cannot be applied to a list. `map` is *writable and
-  well-typed* in 42 — a list is already a sum, so the sum functor does the case
+  well-typed* in 42: a list is already a sum, so the sum functor does the case
   split with no plumbing at all:
 
   ```
@@ -571,8 +571,8 @@ one component and buys injectivity"*. Same move, same reason.
 
   What fails is *evaluation*, and for a reason that is about the elimination
   strategy rather than about types or arity. Parameterised definitions are
-  removed by substitution before evaluation — that is what `expand` does, and
-  why neither evaluator has a case for an application — and a **recursive**
+  removed by substitution before evaluation, which is what `expand` does and why
+  neither evaluator has a case for an application, and a **recursive**
   combinator has no finite expansion. Running `map not` reports `application
   depth exhausted; is a combinator recursive?`, and raising the limit does not
   help, because the divergence is in the expansion and so independent of the
@@ -583,7 +583,7 @@ one component and buys injectivity"*. Same move, same reason.
   rather than expanding it away would close this, and nothing in the type system
   stands in the way.
 - **Nominal ADTs dissolve the `0`/`[]` collision.** `type nat = Z | S of nat` and
-  `type 'a list = Nil | Cons of 'a * 'a list` — because `Z` and `Nil` are
+  `type 'a list = Nil | Cons of 'a * 'a list`. Because `Z` and `Nil` are
   different constructors, the ambiguity that 42 addresses with type-directed
   printing cannot arise.
 - **Turing-completeness demonstrated**, via a reversible Turing machine encoding.
@@ -622,7 +622,8 @@ closed a loop.
 
 A second line descends from Theseus. James & Sabry's **Π** **[read]** is a
 reversible language whose terms are the isomorphisms witnessing a
-commutative-semiring structure — 42's primitive table, arrived at independently.
+commutative-semiring structure, which is 42's primitive table, arrived at
+independently.
 Two things need saying precisely, because the loose version of this claim is
 wrong.
 
@@ -668,7 +669,7 @@ isomorphisms, names the two identities that are *not* among them:
 
 and 42's two extra primitives are witnesses for precisely the first of these and
 its dual: `copy : a ↔ a × a` and `join : a + a ↔ a`. What is more, Π *does*
-recover both — but only in the arrow metalanguage `MLΠ`, as **information
+recover both, but only in the arrow metalanguage `MLΠ`, as **information
 effects** built from `create` and `erase`. `clone` is Lemma 7.2 there; `join` is
 defined as
 
@@ -678,7 +679,7 @@ defined as
 
 So the position is sharp, and it is the same one §3 reaches from the other
 direction: **what Π must treat as an effect, requiring a type-and-effect system
-and a metalanguage, 42 has as a primitive** — because in Rel those two morphisms
+and a metalanguage, 42 has as a primitive**, because in Rel those two morphisms
 are morphisms, and the price is paid once, in the `∈` of the defining law, rather
 than per-use in an effect system.
 
@@ -705,7 +706,7 @@ interleave, layers a second arrow introducing a state `zero` and an effect
 `assertZero`, and then **imposes the complementarity equation**. The payoff is
 their canonicity theorem: satisfying the classical-structure laws, the execution
 laws and complementarity is *enough* to force computational universality. The
-argument is pretty — `arr_φ swap+` must be involutive, being the lifting of a
+The argument is short: `arr_φ swap+` must be involutive, being the lifting of a
 symmetry, which rules out `SH` and leaves Hadamard.
 
 **Q42 changes the semiring.** One copy, no arrows, no imposed equation:
@@ -713,16 +714,16 @@ reinterpret the same terms over ℂ instead of 𝔹 and adjoin √Π's two gener
 
 Three consequences of the difference are worth recording.
 
-- **Different categories.** QuantumΠ's model is one of *partial* maps —
-  the paper says so explicitly, "the model of QuantumΠ
-  is one of partial maps (whereas the model of UΠ𝑎 is one of total maps)" — and Fig. 1 lands it in
+- **Different categories.** QuantumΠ's model is one of *partial* maps. The paper
+  says so explicitly, "the model of QuantumΠ
+  is one of partial maps (whereas the model of UΠ𝑎 is one of total maps)", and Fig. 1 lands it in
   **Contraction**, finite-dimensional Hilbert spaces and linear contractions. Q42
   stays in **Unitary**. That is the formal content of Q42's refusal to add
   measurement as a term (QMANUAL §9.2): the moment `zero`/`assertZero` exist, you
   have left the unitary category.
 - **Both lose the additive structure, for different reasons.** In QuantumΠ, "the
   semantics of the additive structure is however not lifted to the amalgamated
-  language" — the arrow layer keeps only `×`. In Q42, `|` and `^` go because
+  language", so the arrow layer keeps only `×`. In Q42, `|` and `^` go because
   their meaning requires addition to be idempotent. Same casualty, unrelated
   causes, which is a suggestive coincidence rather than a theorem.
 - **Measurement is derived there, absent here.** QuantumΠ obtains it by layering
@@ -735,13 +736,13 @@ One item of their future work is directly Q42's territory: extending QuantumΠ
 from finite Π to `Πo` with a trace operator, which they judge "would require
 answering fundamental open questions about the nature of infinite-dimensional
 quantum computation". Q42 meets the same wall from the other side and gets a
-sharper, more elementary statement of it — closure is a least fixed point wanting
+sharper, more elementary statement of it: closure is a least fixed point wanting
 `1 + 1 = 1`, so it cannot survive the move to ℂ at all.
 
 ### 5.3 Control and the rig structure are the same thing
 
 *One rig to control them all* **[read]** answers a question this document had
-been posing loosely — whether Q42's `ctrl` should be primitive or derived — and
+been posing loosely, whether Q42's `ctrl` should be primitive or derived, and
 the answer is that the question dissolves. Heunen, Kaarsgaard and Lemonnier give
 **seven** equations for control (not eight, as this document previously said from
 its abstract), and prove that adding them to a prop of base circuits constructs
@@ -756,7 +757,7 @@ introduction:
 
 So control and rig structure are interderivable, and 42 and their construction are
 the two directions of one correspondence. **42 takes the rig structure as
-primitive — that is exactly its primitive table — and derives `ctrl` from `dist`
+primitive, which is what its primitive table is, and derives `ctrl` from `dist`
 in one parameterised definition. They take control as the added theory and derive
 the rig.** Neither is more fundamental; what differs is which end you build from.
 
@@ -766,7 +767,7 @@ Two consequences are worth carrying into Q42's paper.
 `ω : 0 → 0`, `V : 1 → 1` and `S : 1 → 1` with `ω⁸ = id`, `V⁴ = id` and
 `SVS = VSV`, forming its controlled prop and quotienting by `S = ω²`, they obtain
 soundness and completeness for Clifford, ≤2-qubit Clifford+T and Gaussian
-Clifford+T — the same three fragments √Π covers, and the same generators `q42/`
+Clifford+T: the same three fragments √Π covers, and the same generators `q42/`
 implements. Their proof notes that √Π's results needed only `ω⁸ = id`,
 `V² = γ₁,₁` and `SVS = VSV`, "as well as the axioms of rig categories, which are
 implied by the control equations". Q42 has those axioms as primitives, so it sits
@@ -783,12 +784,12 @@ receives syntax, and expands. The second-order restriction that §7 records as a
 *limitation* is what keeps `ctrl` on the right side of a no-go theorem.
 
 Their future work also touches Q42's: the control equations "implicitly assume
-only two possibilities on each wire" and they ask about qutrits — which is
+only two possibilities on each wire" and they ask about qutrits, which is
 QMANUAL §9.4's register-width question from the other direction, since `1 + (1 +
 1)` is a perfectly good Q42 type and a perfectly bad qubit register.
 
-Note that **Lemonnier** appears on both branches — as an author of PisoLang's
-semantic basis and of *One rig* — so the two lines are not as separate as their
+Note that **Lemonnier** appears on both branches, as an author of PisoLang's
+semantic basis and of *One rig*, so the two lines are not as separate as their
 citation graphs suggest.
 
 PisoLang has no quantum content, so §4's comparison and this section concern
@@ -812,8 +813,8 @@ All of this is Inv (2004), and some is older.
    is *simpler* rather than more complicated: `dagger` is total, needs no side
    conditions, and satisfies `dagger(dagger(t)) == t` syntactically. Be careful
    what is being claimed. Dropping the disjointness condition is **1993**, not
-   new here, and neither is the property itself — it has been named
-   independently at least three times, which is itself worth recording:
+   new here, and neither is the property itself, which has been named
+   independently at least three times:
 
    | | name | formulation |
    |---|---|---|
@@ -822,7 +823,7 @@ All of this is Inv (2004), and some is older.
    | Theseus, 2014 | *syntactic reversibility* | the inverse reading coincides with the inverse meaning |
 
    All three give sequential composition as the worked example and all three get
-   the contravariant law — Janus as `(s₁ s₂)˘ ∼ s̆₂ s̆₁`, 4₂ and Theseus as the
+   the contravariant law: Janus as `(s₁ s₂)˘ ∼ s̆₂ s̆₁`, 4₂ and Theseus as the
    displayed equation. Where they differ is what it costs to hold it everywhere.
    Janus holds it, and pays with a programmer-supplied assertion on every
    conditional, undefining the program when the assertion is wrong. Theseus does
@@ -830,7 +831,7 @@ All of this is Inv (2004), and some is older.
    is left open. 4₂ does not hold it either, for the same reason.
    What is new is holding the property everywhere **without** either price:
    no assertion for the programmer to discharge, and no construct excluded.
-   Going point-free is the repair — there is no conditional, because branching is
+   Going point-free is the repair. There is no conditional, because branching is
    `+`, and there is no test operator, because filtering is a composite of
    `copy`. The README states the consequence as *"dropping restrictions is what
    buys the elegance here"*. The claim is about metatheory, not expressive
@@ -842,9 +843,9 @@ All of this is Inv (2004), and some is older.
    right one. Unlike (1) this cannot be back-dated: 4₂ is imperative and has no
    such primitives (§0.2).
 3. **Equirecursive types inferred rather than declared**, with the occurs-check
-   failure read as a *diagnosis* — `μX. F(X)` is admitted when `F(0)` is
+   failure read as a *diagnosis*: `μX. F(X)` is admitted when `F(0)` is
    inhabited and rejected when it is not. `(inr!)^` is therefore accepted at
-   `mu X. a + X` — `nat` when `a = 1` — while `copy^` is rejected, with the
+   `mu X. a + X`, which is `nat` when `a = 1`, while `copy^` is rejected, with the
    occurs check reported as the reason: `X would have to equal X x X`. No language here does this; all of them declare their inductive types.
 4. **The quantum extension being a semiring change rather than a new language.**
    `q42/` shares `Value`, `Term`, `dagger`, the parser and the entire
@@ -864,8 +865,8 @@ underexplored and better behaved, not that the others made a mistake.
 
 - **Full higher-order.** 42's parameterised definitions are second-order only: a
   parameter denotes a relation, so a combinator cannot be passed to a combinator.
-  PisoLang and Chardonnet et al. nest arrows freely — the latter lists
-  higher-order among its contributions, "*features higher-order (unlike [7])*" —
+  PisoLang and Chardonnet et al. nest arrows freely, the latter listing
+  higher-order among its contributions, "*features higher-order (unlike [7])*",
   which is what `map` needs. See §4.
 
   **Theseus does not**, and this document said otherwise until the paper was
@@ -887,7 +888,7 @@ underexplored and better behaved, not that the others made a mistake.
   citizens*", yet "*sufficient to implement certain very useful higher-order
   functions such as (reversible) map*".
 
-  So three languages — Theseus, RFUN and 42 — independently chose second-order
+  So three languages, Theseus, RFUN and 42, independently chose second-order
   parameters and independently described them as not-first-class. The gap in this
   row is against PisoLang and Chardonnet et al. only. What separates 42 from the
   other two is narrower and is stated in §4: all three admit `map`, but 42
@@ -895,7 +896,7 @@ underexplored and better behaved, not that the others made a mistake.
   combinator, while RFUN and Theseus interpret theirs.
 - **A discipline against erasure.** THEOREM.md's Lemma 5 shows `drop : C <-> 1`
   is *definable* in 42, at every type, though it is not a primitive. Theseus
-  lists exactly that program as ill-formed — its §3.1 gives `drop_var`, in which
+  lists exactly that program as ill-formed. Its §3.1 gives `drop_var`, in which
   a bound `n` is not used on the other side, as one of four examples of invalid
   expressions, alongside `dup_var`, which uses one twice. Both are enforced by
   its second rule, that each variable "*must appear exactly once on the other
@@ -905,8 +906,9 @@ underexplored and better behaved, not that the others made a mistake.
   the language will refuse to accept.
 - **Nominal types.** Every other language here declares its inductive types
   with named constructors. 42 infers structural ones, and its `type`
-  declarations — including parameterised ones, `type list a = mu X. 1 + (a x X)`
-  — are *abbreviations* over those structural types, not new types. The
+  declarations, including parameterised ones like
+  `type list a = mu X. 1 + (a x X)`, are *abbreviations* over those structural
+  types rather than new types. The
   difference is not only notational: because `Z` and `Nil` are distinct
   constructors in PisoLang, the `0`/`[]` ambiguity that 42 handles by
   type-directed printing does not arise there at all.
@@ -915,17 +917,17 @@ underexplored and better behaved, not that the others made a mistake.
   only `copy!`, to filter on two values *agreeing*, and no way to filter on their
   differing. This
   one is less of a gap than it looks, since `neq` is there largely to establish
-  the disjointness 42 does not require (§3) — but the expressiveness difference
-  is real, and worth checking rather than assuming away.
-- **A mechanised proof of it.** 42 now has a completeness result — THEOREM.md,
-  summarised in the note below — but like PisoLang's and Inv's it is on paper.
+  the disjointness 42 does not require (§3), but the expressiveness difference
+  is real and worth checking rather than assuming away.
+- **A mechanised proof of it.** 42 has a completeness result, THEOREM.md,
+  summarised in the note below, but like PisoLang's and Inv's it is on paper.
   Nobody in this table has a machine-checked one.
 - **Verified inference.** Nobody has this, PisoLang included, so it is a
   field-wide gap rather than a deficit.
 - **Mid-circuit measurement, in Q42.** √Π excludes state preparation and
-  measurement. Q42 has terminal measurement — `42q sample` applies the Born rule
-  to the state a program produced (QMANUAL §7.5) — which required no addition to
-  the language, because it operates on the output rather than being a term.
+  measurement. Q42 has terminal measurement, in which `42q sample` applies the
+  Born rule to the state a program produced (QMANUAL §7.5), and that required no
+  addition to the language, because it operates on the output rather than being a term.
   Measurement *within* a program is absent by decision rather than omission:
   measurement is not unitary, so admitting it as a term would make `!` partial.
   By the principle of deferred measurement the exclusion costs no expressiveness,
@@ -940,25 +942,25 @@ languages prove is Axelsen & Glück's: reversible Turing machines compute exactl
 the *injective computable functions*. That is the right statement for a language
 whose terms denote injections, and it is the wrong shape for 42, whose terms
 denote relations. The statement proved in THEOREM.md is a characterisation
-rather than a lower bound —
+rather than a lower bound:
 
 > a relation `R ⊆ A × B` is denotable in 42 iff `R` is recursively enumerable
 
-— with ordinary Turing completeness as the single-valued case. Two things about
+with ordinary Turing completeness as the single-valued case. Two things about
 it bear on this document's comparisons.
 
 The **soundness** half is an induction over terms: the r.e. relations are closed
 under composition, union, product, sum, converse and reflexive-transitive
 closure, which is the whole of 42's syntax, and nothing in the language forms a
 complement, so the denotations cannot leave Σ⁰₁. The *converse* clause, which an
-injective language has to argue for, is free here — 42's total `dagger` and the
+injective language has to argue for, is free here: 42's total `dagger` and the
 class of r.e. relations have the same closure properties. That correspondence is
 the same fact §2 and §3 keep circling: dropping the disjointness condition is
 what lets the semantic class be one that is already closed under the operation
 the language is built around.
 
 That shape is not hypothetical: Chardonnet, Lemonnier & Valiron **[read]** prove
-exactly the injective version, and say so in those words —
+exactly the injective version, and say so in those words:
 
 > we showed that for any computable function `f` from PInj, there exists an iso
 > whose semantics is `f`, thus our language fully characterises all of the
@@ -967,7 +969,7 @@ exactly the injective version, and say so in those words —
 Read side by side, their theorem and THEOREM.md's Theorem 14 are the same
 statement in two different categories: *every computable morphism of the ambient
 category is denotable*, with PInj there and Rel here. That is the cleanest way to
-put what 42 changes — not the theorem, the category.
+put what 42 changes: not the theorem, the category.
 
 The **completeness** half is where 42's extra generality is visibly cheaper than
 the neighbours'. The proof guesses the output and checks it, and both halves of
@@ -987,7 +989,7 @@ it is where 42 is furthest behind.
 **Everything in this section is [cited].** None of these papers was read for this
 document; the descriptions come from general knowledge of the field and must be
 checked before any of it is repeated in print. The claims made here concern only
-*shape* — which layers exist, and which systems occupy them.
+*shape*: which layers exist, and which systems occupy them.
 
 ### 8.1 Reversible classical: a complete stack, since 2011
 
@@ -1000,7 +1002,7 @@ The Janus lineage goes all the way to silicon:
 
 **Janus** (Lutz & Derby 1986; semantics and inverter by Yokoyama & Glück, PEPM
 2007) compiles through Axelsen's reversible intermediate languages to **PISA**,
-the Pendulum Instruction Set Architecture, and PISA was implemented — Vieri's
+the Pendulum Instruction Set Architecture, and PISA was implemented in Vieri's
 adiabatic reversible processor at MIT (1999). **ROOPL** (Haulund) reaches PISA
 from a reversible object-oriented language; **Hermes** (Mogensen) compiles a
 reversible language for cryptographic primitives down to C.
@@ -1013,8 +1015,8 @@ compiler destroys the property it exists to preserve. That constraint applies to
 42 exactly as written, and it is not a constraint 42's design has yet been tested
 against.
 
-PISA is a *classical* reversible ISA, 𝔹-valued — the semiring 42 is interpreted
-in (§1). The natural compilation target for **42**, as distinct from Q42, is
+PISA is a *classical* reversible ISA, valued in 𝔹, the semiring 42 is
+interpreted in (§1). The natural compilation target for **42**, as distinct from Q42, is
 therefore this branch rather than quantum hardware.
 
 ### 8.2 Quantum: the stack is standardised, but the front ends are not languages
@@ -1029,7 +1031,7 @@ therefore this branch rather than quantum hardware.
 The asymmetry is the point. The lower three layers are mature, shared and
 vendor-neutral; anything that can produce OpenQASM 3 or QIR inherits routing and
 gate synthesis for free. The top layer is mostly *circuit-assembly libraries
-embedded in Python* rather than languages with a semantics — Q# is the clearest
+embedded in Python* rather than languages with a semantics. Q# is the clearest
 exception, and reaches hardware through QIR.
 
 Two front ends are relevant here for opposite reasons. **Quipper** (Green,
@@ -1047,9 +1049,9 @@ mechanised proofs. √Π's relation to Clifford+T is a completeness *theorem*, n
 a code generator.
 
 The nearest thing to a bridge is **Qunity** (Voichick, Li, Rand & Hicks, POPL
-2023), which is close to Q42 in spirit — a unified quantum/classical language
-built on sums and products — and which describes a compilation procedure down to
-circuits. How far the implementation goes is exactly the sort of thing this
+2023), which is close to Q42 in spirit, being a unified quantum/classical
+language built on sums and products, and which describes a compilation procedure
+down to circuits. How far the implementation goes is exactly the sort of thing this
 document's sourcing rules exist to stop me asserting. **Silq** (Bichsel, Baader,
 Gehr & Vechev, PLDI 2020) is likewise simulator-centred; its contribution is the
 uncomputation inference, not a path to a device.

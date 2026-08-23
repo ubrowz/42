@@ -556,10 +556,10 @@ HOME = """<!doctype html>
     <header class="hero">
       <div class="mark">42 &amp; Q42</div>
       <h1>A programming language whose programs run in two directions</h1>
-      <p class="lede">A program in 42 denotes a <em>relation</em>, not a function.
-      Run it forwards and it computes; run the same definition backwards and it
-      enumerates every input the answer could have come from. Nothing is written
-      twice, and the backward direction is derived rather than declared.</p>
+      <p class="lede">A program in 42 denotes a <em>relation</em> rather than a
+      function. Run it forwards and it computes. Run the same definition
+      backwards and it gives you every input the answer could have come from,
+      without your having written that direction yourself.</p>
       <div class="law">x &isin; P(y) &nbsp;<b>&harr;</b>&nbsp; y &isin; inv(P)(x)</div>
       <nav class="switch" style="margin-top:1.6rem">
         <a href="manual.html">42 manual</a>
@@ -573,17 +573,18 @@ HOME = """<!doctype html>
       <a class="card" href="manual.html">
         <div class="kicker">The language</div>
         <h3>42 &mdash; User Manual</h3>
-        <p>A ground-up guide, assuming no prior knowledge of reversible
-        computing: thirteen primitives, seven ways to combine them, and worked
-        programs from arithmetic through text to a Turing machine.</p>
+        <p>A guide from the ground up, assuming no prior knowledge of
+        reversible computing. Thirteen primitives and seven ways of combining
+        them, then worked programs: arithmetic, exact rationals, text, and a
+        Turing machine.</p>
         <span class="more">Read the manual &rarr;</span>
       </a>
       <a class="card" href="qmanual.html">
         <div class="kicker">The quantum one</div>
         <h3>Q42 &mdash; User Manual</h3>
         <p>The same language with complex numbers in place of set membership,
-        which makes it quantum. The physics is developed from scratch, and the
-        parts Q42 does <em>not</em> model are named as such.</p>
+        which is enough to make it quantum. The physics is developed from
+        scratch, and the manual is explicit about what Q42 does not model.</p>
         <span class="more">Read the manual &rarr;</span>
       </a>
     </div>
@@ -608,13 +609,13 @@ add!(5) =
       </div>
       <div>
         <h3>The same definition, both ways</h3>
-        <p>Forwards, <code>add</code> is a function. Backwards, it enumerates
-        every pair that sums to 5. There is no second definition and no search
-        procedure written by hand: the backward direction is the
-        <em>dagger</em> of the forward one, computed mechanically from it.</p>
-        <p>Over the complex numbers the same machinery gives quantum
-        circuits, and <code>!</code> becomes the adjoint <code>&dagger;</code>
-        rather than the converse &mdash; the same operation, twice.</p>
+        <p>Forwards, <code>add</code> is a function. Backwards, it lists every
+        pair that sums to 5. You do not write that second direction or any
+        search to go with it: it is the <em>dagger</em> of the first, computed
+        from the definition you already gave.</p>
+        <p>Q42 runs the same machinery over the complex numbers, where it
+        produces quantum circuits and <code>!</code> is the adjoint
+        <code>&dagger;</code> instead of the converse.</p>
         <div class="code"><pre><code>$ 42q gates hh "|0&gt;"
 hh |0&gt;
   = |0&gt;</code></pre></div>
@@ -624,7 +625,7 @@ hh |0&gt;
     <p class="eyebrow">Going deeper</p>
     <div class="minor">
       <a href="theorem.html"><b>What 42 can compute</b>
-        <span>A proof that the denotable relations are exactly the recursively
+        <span>A proof that the relations 42 can denote are the recursively
         enumerable ones.</span></a>
       <a href="related.html"><b>Related work</b>
         <span>Where 42 sits among Inv, PisoLang, Janus, RFUN and the
@@ -640,10 +641,10 @@ hh |0&gt;
 $ cd 42
 $ ./42 tour swap "(1, 2)"
 $ ./42q gates bell "|00&gt;"</code></pre></div>
-        <p>The repository carries both interpreters, the OpenQASM&nbsp;3 emitter,
-        an independent circuit simulator used to check it, the example libraries
-        the manuals draw on, and the test suite that re-runs every claim the
-        documentation makes.</p>
+        <p>The repository holds both interpreters, the OpenQASM&nbsp;3 emitter
+        and a separate circuit simulator to check it against, the example
+        libraries the manuals draw on, and a test suite that re-runs the claims
+        the documentation makes.</p>
       </div>
       <div>
         <dl class="tree">
@@ -651,7 +652,7 @@ $ ./42q gates bell "|00&gt;"</code></pre></div>
           <dt>q42/</dt><dd>the same over &#8450;, plus the OpenQASM 3 emitter</dd>
           <dt>*.42</dt><dd>libraries: arithmetic, rationals, text, a Turing machine</dd>
           <dt>tools/</dt><dd>the renderer for this site, and a circuit simulator</dd>
-          <dt>tests/</dt><dd>including one that executes every transcript in the manuals</dd>
+          <dt>tests/</dt><dd>one of which executes every transcript in the manuals</dd>
         </dl>
       </div>
     </div>

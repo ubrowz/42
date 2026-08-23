@@ -44,10 +44,10 @@ exactly the *injective computable functions*. Chardonnet, Lemonnier & Valiron
 concluding that it "fully characterises all of the computable morphisms in
 PInj". That is right for a language whose terms denote injections, and wrong for
 42, whose terms denote relations. Read together, their theorem and Theorem 14
-below are the same statement in two different categories — *every computable
-morphism of the ambient category is denotable* — with PInj there and Rel here. The
-class here is strictly larger, and — this is the part that matters — it is
-**closed under converse**, because the converse of an r.e. relation is r.e.:
+below are the same statement in two different categories, *every computable
+morphism of the ambient category is denotable*, with PInj there and Rel here. The
+class here is strictly larger, and it is **closed under converse**, because the
+converse of an r.e. relation is r.e.:
 swap the pairs in the enumeration. That closure property is the semantic reason
 `!` can be total with no side conditions. An injective language has to earn its
 inverse; 42's class comes with one.
@@ -67,12 +67,12 @@ V(B)}`, `V(A×B) = V(A) × V(B)`, and `V(μX.F) = V(F[μX.F/X])`. Every value is
 **finite** tree, so this is well founded on values even where it is circular on
 types; `V(μX. X) = ∅`. Each `V(T)` is a decidable set of finite trees with
 decidable equality, and is computably numbered. Write `𝕍` for the union of all
-of them — the untyped universe, which is what the evaluator actually works on.
+of them: the untyped universe, which is what the evaluator works on.
 
 ### 2.2 The typing judgement
 
 `⊢ t : A <-> B`. Thirteen primitives are axioms, at every ground instantiation of
-the schemes below — these are `PRIM_SCHEMES` in `rel42/types.py`, printed by the
+the schemes below. These are `PRIM_SCHEMES` in `rel42/types.py`, printed by the
 checker itself:
 
 | primitive | scheme |
@@ -112,7 +112,7 @@ choice: `μX.F` and its unfolding are the same type, so nothing has to be writte
 to pass between them. Two rules are worth reading twice. **star** is the only
 rule that constrains a term to be an endorelation, which is why `t^` is where
 ill-typedness usually surfaces. And **dagger** is the type-level shadow of the
-defining law — it exchanges the two sides and does nothing else, which is what
+defining law. It exchanges the two sides and does nothing else, which is what
 makes it implementable as a swap of the inferred scheme.
 
 ### 2.3 The denotation
@@ -146,8 +146,8 @@ and the six combinators:
 ```
 
 Note that `⟦inl⟧` and `⟦inr⟧` are total functions forwards and *partial* going
-back — `⟦inl!⟧` is undefined on an `R` — and that `⟦join!⟧` is the only primitive
-whose image can have two elements. Every set larger than a singleton anywhere in
+back, `⟦inl!⟧` being undefined on an `R`, and that `⟦join!⟧` is the only
+primitive whose image can have two elements. Every set larger than a singleton anywhere in
 the language traces back to it.
 
 ### 2.4 Programs
@@ -155,8 +155,8 @@ the language traces back to it.
 A program is a finite system of definitions `f₁ = t₁, …, f_n = t_n`, possibly
 mutually recursive, in which each `t_i` may mention any `f_j` and any `f_j!`. It
 induces `Φ : Rel^n → Rel^n`. Every operation above is monotone and
-Scott-continuous in each argument — including converse, which is a lattice
-isomorphism — so `Φ` is continuous, and the program denotes
+Scott-continuous in each argument, including converse, which is a lattice
+isomorphism. So `Φ` is continuous, and the program denotes
 
 ```
     lfp Φ  =  ⋃_{k≥0} Φ^k(∅, …, ∅).
@@ -182,8 +182,8 @@ turn of care, because the naive form is not what the dagger rule needs.
 >     v ∈ V(A)  or  w ∈ V(B)   implies   v ∈ V(A) and w ∈ V(B).
 > ```
 
-*Why it is stated that way.* The expected form — *`v ∈ V(A)` implies `w ∈ V(B)`*
-— cannot be proved by induction here. At the **dagger** rule the goal for `t!` is
+*Why it is stated that way.* The expected form, *`v ∈ V(A)` implies `w ∈ V(B)`*,
+cannot be proved by induction here. At the **dagger** rule the goal for `t!` is
 about the codomain of `t!`, which is the *domain* of `t`, and the induction
 hypothesis says nothing about domains. So the statement has to carry both
 directions at once. Written as above it is **self-dual**: the claim for
@@ -200,8 +200,8 @@ representative. For `join : A' + A' <-> A'`, a pair is `(L a, a)` or `(R a, a)`,
 and `L a ∈ V(A'+A') ⟺ a ∈ V(A')`, which is the biconditional the statement
 wants. For `inl : A <-> A + B'`, a pair is `(v, L v)`, and `L v ∈ V(A + B') ⟺ v ∈
 V(A)`. For `unitsum : 0 + A <-> A`, a pair is `(R v, v)`, and `V(0 + A)` has no
-`L` component at all because `V(0) = ∅` — which is exactly why the evaluator
-returns the empty set on an `Inl`. `zero` is vacuous.
+`L` component at all because `V(0) = ∅`, which is why the evaluator returns the
+empty set on an `Inl`. `zero` is vacuous.
 
 **seq.** Let `(a, c) ∈ ⟦t ; u⟧`, so `(a, x) ∈ ⟦t⟧` and `(x, c) ∈ ⟦u⟧` for some
 `x`. If `a ∈ V(A)` the hypothesis for `t` gives `x ∈ V(B)`, and then the
@@ -230,8 +230,8 @@ the given end supplies.
 `⟦t!⟧ = ⟦t⟧°`, so this is the hypothesis for `t` verbatim.
 
 **Definitions.** For a recursive group, `⟦f_i⟧ = ⋃_k Φ^k(∅⃗)_i`. Each `Φ^k(∅⃗)`
-satisfies the property — `∅` does vacuously, and one application of `Φ` is a
-derivation over the components — and the property is preserved by unions of
+satisfies the property (`∅` does vacuously, and one application of `Φ` is a
+derivation over the components), and the property is preserved by unions of
 chains, since it is a condition on individual pairs. ∎
 
 > **Corollary 2.** If `⊢ t : A <-> B` and `v ∈ V(A)`, then every result of
@@ -282,8 +282,8 @@ the approximants increase, the union is exactly `lfp Φ`. ∎
 > neither is any properly `Π⁰₁` set.
 
 **Where the bound comes from.** Not from reversibility, and not from the absence
-of general recursion — 42 has general recursion. It comes from the *shape of the
-syntax*: every combinator is a positive operation. Composition, union, sum,
+of general recursion, since 42 has general recursion. It comes from the *shape of
+the syntax*: every combinator is a positive operation. Composition, union, sum,
 product, converse and star all preserve r.e.; **nothing in 42 forms a
 complement.** A hypothetical combinator "`t` fails here" would denote the
 complement of a domain and would break Theorem 3 immediately. This is worth
@@ -315,8 +315,8 @@ drop_{μX.F}   = the recursive definition following F, with X ↦ itself
 is recursive and its denotation is a least fixpoint, so we must check totality:
 by induction on the size of the finite tree `v ∈ V(μX.F)`, `(v, ())` appears in
 `Φ^k(∅)` for some `k`, since the recursive calls are on proper subtrees. When
-`V(C) = ∅` — `C = 0`, or `C = μX.X` — the least fixpoint is `∅`, which is what
-the statement demands. ∎
+`V(C) = ∅`, which happens for `C = 0` and for `C = μX.X`, the least fixpoint is
+`∅`, which is what the statement demands. ∎
 
 This one deserves a comment. `discard` is exactly the operation MANUAL section 2
 says the language is built to avoid, and 42 has no such primitive. It is
@@ -487,7 +487,7 @@ So **the encoding is many-to-one.** It has to be: a Turing tape is infinite and 
 42 value is a finite tree, so the blanks past the end of `rs` are represented by
 their absence, and a value carrying two extra trailing blanks means the same
 thing as one that does not. This is the only mismatch in the construction, and
-the proof below is arranged so that it never has to be repaired — Lemma 10 is
+the proof below is arranged so that it never has to be repaired: Lemma 10 is
 stated for *every* representative rather than for a canonical one.
 
 ### 5.3 The term
@@ -517,7 +517,7 @@ collapse₁ = id           collapse_k = (id + collapse_{k-1}) ; join
 step      = (δ_{q₁} + (δ_{q₂} + (⋯ + δ_{q_h}))) ; collapse_h    : conf <-> conf
 ```
 
-Loading an input, including the empty one — the head needs a cell to sit on, so
+Loading an input, including the empty one. The head needs a cell to sit on, so
 the empty string becomes a single blank:
 
 ```
@@ -527,8 +527,8 @@ load     = (inr! ; unitprod! ; (inl * id)) | (inl! ; loadnil)
 halts_M  = load ; tag_{q₁} ; step^ ; tag_{q_h}! ; drop_tape
 ```
 
-`load` is total: its two branches have disjoint domains — the input is a cons or
-it is nil — and cover `V(bits)`. `drop_tape` is Lemma 5 at the type `tape`. All
+`load` is total: its two branches have disjoint domains, the input being a cons
+or nil, and cover `V(bits)`. `drop_tape` is Lemma 5 at the type `tape`. All
 of `collapse₄`, `load` and the tags are in `theorem.42`.
 
 ### 5.4 Correctness
@@ -539,8 +539,8 @@ of `collapse₄`, `load` and the tags are in `theorem.42`.
 (bits×bits))`: it is a composite of the bijections `focus` and `dist` with
 `unitprod + unitprod`. Each `β_{q,s}` is a composite of partial functions:
 `write_{s'}` is `readhead!` restricted to one summand; `move_S = id`;
-`move_L = right!` is a partial function because `right` is *injective* — from
-`(c:ls, (r, rs₀))` one reads back `c`, `ls`, `r` and `rs₀` uniquely; and
+`move_L = right!` is a partial function because `right` is *injective*, since
+from `(c:ls, (r, rs₀))` one reads back `c`, `ls`, `r` and `rs₀` uniquely; and
 `move_R = stepover` is a union of two partial functions whose domains are
 disjoint, since `iscons` and `isnil` cannot both apply. Finally `tag_{q'}` is
 injective, `+` of partial functions is a partial function, and `join` is
@@ -563,8 +563,8 @@ again. ∎
 no other summand contributes, because the tags have disjoint images.
 
 `readhead` sends `v` to `inl (ls, rs)` when `s = 0` and to `inr (ls, rs)` when
-`s = 1`, so the branch taken is `β_{q,s}` — the row of the table for the symbol
-actually under the head. Then `write_{s'} = inj_{s'} ; readhead!` returns
+`s = 1`, so the branch taken is `β_{q,s}`, the row of the table for the symbol
+under the head. Then `write_{s'} = inj_{s'} ; readhead!` returns
 `(ls, (s', rs))`, whose reading is `(T[i ↦ s'], i)`. It remains to check
 `move_m`, and there are four cases.
 
@@ -580,14 +580,14 @@ actually under the head. Then `write_{s'} = inj_{s'} ; readhead!` returns
   holding `r = T(i+1)`. Reading: `(T[i ↦ s'], i + 1)`. ✓
 - **`m = R`, `rs = []`.** Now the *second* branch applies and the first does not:
   `pad` replaces `rs` by `[0]`, and `right` gives `v' = (s' : ls, (0, []))`.
-  Reading: `(T[i ↦ s'], i+1)` — and this is correct precisely because `rs = []`
-  forces `T(i+1) = 0`, which is the blank the padding invented. ✓
+  Reading: `(T[i ↦ s'], i+1)`, which is correct because `rs = []` forces
+  `T(i+1) = 0`, the blank the padding invented. ✓
 
 Uniqueness of `v'` is Lemma 9. ∎
 
 The fourth case is the whole cost of the finite/infinite mismatch: one extra
 branch in `stepover`, and one line of the proof. Note what the lemma does *not*
-say — it does not claim `v'` is canonical. Feed it a `v` with three trailing
+say: it does not claim `v'` is canonical. Feed it a `v` with three trailing
 blanks and it returns a `v'` with three trailing blanks. The statement is about
 `⌈v'⌉`, so padding simply rides along, and no normalisation step is ever needed.
 
@@ -599,14 +599,14 @@ contributes. ∎
 > **Lemma 12 (Halting).** `⟦halts_M⟧ = { (x, ()) : M halts on input x }`.
 
 *Proof.* Fix `x ∈ V(bits)` and let `v₀ = load(x)`; checking the two branches of
-`load`, `⌈v₀⌉` is `M`'s initial configuration on `x` — the input written from
-cell `0`, head at cell `0`, blanks beyond — in the cons case directly, and in
-the nil case as the all-blank tape.
+`load`, `⌈v₀⌉` is `M`'s initial configuration on `x`, with the input written
+from cell `0`, the head at cell `0` and blanks beyond: in the cons case
+directly, and in the nil case as the all-blank tape.
 
 Let `C₀ → C₁ → ⋯` be the run of `M` from `C₀`, with `C_n = (q^{(n)}, T^{(n)},
 i^{(n)})`, and let `N ∈ ℕ ∪ {∞}` be the least `n` with `q^{(n)} = q_h`. By
-induction on `n ≤ N`, using Lemma 10 — whose side condition is discharged by
-(N2) — there is a single `v_n` with
+induction on `n ≤ N`, using Lemma 10, whose side condition is discharged by
+(N2), there is a single `v_n` with
 
 ```
 ⟦step⟧ⁿ (tag_{q₁}(v₀))  =  { tag_{q^{(n)}}(v_n) },      ⌈v_n⌉ = (T^{(n)}, i^{(n)}).
@@ -648,8 +648,9 @@ the `rewind` state of `tm.42` is for.
 
 `run_M` is a partial function but **is not injective**, and this is the encoding
 of section 5.2 surfacing in the answer rather than a defect. `tm.42`'s increment
-machine sends both `[1,1]` and `[1,1,0]` — the same number, written two ways — to
-`[0,0,1]`, because the first grows a blank during the run and becomes the second.
+machine sends both `[1,1]` and `[1,1,0]`, the same number written two ways, to
+`[0,0,1]`, because the first grows a blank during the run and becomes the
+second.
 Running it backwards reports both:
 
 ```
@@ -667,8 +668,8 @@ it.
 
 ### 5.6 The instance
 
-`tm.42` is this construction for a three-state machine — `carry`, `rewind`,
-`halt` — that increments a binary number, and it runs; MANUAL section 13 walks
+`tm.42` is this construction for a three-state machine (`carry`, `rewind`,
+`halt`) that increments a binary number, and it runs; MANUAL section 13 walks
 through it. `theorem.42` carries the pieces that a three-state machine with a
 non-empty input does not exhibit: `loadtotal`, and the tag and collapse schemas
 at four states.
@@ -746,9 +747,9 @@ Three things, stated plainly.
   assumes `M` has been normalised to a binary alphabet, a one-way infinite tape
   it never falls off, and a single halting state. All three are textbook, all
   three preserve the halting set, and none is reproved here. Everything else
-  about the machine — that `step` really is its transition function on
-  representations, that `step^` really is its run, that the finite/infinite tape
-  mismatch is harmless — is proved in section 5.4.
+  about the machine is proved in section 5.4: that `step` really is its
+  transition function on representations, that `step^` really is its run, and
+  that the finite/infinite tape mismatch is harmless.
 - **This is about `⟦·⟧`, not about the interpreter.** `rel42` bounds its search
   depth and reports `DepthExceeded` rather than diverging, which is the right
   behaviour for a tool and is not what the theorem is about. Theorem 14 asserts
@@ -760,7 +761,7 @@ Three things, stated plainly.
   proof.
 
 The two halves have different characters, and it is worth being explicit about
-which is doing more work. **Soundness (Theorem 3) is unconditional** — a short
+which is doing more work. **Soundness (Theorem 3) is unconditional**: a short
 induction, complete as given, depending on nothing in sections 4 to 6. The upper
 bound `Σ⁰₁` therefore stands on its own. Completeness is the longer argument and
 the one that leans on the cited normalisations, but it leans on nothing about 42
