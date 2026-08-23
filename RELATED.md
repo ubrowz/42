@@ -894,7 +894,7 @@ underexplored and better behaved, not that the others made a mistake.
   other two is narrower and is stated in §4: all three admit `map`, but 42
   eliminates parameters by substitution and so cannot *run* a recursive
   combinator, while RFUN and Theseus interpret theirs.
-- **A discipline against erasure.** THEOREM.md's Lemma 5 shows `drop : C <-> 1`
+- **A discipline against erasure.** `THEOREM.md`'s Lemma 5 shows `drop : C <-> 1`
   is *definable* in 42, at every type, though it is not a primitive. Theseus
   lists exactly that program as ill-formed. Its §3.1 gives `drop_var`, in which
   a bound `n` is not used on the other side, as one of four examples of invalid
@@ -919,7 +919,7 @@ underexplored and better behaved, not that the others made a mistake.
   one is less of a gap than it looks, since `neq` is there largely to establish
   the disjointness 42 does not require (§3), but the expressiveness difference
   is real and worth checking rather than assuming away.
-- **A mechanised proof of it.** 42 has a completeness result, THEOREM.md,
+- **A mechanised proof of it.** 42 has a completeness result, `THEOREM.md`,
   summarised in the note below, but like PisoLang's and Inv's it is on paper.
   Nobody in this table has a machine-checked one.
 - **Verified inference.** Nobody has this, PisoLang included, so it is a
@@ -941,7 +941,7 @@ underexplored and better behaved, not that the others made a mistake.
 languages prove is Axelsen & Glück's: reversible Turing machines compute exactly
 the *injective computable functions*. That is the right statement for a language
 whose terms denote injections, and it is the wrong shape for 42, whose terms
-denote relations. The statement proved in THEOREM.md is a characterisation
+denote relations. The statement proved in `THEOREM.md` is a characterisation
 rather than a lower bound:
 
 > a relation `R ⊆ A × B` is denotable in 42 iff `R` is recursively enumerable
@@ -966,7 +966,7 @@ exactly the injective version, and say so in those words:
 > whose semantics is `f`, thus our language fully characterises all of the
 > computable morphisms in PInj.
 
-Read side by side, their theorem and THEOREM.md's Theorem 14 are the same
+Read side by side, their theorem and `THEOREM.md`'s Theorem 14 are the same
 statement in two different categories: *every computable morphism of the ambient
 category is denotable*, with PInj there and Rel here. That is the cleanest way to
 put what 42 changes: not the theorem, the category.
@@ -1148,7 +1148,7 @@ attempting it.
   Programming 15 (1990), pp. 1–13.
 - J. E. Hopcroft, J. D. Ullman. *Introduction to Automata Theory, Languages, and
   Computation.* Addison-Wesley, Reading, 1979. — the source of the Turing
-  machine normalisations THEOREM.md §5.1 assumes, and on the 1993 shelf.
+  machine normalisations `THEOREM.md` §5.1 assumes, and on the 1993 shelf.
 - R. Leermakers, J. Rous. *The Translation Method of Rosetta.* Computers and
   Translation, Vol. 1, No. 3 (1986), pp. 169–183.
 - L. Appelo, J. Landsbergen. *The Machine Translation Project Rosetta.* Proc.

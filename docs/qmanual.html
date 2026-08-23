@@ -175,7 +175,7 @@ tbody tr:last-child td { border-bottom: 0; }
 <p>Q42 computes with <strong>complex numbers</strong>: each input–output pairing carries a number, and those numbers can cancel.</p>
 <p>That is the entire difference. The rest of this section makes it concrete, because the way to see it is to draw a 42 program as a grid and then change what sits in the cells.</p>
 <h3 id="11-a-program-is-a-grid"><a class="anchor" href="#11-a-program-is-a-grid" aria-label="Link to this section">#</a>1.1 A program is a grid</h3>
-<p>Take a shape with finitely many values, say the two-value shape <code>1 + 1</code>, whose values are <code>L ()</code> and <code>R ()</code> (<code>MANUAL.md</code> §3.1). A program from that shape to itself either can or cannot turn each input into each output, so you can write the whole program down as a grid: one row per input, one column per output, and a mark where the program can get from one to the other.</p>
+<p>Take a shape with finitely many values, say the two-value shape <code>1 + 1</code>, whose values are <code>L ()</code> and <code>R ()</code> (<a href="manual.html"><code>MANUAL.md</code></a> §3.1). A program from that shape to itself either can or cannot turn each input into each output, so you can write the whole program down as a grid: one row per input, one column per output, and a mark where the program can get from one to the other.</p>
 <p>Here is <code>not</code>, which is <code>swapsum</code>:</p>
 <div class="code"><pre><code>        to  L ()  R ()
   from
@@ -191,7 +191,7 @@ tbody tr:last-child td { border-bottom: 0; }
 <div class="code"><pre><code>        to  L ()  R ()
   from
     ()        *     *</code></pre></div>
-<p>Nothing new has been said yet. This is the same "a program returns a set" from <code>MANUAL.md</code> §7, written as a picture instead of as a list.</p>
+<p>Nothing new has been said yet. This is the same "a program returns a set" from <a href="manual.html"><code>MANUAL.md</code></a> §7, written as a picture instead of as a list.</p>
 <h3 id="12-running-backwards-is-reading-the-other-way"><a class="anchor" href="#12-running-backwards-is-reading-the-other-way" aria-label="Link to this section">#</a>1.2 Running backwards is reading the other way</h3>
 <p>Now the useful part. To run a program backwards you ask, of an output, which inputs could have produced it, which is reading the grid down a column instead of along a row.</p>
 <p>So <code>!</code> <strong>is the grid, flipped about its diagonal.</strong> Compare <code>join!</code> above with <code>join</code>:</p>
@@ -199,7 +199,7 @@ tbody tr:last-child td { border-bottom: 0; }
         to  L ()  R ()           from
   from                    !  =   L ()        *
     ()        *     *            R ()        *</code></pre></div>
-<p>Same marks, rows and columns exchanged. This is why <code>MANUAL.md</code> never needed a second algorithm for the backward direction, and why <code>f!!</code> is <code>f</code>: flipping twice puts everything back.</p>
+<p>Same marks, rows and columns exchanged. This is why <a href="manual.html"><code>MANUAL.md</code></a> never needed a second algorithm for the backward direction, and why <code>f!!</code> is <code>f</code>: flipping twice puts everything back.</p>
 <h3 id="13-composing-is-combining-grids"><a class="anchor" href="#13-composing-is-combining-grids" aria-label="Link to this section">#</a>1.3 Composing is combining grids</h3>
 <p><code>f ; g</code> means "do <code>f</code>, then <code>g</code>". So <code>f ; g</code> can get from <code>x</code> to <code>z</code> exactly when there is some middle value <code>y</code> with <code>f</code> reaching <code>y</code> and <code>g</code> reaching <code>z</code> from it. In grid terms: to fill in cell <code>(x, z)</code>, walk along row <code>x</code> of <code>f</code> and down column <code>z</code> of <code>g</code>, and look for a position where <strong>both</strong> have a mark.</p>
 <p>That rule, <em>for each middle value take AND, and across all middle values take OR</em>, is what mathematicians call <strong>matrix multiplication</strong>, with <code>and</code> in place of <code>×</code> and <code>or</code> in place of <code>+</code>. So 42's grids are matrices whose entries are <code>0</code> and <code>1</code>, and <code>;</code> is matrix multiplication over those. That is all that "42 is matrices over the booleans" means.</p>
@@ -237,7 +237,7 @@ hh |0&gt;
 <div class="code"><pre><code>c = a AND b</code></pre></div>
 <p>destroys information, since knowing <code>c = 0</code> tells you almost nothing about <code>a</code> and <code>b</code>, so there is no two-input AND gate. What exists instead is the <strong>Toffoli</strong> gate, which keeps its inputs and writes the answer into a third wire:</p>
 <div class="code"><pre><code>(a, b, c)  |-&gt;  (a, b, c XOR (a AND b))</code></pre></div>
-<p>Set <code>c = 0</code> and the third component becomes <code>a AND b</code>, with <code>a</code> and <code>b</code> still there. This is the padding trick from <code>MANUAL.md</code> §11.3, where <code>mul</code> keeps its multiplier in order to stay invertible; the same pressure produces the same answer in both places.</p>
+<p>Set <code>c = 0</code> and the third component becomes <code>a AND b</code>, with <code>a</code> and <code>b</code> still there. This is the padding trick from <a href="manual.html"><code>MANUAL.md</code></a> §11.3, where <code>mul</code> keeps its multiplier in order to stay invertible; the same pressure produces the same answer in both places.</p>
 <h3 id="uncomputation"><a class="anchor" href="#uncomputation" aria-label="Link to this section">#</a>Uncomputation</h3>
 <p>Padding has a cost: the kept-around values pile up. If you compute an intermediate <code>x</code>, use it, and no longer want it, you cannot drop it, since that would be erasing information. You must <strong>uncompute</strong> it by running its producer backwards.</p>
 <p>The pattern is <code>P ; Q ; P!</code>: do the work, use it, undo the work. In Q42 that is an ordinary term, because <code>!</code> is part of the language, and because every Q42 term is invertible <code>P!</code> really is <code>P</code>'s inverse. Languages like Silq spend considerable machinery on <em>inferring</em> where to insert this; here you write it, and it is three characters.</p>
@@ -260,7 +260,7 @@ hh |0&gt;
 <p>where <code>U†</code> ("U dagger") is the <strong>adjoint</strong>: transpose the matrix and conjugate every entry. Such a matrix is called <strong>unitary</strong>.</p>
 <p>Two things follow, and they are why the condition is the one physics imposes:</p>
 <ul><li><strong><code>U† </code> is <code>U</code>'s inverse.</strong> Reversibility, for free, for every gate.</li><li><strong><code>U</code> preserves length.</strong> Since states are unit vectors and probabilities are squared magnitudes, a map that changed length would produce probabilities not summing to <code>1</code>. Unitarity is exactly the condition "still a valid state afterwards".</li></ul>
-<p>Q42 spells <code>U†</code> as <code>U!</code>, which is the same <code>!</code> that <code>MANUAL.md</code> uses for running a program backwards. It is not an analogy: in 42 the operation is the converse of a relation, in Q42 the adjoint of a matrix, and they are the same structural operation in two different settings (§4).</p>
+<p>Q42 spells <code>U†</code> as <code>U!</code>, which is the same <code>!</code> that <a href="manual.html"><code>MANUAL.md</code></a> uses for running a program backwards. It is not an analogy: in 42 the operation is the converse of a relation, in Q42 the adjoint of a matrix, and they are the same structural operation in two different settings (§4).</p>
 <p>Q42 never checks unitarity, because it never has to: every primitive is unitary and every way of combining them preserves unitarity (§6). You can audit the claim:</p>
 <div class="code"><pre><code>$ 42q unitary gates
   [ok ] h ; h! = id on 2 dimension(s)
@@ -309,7 +309,7 @@ bell |00&gt;
 f††       =  f                       it is an involution
 id†       =  id                      it fixes identities</code></pre></div>
 <p>Relations satisfy these with <code>†</code> = converse. Complex matrices satisfy them with <code>†</code> = conjugate transpose. This is the founding observation of <em>categorical quantum mechanics</em> (Abramsky &amp; Coecke, 2004), and it means <code>rel42/core.py</code>'s <code>dagger</code> function is already the right function; only the primitive table it consults has to change.</p>
-<p>Compare, from <code>README.md</code> and this manual respectively:</p>
+<p>Compare, from <a href="https://github.com/ubrowz/42/blob/main/README.md"><code>README.md</code></a> and this manual respectively:</p>
 <div class="code"><pre><code>42 :   x in P(y)      &lt;=&gt;   y in inv(P)(x)
 Q42:   &lt;x| P |y&gt;       =    conj( &lt;y| P! |x&gt; )</code></pre></div>
 <p>The same law, with membership replaced by amplitude equality. <code>&lt;x| P |y&gt;</code> is the matrix entry of <code>P</code> in row <code>x</code>, column <code>y</code>. You can check it:</p>
@@ -378,7 +378,7 @@ h : qubit &lt;-&gt; qubit
      |0&gt;  [  0.707107   0.707107 ]
      |1&gt;  [  0.707107  -0.707107 ]</code></pre></div>
 <h3 id="64-control-is-dist-which-you-have-already-met"><a class="anchor" href="#64-control-is-dist-which-you-have-already-met" aria-label="Link to this section">#</a>6.4 Control is <code>dist</code>, which you have already met</h3>
-<p>A <strong>controlled</strong> gate applies its target gate only when the control qubit is <code>|1&gt;</code>. That is a conditional, and 42 does conditionals with <code>dist</code> (<code>MANUAL.md</code> §12.5). So:</p>
+<p>A <strong>controlled</strong> gate applies its target gate only when the control qubit is <code>|1&gt;</code>. That is a conditional, and 42 does conditionals with <code>dist</code> (<a href="manual.html"><code>MANUAL.md</code></a> §12.5). So:</p>
 <div class="code"><pre><code>def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  &lt;-&gt;  A + A
 def ctrl m = mat ; (id + m) ; mat!</code></pre></div>
 <p>split on the control bit, apply <code>m</code> on the <code>R</code> branch only, put it back. Every controlled gate is one line:</p>
@@ -395,7 +395,7 @@ def cswap = ctrl swap                           -- Fredkin</code></pre></div>
 <h3 id="71-a-qubit-is-1--1"><a class="anchor" href="#71-a-qubit-is-1--1" aria-label="Link to this section">#</a>7.1 A qubit is <code>1 + 1</code></h3>
 <p>There is no qubit type. As in 42, a two-case choice carrying no data is <code>1 + 1</code>, and the two cases are <code>L ()</code> and <code>R ()</code>. Q42 calls them <code>|0&gt;</code> and <code>|1&gt;</code> when printing, and a file may name the type:</p>
 <div class="code"><pre><code>type qubit = 1 + 1</code></pre></div>
-<p>which is a printing abbreviation and changes nothing (<code>MANUAL.md</code> §3.7).</p>
+<p>which is a printing abbreviation and changes nothing (<a href="manual.html"><code>MANUAL.md</code></a> §3.7).</p>
 <h3 id="72-registers-and-kets"><a class="anchor" href="#72-registers-and-kets" aria-label="Link to this section">#</a>7.2 Registers and kets</h3>
 <p>Several qubits are a nested pair, to the right:</p>
 <div class="code"><pre><code>|abc&gt;   is   (a, (b, c))</code></pre></div>
@@ -469,7 +469,7 @@ step 10: register = (3, 1)     F_10 = 55, mod 4 = 3</code></pre></div>
 <h3 id="84-deutschs-algorithm-and-what-q42-shows-you"><a class="anchor" href="#84-deutschs-algorithm-and-what-q42-shows-you" aria-label="Link to this section">#</a>8.4 Deutsch's algorithm, and what Q42 shows you</h3>
 <p>Fibonacci is arithmetic. Deutsch's algorithm is a real quantum algorithm, the smallest one there is and the first found to beat its classical rival.</p>
 <p>The problem: you are handed a black box computing an unknown one-bit function <code>f</code>, and asked whether <code>f</code> is <strong>constant</strong> (<code>f(0) = f(1)</code>) or <strong>balanced</strong> (<code>f(0) ≠ f(1)</code>). Classically you must evaluate <code>f</code> twice, since one evaluation tells you nothing about the other. Deutsch's algorithm answers after one.</p>
-<p>The oracle has to be reversible like everything else, so it takes the standard shape <code>(x, y) ↦ (x, y XOR f(x))</code>. That is the Toffoli trick from §2, which is also <code>mul</code> keeping its multiplier in <code>MANUAL.md</code> §11.3. There are only four one-bit functions, so <code>q42/deutsch.42</code> writes all four out:</p>
+<p>The oracle has to be reversible like everything else, so it takes the standard shape <code>(x, y) ↦ (x, y XOR f(x))</code>. That is the Toffoli trick from §2, which is also <code>mul</code> keeping its multiplier in <a href="manual.html"><code>MANUAL.md</code></a> §11.3. There are only four one-bit functions, so <code>q42/deutsch.42</code> writes all four out:</p>
 <div class="code"><pre><code>def orc0   = id                              -- f(x) = 0       constant
 def orc1   = id * x                          -- f(x) = 1       constant
 def orcid  = ctrl x                          -- f(x) = x       balanced
@@ -586,7 +586,7 @@ def  name m = gate                  -- m is a parameter, standing for a gate
 -- comments run to end of line</code></pre></div>
 <p><code>q42/classical.42</code> uses only primitives that 42 <em>also</em> has, so the same file runs under either interpreter, which is one way to see that <code>omega</code> and <code>v</code> buy nothing classical.</p>
 <h3 id="further-reading"><a class="anchor" href="#further-reading" aria-label="Link to this section">#</a>Further reading</h3>
-<ul><li><code>MANUAL.md</code> — the language this one is built on. Read it first.</li><li><code>README.md</code> — 42's design in mathematical terms.</li><li><code>Q42.md</code> — the design of Q42, and why each departure is forced.</li><li><code>RELATED.md</code> — where 42 and Q42 sit in the literature.</li><li>Carette, Heunen, Kaarsgaard &amp; Sabry, <em>With a Few Square Roots, Quantum Computing is as Easy as Π</em>, POPL 2024 — the result §4.2 and §6 rest on.</li></ul></main>
+<ul><li><a href="manual.html"><code>MANUAL.md</code></a> — the language this one is built on. Read it first.</li><li><a href="https://github.com/ubrowz/42/blob/main/README.md"><code>README.md</code></a> — 42's design in mathematical terms.</li><li><a href="https://github.com/ubrowz/42/blob/main/Q42.md"><code>Q42.md</code></a> — the design of Q42, and why each departure is forced.</li><li><a href="related.html"><code>RELATED.md</code></a> — where 42 and Q42 sit in the literature.</li><li>Carette, Heunen, Kaarsgaard &amp; Sabry, <em>With a Few Square Roots, Quantum Computing is as Easy as Π</em>, POPL 2024 — the result §4.2 and §6 rest on.</li></ul></main>
 </div>
 <script>
 const links = [...document.querySelectorAll('.rail a')];
