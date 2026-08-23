@@ -180,7 +180,7 @@ tbody tr:last-child td { border-bottom: 0; }
 <p><strong>The defining law</strong>, as numbered equation (2.2) of chapter 2:</p>
 <div class="code"><pre><code>∀s₁ ∈ S_left, s₂ ∈ S_right :  s₂ ∈ Π(s₁)  ⟺  s₁ ∈ Π⁻¹(s₂)</code></pre></div>
 <blockquote><p>This formula says that every end state which is the result of a program execution in one direction, results in a set of states containing the original start state if it is executed in the other direction.</p></blockquote>
-<p><a href="https://github.com/ubrowz/42/blob/main/README.md"><code>README.md</code></a> states the law as <code>x ∈ P(y) ⟺ y ∈ inv(P)(x)</code> and glosses it as "running forward then backward … returns a set <em>containing</em> where you started". These are the same statement and the same gloss.</p>
+<p>In 42 that same law is written <code>x ∈ P(y) ⟺ y ∈ inv(P)(x)</code>, and glossed the same way: running forward and then backward returns a set <em>containing</em> where you started. Both the statement and the gloss are already 1993's.</p>
 <p><strong>The contravariance of inversion</strong>, as a definition rather than an implementation detail. An operator <code>⊙</code> is called <em>syntactically reversible</em> when</p>
 <div class="code"><pre><code>∀(R₁,…,Rₙ) ∈ D_⊙ :  (⊙(R₁,…,Rₙ))⁻¹ = ⊙(Rₙ⁻¹,…,R₁⁻¹)</code></pre></div>
 <blockquote><p>A simple example of a syntactically reversible operator is the sequence operator ";". The inverse interpretation of the construct "R₁ ; R₂" is "R₂⁻¹ ; R₁⁻¹" which is exactly the same as reading the construct from right to left.</p></blockquote>

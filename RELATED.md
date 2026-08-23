@@ -53,9 +53,9 @@ and the question is lost; a successor machine has to be built to recover it.
 > execution in one direction, results in a set of states containing the original
 > start state if it is executed in the other direction.
 
-`README.md` states the law as `x ∈ P(y) ⟺ y ∈ inv(P)(x)` and glosses it as
-"running forward then backward … returns a set *containing* where you started".
-These are the same statement and the same gloss.
+In 42 that same law is written `x ∈ P(y) ⟺ y ∈ inv(P)(x)`, and glossed the same
+way: running forward and then backward returns a set *containing* where you
+started. Both the statement and the gloss are already 1993's.
 
 **The contravariance of inversion**, as a definition rather than an
 implementation detail. An operator `⊙` is called *syntactically reversible* when
