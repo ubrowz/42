@@ -1,0 +1,30 @@
+-- classical.42 -- the reversible classical gates, in the fragment BOTH
+-- languages share.
+--
+-- Every primitive used here (`dist`, `unitprod`, `swapsum`, `id`) is in 42's
+-- table and in Q42's, so this one file runs under either interpreter:
+--
+--   python3 -m rel42 run q42/classical.42 ccx "(R (), (R (), L ()))" --raw
+--   python3 -m q42   run q42/classical.42 ccx "|110>"
+--
+-- That is the point of the file.  `omega` and `v` buy nothing classical: the
+-- reversible-AND that motivates quantum gate sets --
+--
+--     (a, b, c)  |->  (a, b, c XOR (a AND b))
+--
+-- is already a 42 program, because control is just `dist`, which is also 42's
+-- if-then-else (MANUAL section 12.5).  What the two generators buy is `h`, `s`
+-- and `t`: interference, not logic.
+
+-- A qubit is a two-case choice carrying no data.  Declaring the name is a
+-- printing convenience only; the checker is unaffected.
+type qubit = 1 + 1
+
+def mat    = dist ; (unitprod + unitprod)   -- (1+1) x A  <->  A + A
+def not    = swapsum                        -- negation is the symmetry on 1+1
+
+-- Control, as a parameterised definition: "if the label is R, do m".
+def ctrl m = mat ; (id + m) ; mat!
+
+def cx     = ctrl not                       -- controlled not
+def ccx    = ctrl cx                        -- Toffoli: ctrl (ctrl not)

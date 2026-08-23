@@ -1,0 +1,50 @@
+-- deutsch.42 -- Deutsch's algorithm, minus the measurement.
+--
+-- The problem: you are given a black box computing an unknown one-bit function
+-- f, and asked whether it is *constant* (f(0) = f(1)) or *balanced*
+-- (f(0) /= f(1)).  Classically you must evaluate f twice.  Deutsch's algorithm
+-- answers with ONE evaluation, and is the smallest example of a quantum
+-- speed-up.
+--
+-- Q42 cannot measure, so it cannot print "constant" or "balanced".  What it can
+-- do is show you the state, and the state is where the answer already is: after
+-- the circuit runs, the first qubit is |0> for a constant f and |1> for a
+-- balanced one, with certainty -- no sampling, no repeats.  A simulator that
+-- measured would hand you one sample and hide the reason.
+--
+--   42q deutsch d0   "|01>"        -- f(x) = 0        constant  -> first qubit 0
+--   42q deutsch dnot "|01>"        -- f(x) = not x    balanced  -> first qubit 1
+
+type qubit = 1 + 1
+
+def x       = swapsum
+def s       = id + (omega ; omega)
+def hcore   = x ; s ; v ; s ; x
+def h       = unitprod! ; (omega * hcore) ; unitprod
+def mat     = dist ; (unitprod + unitprod)
+def ctrl m  = mat ; (id + m) ; mat!
+
+
+-- ---------------------------------------------------------------------------
+-- The oracle.  A black box for f must be reversible like everything else, so it
+-- is given the standard form  (x, y) |-> (x, y XOR f(x)) -- exactly the Toffoli
+-- trick of section 2, and exactly `mul` keeping its multiplier in MANUAL.md
+-- section 11.3.  There are only four one-bit functions, so here are all four.
+-- ---------------------------------------------------------------------------
+
+def orc0    = id                                -- f(x) = 0       constant
+def orc1    = id * x                            -- f(x) = 1       constant
+def orcid   = ctrl x                            -- f(x) = x       balanced
+def orcnot  = (x * id) ; ctrl x ; (x * id)       -- f(x) = not x   balanced
+
+
+-- ---------------------------------------------------------------------------
+-- The algorithm: superpose both inputs, query once, interfere, and read the
+-- first qubit.  Start from |01> -- the second qubit is the one the oracle
+-- writes into, and it must start at |1> for the phases to line up.
+-- ---------------------------------------------------------------------------
+
+def d0      = (h * h) ; orc0   ; (h * id)
+def d1      = (h * h) ; orc1   ; (h * id)
+def did     = (h * h) ; orcid  ; (h * id)
+def dnot    = (h * h) ; orcnot ; (h * id)

@@ -1,0 +1,199 @@
+-- cipher.42 -- a toy Feistel block cipher over the byte strings of strings.42.
+--
+--     cbc     : (key, (iv, plaintext))  |->  (key, (iv, ciphertext))
+--     decrypt = cbc!
+--
+-- `decrypt` is not implemented.  It is one line, and it is the *only* line
+-- about decryption in this file.
+--
+-- WHAT THIS DEMONSTRATES:  that a cipher's inverse can be derived rather than
+-- written, so encryptor and decryptor cannot drift apart.
+--
+-- WHAT THIS IS NOT:  secure.  The block is 8 bits wide and so is the key, and
+-- the round function is feeble.  42 guarantees that decryption undoes
+-- encryption.  It has no opinion at all on whether either is any good --
+-- rot13 is a perfect bijection too.
+--
+-- Two modes are here.  `ecb` enciphers each byte independently, which is
+-- simple and leaks the plaintext's pattern in plain sight; `cbc` chains each
+-- byte into the next and does not.  The contrast, on "attack at dawn", where
+-- 'a' sits at positions 0, 3, 7 and 11:
+--
+--   ECB   7b 15 15 7b fb d9 50 7b 15 50 01 7b ff 89     <- 7b, four times
+--   CBC   77 90 83 39 a5 23 90 ef 26 c0 c2 38 e1 22     <- no such giveaway
+--
+-- An 8-bit block stays weak whatever the mode: with only 256 values, chain
+-- collisions turn up by the birthday bound within a couple of dozen bytes,
+-- and there is one above already (90 at positions 1 and 6).  Widening the
+-- block is the real fix, and this file does not attempt it.
+
+
+-- ---------------------------------------------------------------------------
+-- Shape plumbing (transpose is borrowed from rational.42).
+-- ---------------------------------------------------------------------------
+
+def transpose = assocprod!
+              ; (id * assocprod)
+              ; (id * (swapprod * id))
+              ; (id * assocprod!)
+              ; assocprod
+
+-- A byte is eight bits nested to the right.  Regroup it as (high, low)
+-- nibbles, which is the split a Feistel network needs.
+--
+--   (b7,(b6,(b5,(b4, X))))  <->  ((b7,(b6,(b5,b4))), X)
+
+def tonibbles = (id * (id * assocprod)) ; (id * assocprod) ; assocprod
+
+
+-- ---------------------------------------------------------------------------
+-- Exclusive-or.
+--
+-- The reversible form of XOR keeps one operand:  (a, b) |-> (a, a XOR b).
+-- On a single bit that is the CNOT gate, and it is its own inverse.  Wider
+-- XORs are built by `transpose`, which pairs the operands up bit by bit.
+-- ---------------------------------------------------------------------------
+
+def cnot1 = dist ; (id + (id * swapsum)) ; dist!
+
+def cnot2 = transpose ; (cnot1 * cnot1) ; transpose
+def cnot3 = transpose ; (cnot1 * cnot2) ; transpose
+def cnot4 = transpose ; (cnot1 * cnot3) ; transpose   -- one nibble
+def cnot8 = transpose ; (cnot4 * cnot4) ; transpose   -- one byte, in NIBBLE form
+
+-- The same on a raw byte, converting in and out.  `cnot8` above expects the
+-- (high, low) nibble form that `core` works in; this one takes bytes as they
+-- come off a string.
+def xorbyte = (tonibbles * tonibbles) ; cnot8 ; (tonibbles! * tonibbles!)
+
+
+-- ---------------------------------------------------------------------------
+-- The round function.
+--
+-- `toffoli` is the one nonlinear ingredient:  ((a, b), c) |-> ((a,b), c XOR (a AND b)).
+-- It is reversible because a and b survive, so the correction can be undone.
+-- ---------------------------------------------------------------------------
+
+def toffoli = assocprod! ; dist ; (id + (id * cnot1)) ; dist! ; assocprod
+
+-- rotate a nibble by two:  (a,(b,(c,d))) |-> (c,(d,(a,b)))
+def swaphalves = assocprod ; swapprod ; assocprod!
+
+-- z XOR= (x AND y), leaving the rest alone
+def nl = assocprod ; assocprod ; (toffoli * id) ; assocprod! ; assocprod!
+
+def G = swaphalves ; nl
+
+
+-- ---------------------------------------------------------------------------
+-- One Feistel round.   (L, R)  |->  (R,  L XOR G(R))
+--
+-- This is the heart of the file.  In a classical Feistel network the round
+-- function need not be invertible, because R survives into the output and the
+-- inverse can simply recompute it.  42 needs G invertible for a different
+-- reason -- it cannot write a discarding program at all -- but the shape of
+-- the argument is the same one, and it is the compute / use / uncompute
+-- pattern:
+--
+--     copy R,  apply G to one copy,  XOR it into L,  apply G! to get R back,
+--     then copy! the two identical R's into one.
+--
+-- Every step is a bijection, so running the round backwards costs exactly
+-- what running it forwards costs.  There is no search.
+-- ---------------------------------------------------------------------------
+
+def feistel = (id * copy)          -- (L, (R, R))
+            ; (id * (id * G))      -- (L, (R, G R))
+            ; assocprod            -- ((L, R), G R)
+            ; (swapprod * id)      -- ((R, L), G R)
+            ; assocprod!           -- (R, (L, G R))
+            ; (id * swapprod)      -- (R, (G R, L))
+            ; (id * cnot4)         -- (R, (G R, G R XOR L))
+            ; (id * (G! * id))     -- (R, (R, G R XOR L))
+            ; assocprod            -- ((R, R), G R XOR L)
+            ; (copy! * id)         -- (R, L XOR G R)
+
+
+-- ---------------------------------------------------------------------------
+-- The block cipher.  Three key additions with a Feistel round between each,
+-- so that consecutive key additions cannot cancel (XOR is self-inverse).
+--
+-- `cnot8` keeps its first operand, which is why the key is still there at the
+-- end -- the language would not have let us drop it in any case, and that is
+-- exactly right: you cannot decrypt without it.
+-- ---------------------------------------------------------------------------
+
+def core = cnot8 ; (id * feistel) ; cnot8 ; (id * feistel) ; cnot8
+
+def blockenc = (tonibbles * tonibbles) ; core ; (tonibbles! * tonibbles!)
+
+
+-- ---------------------------------------------------------------------------
+-- The whole message: apply the block cipher to each byte, carrying the key.
+-- This is ECB mode, chosen for brevity rather than for sense.
+-- ---------------------------------------------------------------------------
+
+def ecb = swapprod ; dist
+        ; ( (swapprod ; (id * inl))
+          + ( swapprod ; assocprod ; (blockenc * id) ; assocprod!
+            ; (id * swapprod) ; assocprod ; (ecb * id) ; assocprod!
+            ; (id * swapprod) ; (id * inr) )
+          ) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- CBC mode, which fixes what ECB gives away.
+--
+--     cbc : (key, (iv, plaintext))  |->  (key, (iv, ciphertext))
+--
+--   C[i] = blockenc(key, P[i] XOR C[i-1]),   C[-1] = iv
+--
+-- Each byte is masked by the previous ciphertext byte before encryption, so
+-- two identical plaintext bytes encrypt differently and the pattern
+-- disappears.
+--
+-- THE OBSTACLE, and it is a real one.  Each step must set  chain := C, which
+-- means getting rid of the old chain -- and this language cannot get rid of
+-- anything.  The old chain is not recoverable from C and the key alone, so
+-- there is nothing local to cancel it against.
+--
+-- THE ESCAPE.  C is wanted twice over: once to emit, once as the new chain.
+-- So `copy` it.  The recursive call takes one copy as its chain and hands it
+-- back untouched -- because `cbc` returns its chain unchanged, which is also
+-- why the iv survives to the top.  Two identical copies then meet, and
+-- `copy!` merges them.  Nothing was ever discarded; the duplicate was simply
+-- reunited with itself.
+--
+-- Note also that the iv, like the key, cannot be dropped.  Correct again:
+-- you cannot decrypt without it.
+-- ---------------------------------------------------------------------------
+
+--    ((), (key, chain))  ->  (key, (chain, []))
+def cbcbase = swapprod ; (id * inl) ; assocprod!
+
+--    ((P, rest), (key, chain))  ->  (key, (chain, C : cs))
+def cbcstep = swapprod ; assocprod!          -- (key, (chain, (P, rest)))
+            ; (id * assocprod)               -- (key, ((chain, P), rest))
+            ; (id * (xorbyte * id))          -- (key, ((chain, X), rest))   X = chain XOR P
+            ; (id * assocprod!)              -- (key, (chain, (X, rest)))
+            ; assocprod                      -- ((key, chain), (X, rest))
+            ; transpose                      -- ((key, X), (chain, rest))
+            ; (blockenc * id)                -- ((key, C), (chain, rest))
+            ; ((id * copy) * id)             -- ((key, (C, C)), (chain, rest))
+            ; assocprod!                     -- (key, ((C, C), (chain, rest)))
+            ; (id * transpose)               -- (key, ((C, chain), (C, rest)))
+            ; (id * swapprod)                -- (key, ((C, rest), (C, chain)))
+            ; assocprod                      -- ((key, (C, rest)), (C, chain))
+            ; (cbc * id)                     -- ((key, (C, cs)), (C, chain))   <- recurse
+            ; assocprod!                     -- (key, ((C, cs), (C, chain)))
+            ; (id * transpose)               -- (key, ((C, C), (cs, chain)))
+            ; (id * (copy! * id))            -- (key, (C, (cs, chain)))        <- merge
+            ; (id * (id * swapprod))         -- (key, (C, (chain, cs)))
+            ; (id * assocprod)               -- (key, ((C, chain), cs))
+            ; (id * (swapprod * id))         -- (key, ((chain, C), cs))
+            ; (id * assocprod!)              -- (key, (chain, (C, cs)))
+            ; (id * (id * inr))              -- (key, (chain, C : cs))
+
+def cbc = assocprod ; swapprod ; dist ; (cbcbase + cbcstep) ; join
+
+def decrypt = cbc!

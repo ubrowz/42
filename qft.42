@@ -1,0 +1,101 @@
+-- qft.42 -- a Q42 circuit *family*, written in 42.
+--
+-- Q42 has no closure, so it has no loop, so a Q42 program is one circuit of one
+-- fixed width.  The circuit *family* n |-> C_n that the standard model of
+-- quantum computation actually asks for therefore has to be written somewhere
+-- else.  Every other quantum language writes it in a classical host -- Qiskit in
+-- Python, Quipper in Haskell.  This file is that host, and the host is 42.
+--
+-- Nothing below is a new feature.  Circuits are a first-order inductive type,
+-- so `qterm` is an ordinary `mu`; the generator is an ordinary recursive
+-- definition, so the second-order restriction that stops `def iterate n f` never
+-- comes into play -- a generator's parameter ranges over data, not over terms.
+-- 42 denotes exactly the r.e. relations (THEOREM.md), so every computable family
+-- is reachable this way.
+--
+-- The one thing that is not in the language is the last step, turning a `qterm`
+-- *value* into a Q42 *term*.  Values and terms are different things, here and in
+-- the semantics, and crossing between them is `tools/unquote.py`, twenty lines.
+--
+-- WHAT IS GENERATED.  Coppersmith's approximate QFT, in the recursive form
+--
+--     AQFT(q0, rest) = H(q0) ; ctrl_{q0}(phase fan-out over rest)
+--                            ; (id * AQFT(rest))
+--
+-- The fan-out is a *product*, not a sequence: the rotations act on disjoint
+-- qubits, and `ctrl` distributes over `x`, so one control covers all of them.
+--
+-- WHY *APPROXIMATE*.  R_k is the phase diag(1, e^{2 pi i / 2^k}).  Q42's scalar
+-- generator `omega` is an 8th root of unity, so R_1, R_2, R_3 are Z, S, T and
+-- there is no exact R_4.  Q42's exact gate set is Clifford+T, which is
+-- universal only in the approximate sense, so rotations past R_3 are dropped --
+-- which is what hardware does anyway.  For three qubits nothing is dropped and
+-- the output is the exact QFT; for four the state fidelity is 0.98.
+--
+-- The generator is itself reversible.  `aqft!` reads a circuit back to the
+-- width that produced it, which no other host can do.
+
+type nat   = mu X. 1 + X
+
+-- Q42 syntax as 42 data:  five atoms, one unary and two binary constructors.
+--
+--     qterm = (id | h | z | s | t)  |  ctrl qterm  |  qterm ; qterm
+--                                                 |  qterm * qterm
+type qterm = mu T. (((1 + (1 + (1 + (1 + 1)))) + T) + ((T x T) + (T x T)))
+
+def atom  = inl ; inl                            -- an atom, into qterm
+def qid   = inl ; atom
+def qh    = inl ; inr ; atom
+def qz    = inl ; inr ; inr ; atom
+def qs    = inl ; inr ; inr ; inr ; atom
+def qt    = inr ; inr ; inr ; inr ; atom
+def qctrl = inr ; inl
+def qseq  = inl ; inr
+def qpar  = inr ; inr
+
+
+-- ---------------------------------------------------------------------------
+-- Small change.  `one1` is the identity on 1 and nothing else: `unitprod`
+-- accepts only `1 x a`, so meeting it from the right forces the unit.  Without
+-- it `dropnat` would be polymorphic in the shape of its zero, and the nat that
+-- indexes a rotation would not unify with the nat that counts qubits.
+-- ---------------------------------------------------------------------------
+
+def one1    = unitprod! ; swapprod ; unitprod    -- 1 <-> 1
+def dropnat = (one1 + dropnat) ; join            -- nat <-> 1  (THEOREM.md L2)
+def oneN    = inl ; inr                          -- 1 <-> nat, the number 1
+
+
+-- ---------------------------------------------------------------------------
+-- `rk k` is R_{k+1}, and `id` once the gate set runs out.  This is the whole of
+-- the approximation: a four-way case on a nat, with the fourth arm discarding
+-- its index -- which 42 permits, because forgetting is allowed as long as the
+-- backward direction may answer with several candidates.
+-- ---------------------------------------------------------------------------
+
+def rk = (qz + ((qs + ((qt + (dropnat ; qid)) ; join)) ; join)) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- `rotchain (k, m)` is the fan-out  R_{k+1} * R_{k+2} * ... across the m+1
+-- qubits below the control.  `copy` duplicates the index so that one arm can
+-- use it and the other can step it on with `inr`.
+-- ---------------------------------------------------------------------------
+
+def rotchain = swapprod ; dist
+             ; ((unitprod ; rk)
+               + (swapprod ; (copy * id) ; assocprod! ; (id * (inr * id))
+                 ; (rk * rotchain) ; qpar))
+             ; join
+
+
+-- ---------------------------------------------------------------------------
+-- The family.  `aqft n` is the circuit for a register of n+1 qubits.
+-- ---------------------------------------------------------------------------
+
+def hpar  = unitprod! ; (qh * qid) ; qpar        -- 1 |-> h * id
+def idpar = unitprod! ; (qid * id) ; qpar        -- t |-> id * t
+
+def aqft = (qh + (copy ; (unitprod! * id) ; ((oneN * id) * id)
+                 ; (rotchain * aqft) ; (qctrl * idpar) ; qseq
+                 ; unitprod! ; (hpar * id) ; qseq)) ; join

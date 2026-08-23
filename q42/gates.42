@@ -1,0 +1,99 @@
+-- gates.42 -- the standard gate set, derived from `omega` and `v`.
+--
+-- Nothing here is primitive except `omega` and `v`.  Everything else is 42's
+-- existing plumbing, which is the point: a phase gate is the sum functor with a
+-- scalar in one arm, and a controlled gate is `dist`, which is also 42's
+-- if-then-else (MANUAL section 12.5).
+--
+-- A qubit is  1 + 1.  A register nests to the right:  |abc> = (a, (b, c)).
+-- Composition is diagrammatic, so `f ; g` is "f then g".
+
+
+-- ---------------------------------------------------------------------------
+-- Scalars.  `omega : 1 <-> 1` is an 8th root of unity, so it acts on the unit
+-- type and has to be carried to another type through `unitprod`.  That is what
+-- `scaled` below does for the one place we need it.
+-- ---------------------------------------------------------------------------
+
+-- Z-axis phases.  `S = id + omega^2` is the sum functor with a scalar on the
+-- right branch: it leaves |0> alone and multiplies |1> by a phase.
+-- A qubit is a two-case choice carrying no data.  Declaring the name is a
+-- printing convenience only; the checker is unaffected.
+type qubit = 1 + 1
+
+def t     = id + omega                                  -- T,  diag(1, w)
+def s     = id + (omega ; omega)                        -- S,  diag(1, i)
+def z     = id + (omega ; omega ; omega ; omega)        -- Z,  diag(1, -1)
+
+
+-- ---------------------------------------------------------------------------
+-- The Pauli and single-qubit gates.
+-- ---------------------------------------------------------------------------
+
+def x     = swapsum         -- Pauli X: negation is the symmetry on 1 + 1
+def y     = x ; z           -- up to phase
+def sdg   = s!              -- the dagger is free, so the adjoints are too
+def tdg   = t!
+def vdg   = v!
+
+-- Hadamard, by the Euler decomposition:  H = omega . (X S V S X).
+-- The rotation sequence is a palindrome, so diagrammatic and applicative order
+-- agree here and no reversal is needed.  The `unitprod` sandwich is how the
+-- scalar `omega` reaches a type other than 1.
+def hcore = x ; s ; v ; s ; x
+def h     = unitprod! ; (omega * hcore) ; unitprod
+
+def swap  = swapprod
+
+
+-- ---------------------------------------------------------------------------
+-- Control, once.  `ctrl m = mat ; (id + m) ; mat!`, where
+-- `mat : (1+1) x A <-> A + A` is distributivity followed by dropping the two
+-- units.  Reading it as 42: split on the control bit, apply `m` on the R branch
+-- only, put it back -- which is also 42's if-then-else (MANUAL section 12.5).
+--
+-- The inferred type says what control requires and no more:
+--
+--     ctrl : (a <-> a) -> ((1 + 1) x a <-> (1 + 1) x a)
+--
+-- the target must be an *endo*-relation, because both branches of `id + m` have
+-- to meet the `A + A` that `mat` produces.
+--
+-- Its dagger needs no separate definition.  `dagger` pushes the inversion onto
+-- the parameter and substitution discharges it, so `ctrl! m` is `ctrl m!` --
+-- which is `(Ctrl U)-dagger = Ctrl U-dagger`.
+-- ---------------------------------------------------------------------------
+
+def mat    = dist ; (unitprod + unitprod)               -- (1+1) x A <-> A + A
+def ctrl m = mat ; (id + m) ; mat!
+def nctrl m = mat ; (m + id) ; mat!                     -- fires on |0> instead
+
+def cx    = ctrl x                                      -- CNOT
+def cz    = ctrl z
+def ch    = ctrl h
+def cv    = ctrl v
+def ccx   = ctrl cx                                     -- Toffoli
+def ccz   = ctrl cz
+def cswap = ctrl swap                                   -- Fredkin
+def ncx   = nctrl x
+
+
+-- ---------------------------------------------------------------------------
+-- Small circuits.
+-- ---------------------------------------------------------------------------
+
+-- The Bell pair.  bell|00> = (|00> + |11>)/sqrt 2.
+def bell  = (h * id) ; cx
+
+-- Two Hadamards are the identity, which is interference and nothing else:
+-- the |1> paths cancel.  Over the Booleans they would union instead.
+def hh    = h ; h
+
+-- A control acting on only *part* of the register.  `cx` targets all of A, so on
+-- a three-qubit register `(a, (b, c))` it would try to negate a pair and be
+-- rejected.  Controlling `x * id` instead touches only the second qubit --
+-- and with `ctrl` available that is now what it looks like.
+def cx12  = ctrl (x * id)
+
+-- The GHZ state on three qubits: ghz|000> = (|000> + |111>)/sqrt 2.
+def ghz   = (h * id) ; cx12 ; (id * cx)

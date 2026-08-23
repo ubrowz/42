@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# LaTeX build products
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.synctex.gz
+
+# Third-party files that are not ours to redistribute.  See the README in each
+# directory for where to fetch them; the tests that use them skip when absent.
+sources/*.pdf
+paper/llncs.cls
+paper/splncs04.bst
+
+# Not published: the venue-by-venue publication plan.
+PAPER.md

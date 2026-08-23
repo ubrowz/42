@@ -1,0 +1,157 @@
+-- rational.42 -- exact rational arithmetic.
+--
+-- A rational is a pair (numerator, denominator), both naturals, denominator
+-- at least 1.  Fractions are NOT kept in lowest terms, and that is a decision
+-- rather than an oversight -- see the note on `reduceby` at the bottom.
+--
+-- Every operation here is exact.  Nothing is ever rounded, because rounding
+-- is discarding and this language cannot discard.  As with the naturals, each
+-- binary operation keeps one operand, which makes it injective and hands you
+-- the inverse operation for free:
+--
+--   qadd : (a, b) |-> (b, a + b)        so  qsub = qadd!
+--   qmul : (a, b) |-> (b, a * b)        so  qdiv = qmul!
+
+
+-- ---------------------------------------------------------------------------
+-- Borrowed from arith.42.
+-- ---------------------------------------------------------------------------
+
+def add = dist ; (unitprod + (add ; inr)) ; join
+
+def mul = dist ; ( (swapprod ; (id * inl))
+                 + (mul ; (copy * id) ; assocprod! ; (id * add))
+                 ) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- Shape plumbing.
+--
+-- `transpose` is the workhorse of this file: it exchanges the two inner
+-- components of a pair of pairs, and it is its own inverse.
+--
+--   ((a, b), (c, d))  <->  ((a, c), (b, d))
+-- ---------------------------------------------------------------------------
+
+def transpose = assocprod!
+              ; (id * assocprod)
+              ; (id * (swapprod * id))
+              ; (id * assocprod!)
+              ; assocprod
+
+-- multiply, keeping BOTH operands:  (a, b) |-> ((a, b), a * b)
+def mul2 = (copy * id) ; assocprod! ; (id * mul) ; assocprod
+
+
+-- ---------------------------------------------------------------------------
+-- Multiplication.   p/q * r/s  =  pr/qs
+--
+-- The whole definition is one line, and it is worth seeing why.  `transpose`
+-- turns ((p,q),(r,s)) into ((p,r),(q,s)) -- numerators together, denominators
+-- together.  `mul` on each side gives ((r, pr), (s, qs)), because `mul` hands
+-- back its second operand.  And a second `transpose` sorts that into
+-- ((r,s), (pr, qs)): the operand we kept, beside the product.
+-- ---------------------------------------------------------------------------
+
+def qmul = transpose ; (mul * mul) ; transpose
+
+def qdiv = qmul!
+
+
+-- ---------------------------------------------------------------------------
+-- Addition.   p/q + r/s  =  (ps + qr) / qs
+--
+-- Longer, because the operands are used unevenly: p once, r once, s three
+-- times and q twice.  `mul` hands back its second operand, so s can simply be
+-- threaded from one product into the next; only q has to be duplicated.
+--
+-- The steps are named so the shapes can be followed.
+-- ---------------------------------------------------------------------------
+
+--    ((p,q),(r,s))            ->  (p, (q, (q, (r, s))))
+def qsetup = ((id * copy) * id) ; assocprod! ; (id * assocprod!)
+
+--    (q, (r, s))              ->  ((r, q*r), s)
+def qstepA = assocprod ; (mul * id)
+
+--    (q, ((r, qr), s))        ->  ((s, q*s), (r, qr))
+def qstepB = (id * swapprod) ; assocprod ; (mul * id)
+
+--    (p, ((s, qs), (r, qr)))  ->  (((s, p*s), qs), (r, qr))
+def qstepC = assocprod ; (assocprod * id) ; ((mul * id) * id)
+
+--    (((s,ps), qs), (r,qr))   ->  ((r, s), (ps + qr, qs))
+def qstepD = assocprod!
+           ; (id * assocprod)
+           ; (id * (swapprod * id))
+           ; (id * assocprod!)
+           ; transpose
+           ; (swapprod * id)
+           ; (id * ((id * swapprod) ; assocprod ; (add * id)))
+
+def qadd = qsetup
+         ; (id * (id * qstepA))
+         ; (id * qstepB)
+         ; qstepC
+         ; qstepD
+
+def qsub = qadd!
+
+
+-- ---------------------------------------------------------------------------
+-- Equality, by cross-multiplication:  p/q = r/s  exactly when  ps = qr.
+--
+-- This is a filter -- it returns its input untouched or returns nothing -- so
+-- the two cross products it computes have to be got rid of again afterwards.
+-- The pattern for that is worth learning:
+--
+--   compute a thing, use it, then RECOMPUTE it backwards to cancel it.
+--
+-- `withps` pairs a value with p*s injectively, so `withps!` removes a p*s.
+-- Between them, `copy!` succeeds only if the two cross products agree.
+-- ---------------------------------------------------------------------------
+
+def toPS = (id * swapprod) ; transpose      -- ((p,q),(r,s)) -> ((p,s),(q,r))
+def toQR = (swapprod * id) ; transpose      -- ((p,q),(r,s)) -> ((q,r),(p,s))
+
+def withps = toPS ; (mul2 * id) ; assocprod! ; (id * swapprod) ; assocprod ; (toPS! * id)
+def withqr = toQR ; (mul2 * id) ; assocprod! ; (id * swapprod) ; assocprod ; (toQR! * id)
+
+def cross = withps ; (withqr * id) ; assocprod! ; (id * swapprod)
+
+def qeq = cross ; (id * copy!) ; withps!
+
+
+-- ---------------------------------------------------------------------------
+-- Scaling, and why fractions here are not in lowest terms.
+--
+-- `reduceby` divides both parts by a common factor you supply, and keeps the
+-- factor.  Keeping it is what makes the operation injective, so `scaleby`
+-- comes free.
+--
+--   reduceby((6, 8), 2)  =  ((3, 4), 2)
+--   scaleby((3, 4), 2)   =  ((6, 8), 2)
+--
+-- Now the interesting part: WHERE IS `reduce`?  There is none, and there
+-- cannot be one.  Putting a fraction in lowest terms means dividing by the
+-- gcd, and computing a gcd means running Euclid's algorithm, whose every step
+-- throws away a quotient and keeps only a remainder.  This language cannot
+-- throw anything away.  A gcd program written in 42 is therefore forced to
+-- hand back the quotients it generated -- and that sequence is precisely the
+-- continued-fraction expansion, from which the original fraction can be
+-- rebuilt exactly.
+--
+-- So reduction cannot lose the thing it exists to lose.  Rather than fight
+-- that, this file keeps fractions unreduced and compares them with `qeq`,
+-- which is what "exact" costs here: 1/2 and 2/4 are different values that the
+-- equality test agrees are the same number.
+-- ---------------------------------------------------------------------------
+
+def reduceby = (id * copy)
+             ; transpose
+             ; (swapprod * swapprod)
+             ; (mul! * mul!)
+             ; transpose
+             ; (id * copy!)
+
+def scaleby = reduceby!

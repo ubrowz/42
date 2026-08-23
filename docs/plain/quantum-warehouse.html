@@ -1,0 +1,2388 @@
+<title>When Yes Becomes a Number</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --ink:       #1A2030;
+  --ink-soft:  #4E566B;
+  --ink-faint: #808AA0;
+  --paper:     #EEF0F5;
+  --card:      #FFFFFF;
+  --rule:      #D6DAE5;
+  --rule-firm: #B7BDCE;
+
+  --keep:      #0E6B60;
+  --keep-bg:   #E2EFEC;
+  --lost:      #9E5410;
+  --lost-bg:   #F7EBDD;
+  --new:       #3F4EA8;
+  --new-bg:    #E5E8F7;
+
+  --shadow:    0 1px 2px rgba(26,32,48,.05), 0 8px 24px -16px rgba(26,32,48,.20);
+
+  --f-display: "Archivo Narrow", "Arial Narrow", Helvetica, sans-serif;
+  --f-body:    "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:       #E5E8F0;
+    --ink-soft:  #A8AFC2;
+    --ink-faint: #7A8298;
+    --paper:     #0F1219;
+    --card:      #171B25;
+    --rule:      #2A3040;
+    --rule-firm: #3C4356;
+    --keep:      #55CDBA;
+    --keep-bg:   #11302C;
+    --lost:      #E3A566;
+    --lost-bg:   #33240F;
+    --new:       #97A3EF;
+    --new-bg:    #1D2144;
+    --shadow:    0 1px 2px rgba(0,0,0,.45), 0 8px 24px -16px rgba(0,0,0,.85);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ink:       #E5E8F0;
+  --ink-soft:  #A8AFC2;
+  --ink-faint: #7A8298;
+  --paper:     #0F1219;
+  --card:      #171B25;
+  --rule:      #2A3040;
+  --rule-firm: #3C4356;
+  --keep:      #55CDBA;
+  --keep-bg:   #11302C;
+  --lost:      #E3A566;
+  --lost-bg:   #33240F;
+  --new:       #97A3EF;
+  --new-bg:    #1D2144;
+  --shadow:    0 1px 2px rgba(0,0,0,.45), 0 8px 24px -16px rgba(0,0,0,.85);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 46rem; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 5vw, 2rem) 6rem; }
+
+.mast { border-bottom: 2px solid var(--ink); padding-bottom: 1.75rem; margin-bottom: 2.5rem; }
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: .70rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--new); margin: 0 0 1rem;
+}
+
+h1 {
+  font-family: var(--f-display); font-weight: 700;
+  font-size: clamp(2.1rem, 7vw, 3.3rem); line-height: 1.02; letter-spacing: -.015em;
+  margin: 0 0 .6rem; text-wrap: balance;
+}
+
+.deck { font-size: 1.14rem; color: var(--ink-soft); margin: 0; max-width: 34rem; text-wrap: pretty; }
+
+h2 {
+  font-family: var(--f-display); font-weight: 700;
+  font-size: clamp(1.5rem, 4.2vw, 2rem); line-height: 1.12; letter-spacing: -.01em;
+  margin: 4rem 0 .2rem; padding-top: 1.6rem; border-top: 1px solid var(--rule-firm);
+  text-wrap: balance;
+}
+h2 .num {
+  display: block; font-family: var(--f-mono); font-weight: 500;
+  font-size: .70rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: .55rem;
+}
+
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.18rem; line-height: 1.25; margin: 2.4rem 0 .1rem; text-wrap: balance; }
+h3 .num { font-family: var(--f-mono); font-weight: 400; font-size: .85em; color: var(--ink-faint); margin-right: .5em; }
+h4 { font-family: var(--f-display); font-weight: 600; font-size: 1.02rem; margin: 1.8rem 0 .1rem; color: var(--ink-soft); }
+
+p { margin: 1em 0; text-wrap: pretty; }
+h2 + p, h3 + p, h4 + p { margin-top: .8em; }
+
+strong { font-weight: 600; }
+a { color: var(--new); text-decoration-thickness: 1px; text-underline-offset: .15em; }
+a:focus-visible { outline: 2px solid var(--new); outline-offset: 3px; border-radius: 2px; }
+
+code {
+  font-family: var(--f-mono); font-size: .86em;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 3px;
+  padding: .08em .32em; white-space: nowrap;
+}
+
+.toc { background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 1.3rem 1.5rem; margin: 2.5rem 0; box-shadow: var(--shadow); }
+.toc h4 { margin-top: 0; }
+.toc ol { margin: .6rem 0 0; padding-left: 1.4rem; font-family: var(--f-display); font-size: 1rem; }
+.toc li { margin: .3rem 0; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { text-decoration: underline; color: var(--new); }
+
+figure { margin: 2rem 0; background: var(--card); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; box-shadow: var(--shadow); }
+figcaption {
+  font-family: var(--f-mono); font-size: .70rem; letter-spacing: .13em; text-transform: uppercase;
+  color: var(--ink-faint); padding: .7rem 1.1rem; border-bottom: 1px solid var(--rule); background: var(--paper);
+}
+figcaption b { color: var(--new); font-weight: 500; letter-spacing: .13em; }
+
+.scroll { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+th, td { text-align: left; padding: .62rem 1.1rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--f-display); font-weight: 600; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
+tr:last-child td { border-bottom: none; }
+td code { background: transparent; border: none; padding: 0; white-space: nowrap; }
+td.t { font-family: var(--f-mono); font-size: .84rem; white-space: nowrap; }
+
+td.k { color: var(--keep); font-family: var(--f-display); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; }
+td.l { color: var(--lost); font-family: var(--f-display); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; }
+td.n { color: var(--new); font-family: var(--f-display); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; }
+
+pre {
+  font-family: var(--f-mono); font-size: .82rem; line-height: 1.6;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 1.1rem 1.2rem; overflow-x: auto; margin: 1.6rem 0; box-shadow: var(--shadow);
+}
+pre .c { color: var(--ink-faint); }
+figure pre { border: none; border-radius: 0; margin: 0; box-shadow: none; }
+
+.claim { border-left: 3px solid var(--new); background: var(--card); padding: 1.1rem 1.3rem; margin: 2rem 0; border-radius: 0 4px 4px 0; }
+.claim .label { display: block; font-family: var(--f-mono); font-size: .70rem; letter-spacing: .14em; text-transform: uppercase; color: var(--new); margin-bottom: .5rem; }
+.claim p { margin: .4em 0; }
+.claim p:first-of-type { margin-top: 0; }
+.claim p:last-child { margin-bottom: 0; }
+
+.ledger { display: grid; gap: 1rem; margin: 2rem 0; }
+@media (min-width: 44rem) { .ledger.two { grid-template-columns: 1fr 1fr; } .ledger.three { grid-template-columns: repeat(3, 1fr); } }
+
+.entry { border-radius: 4px; padding: 1rem 1.2rem; border: 1px solid transparent; color: var(--ink); }
+.entry h4 { margin: 0 0 .35rem; font-size: .95rem; }
+.entry p { margin: .35em 0 0; font-size: .95rem; }
+.entry p:last-child { margin-bottom: 0; }
+
+.entry.k { background: var(--keep-bg); border-color: var(--keep); }
+.entry.k h4 { color: var(--keep); }
+.entry.l { background: var(--lost-bg); border-color: var(--lost); }
+.entry.l h4 { color: var(--lost); }
+.entry.n { background: var(--new-bg); border-color: var(--new); }
+.entry.n h4 { color: var(--new); }
+
+blockquote { margin: 1.5rem 0; padding: 0 0 0 1.2rem; border-left: 2px solid var(--rule-firm); color: var(--ink-soft); font-style: italic; }
+blockquote p { margin: .5em 0; }
+
+.gloss { font-size: .95rem; color: var(--ink-soft); border-top: 1px dashed var(--rule-firm); padding-top: .7rem; margin-top: -.3rem; }
+.gloss b { font-family: var(--f-display); font-weight: 600; color: var(--ink); font-style: normal; }
+
+.note { font-size: .95rem; color: var(--ink-soft); background: var(--card); border: 1px solid var(--rule); border-left: 3px solid var(--rule-firm); border-radius: 0 4px 4px 0; padding: .9rem 1.1rem; margin: 1.6rem 0; }
+.note p { margin: .3em 0; }
+.note p:first-child { margin-top: 0; }
+.note p:last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 1.4rem; }
+li { margin: .5em 0; }
+
+/* ---- stepped demonstration ---- */
+.demo .demo-tracks { display: grid; gap: .25rem; padding: .9rem 1rem 0; }
+@media (min-width: 40rem) { .demo .demo-tracks { grid-template-columns: 1fr 1fr; gap: 1.25rem; } }
+
+.demo .track h5 {
+  margin: 0 0 .3rem; font-family: var(--f-display); font-size: .78rem; font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase;
+}
+.demo .tk-coin  { color: var(--keep); }
+.demo .tk-split { color: var(--new); }
+.demo .track svg { width: 100%; height: auto; display: block; }
+
+.demo-cap {
+  margin: .2rem 0 0; padding: .85rem 1rem 0; min-height: 4.2em;
+  font-size: .97rem; color: var(--ink-soft); border-top: 1px solid var(--rule);
+}
+.demo-cap b { color: var(--ink); font-weight: 600; }
+
+.demo-ctl { display: flex; align-items: center; gap: .8rem; padding: .6rem 1rem 1rem; }
+.demo-ctl button {
+  font-family: var(--f-display); font-size: .85rem; font-weight: 600; letter-spacing: .02em;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--rule-firm);
+  border-radius: 3px; padding: .35rem .8rem; cursor: pointer;
+}
+.demo-ctl button:hover:not(:disabled) { border-color: var(--new); color: var(--new); }
+.demo-ctl button:disabled { opacity: .38; cursor: default; }
+.demo-dots { display: flex; gap: .35rem; margin-left: auto; }
+.demo-dots i {
+  width: .45rem; height: .45rem; border-radius: 50%; background: var(--rule-firm); display: block;
+}
+.demo-dots i.on { background: var(--new); }
+
+/* svg parts */
+.demo .nd     { fill: var(--card); stroke: var(--rule-firm); stroke-width: 1; }
+.demo .nd.lit { stroke: var(--new); stroke-width: 1.5; }
+.demo .track:first-child .nd.lit { stroke: var(--keep); }
+.demo .lbl    { fill: var(--ink-faint); font: 500 10px var(--f-mono); letter-spacing: .08em; }
+.demo .val    { fill: var(--ink); font: 500 12px var(--f-mono); }
+.demo .dim    { fill: var(--ink-faint); font: 400 11px var(--f-mono); }
+.demo .rt     { stroke: var(--rule-firm); stroke-width: 1; fill: none; }
+.demo .rt.lit { stroke: var(--ink-faint); }
+.demo .fwd    { stroke: var(--new); fill: var(--new); stroke-width: 2; }
+.demo .bck    { stroke: var(--lost); fill: var(--lost); stroke-width: 2; }
+.demo .bar    { fill: var(--keep); }
+.demo .bar-bg { fill: var(--rule); }
+.demo .zero   { fill: var(--lost); font: 600 12px var(--f-display); letter-spacing: .04em; }
+
+.demo .fade { transition: opacity .28s ease; }
+@media (prefers-reduced-motion: reduce) { .demo .fade { transition: none; } }
+.demo .dial   { fill: none; stroke: var(--rule); stroke-width: 1; }
+.demo .tick   { stroke: var(--rule); stroke-width: 1; }
+.demo .hd     { fill: var(--ink-faint); font: 500 10px var(--f-mono); letter-spacing: .08em; }
+.demo .row    { fill: var(--ink-faint); font: 400 10px var(--f-mono); }
+.demo .empty  { fill: var(--ink-faint); font: 400 11px var(--f-mono); }
+.demo .wire  { stroke: var(--ink-faint); stroke-width: 1.4; fill: none; }
+.demo .gb    { fill: var(--card); stroke: var(--new); stroke-width: 1.5; }
+.demo .gb.lk { stroke: var(--lost); }
+.demo .gt    { fill: var(--ink); font: 600 11px var(--f-display); letter-spacing: .02em; }
+.demo .gt.lk { fill: var(--lost); }
+.demo .lnl   { fill: var(--ink-faint); font: 500 10px var(--f-mono); letter-spacing: .06em; }
+.demo .shade { fill: var(--lost-bg); }
+.demo .shtx  { fill: var(--lost); font: 600 10px var(--f-display); letter-spacing: .05em; }
+.demo .dot   { fill: var(--new); }
+.demo .link  { stroke: var(--new); stroke-width: 1.5; }
+.demo .link.cl { stroke: var(--ink-faint); stroke-width: 1.2; }
+.demo .glow  { stroke: var(--new); stroke-width: 4; opacity: .22; fill: none; }
+
+.end { margin-top: 4rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); font-size: .95rem; color: var(--ink-soft); }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">The companion paper, retold</p>
+  <h1>When Yes Becomes a Number</h1>
+  <p class="deck">The same warehouse, with one thing changed: the entries in the ledger stop being
+  yes and no, and start being quantities that can cancel each other out. What comes out the other
+  side is quantum computing.</p>
+</header>
+
+<h4>What this is</h4>
+
+<p>This retells the second paper, <em>What Survives the Semiring</em>, the way the previous document
+retold the first. It is a sequel in the strict sense: it assumes the warehouse of
+<a href="warehouse.html"><strong>Running the Warehouse Backwards</strong></a> &mdash; the procedures, the
+manifests, the bins, the shortlists &mdash; and changes exactly one thing about it. Read that one
+first.</p>
+
+<p>The change sounds like a technicality and is not. In the first language, the meaning of a step is
+a table of yes/no entries: <em>can this consignment lead to that one?</em> Replace those yes/no
+entries with quantities that have a direction, so that two routes arriving at the same place can
+<strong>reinforce or cancel</strong>, and the very same procedures become the operations of a quantum
+computer. Same text. Same reader. Same manifest checker. Literally the same reversal routine.</p>
+
+<p><strong>Start with Part zero.</strong> The paper assumes you already know what a quantum computer
+is for, what makes it different from an ordinary one, and why reversibility is compulsory rather than
+a design choice &mdash; so it never explains any of them. Part zero is not in the paper and does all
+three, in about five minutes. Nothing after it will make much sense without it.</p>
+
+<p>The paper's actual subject is not that this works. It is <strong>what it costs</strong>, itemised.
+Of nineteen things you could write in the classical language, twelve survive untouched, five stop
+being writable, and two new ones are added. And the five that go, go for exactly two reasons, one
+each for two groups. That accounting is the paper.</p>
+
+<figure>
+  <figcaption><b>Translation key</b> &nbsp;&mdash;&nbsp; on top of the previous document's key</figcaption>
+  <div class="scroll"><table>
+    <tr><th>In the paper</th><th>In the warehouse</th></tr>
+    <tr><td>The <em>semiring</em></td><td>What the ledger entries are: yes/no, or quantities</td></tr>
+    <tr><td>An <em>amplitude</em></td><td>An arrow: a share of the consignment, with a direction</td></tr>
+    <tr><td>A <em>superposition</em></td><td>One consignment genuinely divided across several routes at once</td></tr>
+    <tr><td><em>Interference</em></td><td>Two routes meeting: same direction reinforces, opposite cancels</td></tr>
+    <tr><td><em>Unitary</em></td><td>Conserving: nothing created or destroyed, and every arrangement reachable</td></tr>
+    <tr><td>A <em>qubit</em></td><td>A <strong>lane</strong>: two bins, with the goods in one of them &mdash; or spread across both, with arrows</td></tr>
+    <tr><td>A <em>circuit</em></td><td>A fixed floor layout: stations wired up, goods flowing through</td></tr>
+    <tr><td><em>Measurement</em></td><td>Looking. Which is not a step you can undo</td></tr>
+  </table></div>
+</figure>
+
+<div class="toc">
+  <h4>Contents</h4>
+  <ol start="0">
+    <li><a href="#s0">What a quantum computer is actually doing</a> &mdash; <em>not in the paper</em></li>
+    <li><a href="#s1">Two ways to get here</a></li>
+    <li><a href="#s2">The classical warehouse, briefly</a></li>
+    <li><a href="#s3">The boundary</a></li>
+    <li><a href="#s4">What is added</a></li>
+    <li><a href="#s5">The manifest system is unchanged</a></li>
+    <li><a href="#s6">The rulebook, runnable</a></li>
+    <li><a href="#s7">Looking</a></li>
+    <li><a href="#s8">Neighbours, limits, and what this is not</a></li>
+    <li><a href="#s9">Conclusion</a></li>
+  </ol>
+</div>
+
+
+<h2 id="s0"><span class="num">Part zero &nbsp;&middot;&nbsp; not in the paper</span>What a quantum computer is actually doing</h2>
+
+<p>The paper is written for people who already know this, so it never says any of it. Three things
+need to be on the table first: what the machine is <em>for</em>, the single trick it has, and why that
+trick makes reversibility compulsory rather than optional. Once those are down, every constraint in
+the rest of the document arrives already explained.</p>
+
+<h3 id="s01"><span class="num">0.1</span>What it is for</h3>
+
+<p>Much narrower than the press suggests. Not "computers, but faster". A short list of specific jobs
+where a quantum machine is known to beat every classical method:</p>
+
+<div class="ledger three">
+  <div class="entry n">
+    <h4>Factoring</h4>
+    <p>Given a 600-digit number that is two large primes multiplied together, find the primes.
+    Nobody knows how to do this classically in any reasonable time &mdash; and essentially all
+    internet security rests on that fact. A quantum machine can. This is Shor's algorithm, and it is
+    why governments fund the field.</p>
+  </div>
+  <div class="entry n">
+    <h4>Searching a haystack</h4>
+    <p>A million possibilities, one right answer, no structure to exploit. Classically: a million
+    checks. Quantum: about a thousand. A square-root saving &mdash; genuinely useful, not
+    revolutionary.</p>
+  </div>
+  <div class="entry n">
+    <h4>Simulating matter</h4>
+    <p>The original motivation, from Feynman in 1981. Predicting how a molecule behaves means tracking
+    something whose possibilities multiply with every atom added, and that multiplication is exactly
+    the bill a classical computer cannot pay. So use a quantum system to simulate a quantum system.
+    Probably the first application to matter commercially.</p>
+  </div>
+</div>
+
+<p>That is close to the whole list. Your spreadsheet will not be faster.</p>
+
+<h3 id="s02"><span class="num">0.2</span>The one trick &mdash; and what the arrow is for</h3>
+
+<p>Here is the part that is almost always explained wrongly, and getting it right is the whole reason
+the arrows in this document exist.</p>
+
+<p>Yes, a quantum machine can send one consignment down a million routes at once. <strong>On its own
+that is worth precisely nothing.</strong> Because when you look at the result, you see <em>one</em>
+route, picked at random. A million-route machine that then picks one at random is a machine that
+guesses. You could do that with a die.</p>
+
+<p>And notice that an ordinary computer that flips coins has exactly the same structure: a spread of
+possible outcomes, each carrying a weight, and the weight is a probability. But probabilities are
+always positive and they always accumulate. <strong>Two routes arriving at the same outcome make it
+<em>more</em> likely, never less.</strong> Nothing is ever removed. That is why a coin-flipping
+computer gains you nothing you could not have got by being systematic.</p>
+
+<div class="claim">
+  <span class="label">The entire difference</span>
+  <p>Quantum weights can <strong>cancel</strong>. Two routes arriving at the same outcome can leave
+  <em>nothing at all</em>. That is the only difference between a quantum computer and a classical one,
+  and every advantage quantum machines have traces back to it.</p>
+</div>
+
+<p>So: picture each weight not as a plain number but as an <strong>arrow</strong> &mdash; some length,
+pointing in some direction. When two routes arrive at the same outcome you do not add two numbers, you
+lay two arrows end to end. Pointing the same way, you get a longer arrow: that outcome is now
+<em>more</em> likely. Pointing opposite ways, you get nothing: that outcome has become
+<strong>impossible, precisely because two routes lead to it</strong>. Which is a sentence that makes no
+sense at all about probabilities, and is the whole business here.</p>
+
+<p>Which gives the strategy behind every quantum algorithm ever written:</p>
+
+<div class="claim">
+  <span class="label">What a quantum algorithm is</span>
+  <p>Arrange the layout so that the routes leading to <em>wrong</em> answers cancel each other out,
+  and the routes leading to the right answer reinforce. Then look.</p>
+</div>
+
+<p>The parallelism is the cheap part and achieves nothing by itself. All the engineering is in the
+cancellation. Grover's search, above, is exactly this: it does not check a million things, it spends
+about a thousand steps steadily cancelling the wrong ones.</p>
+
+<h4>A demonstration small enough to hold in your head</h4>
+
+<p>Take one <strong>lane</strong>. A lane has <em>two bins</em>, called bin 0 and bin 1, and the
+consignment sits in one of them &mdash; a lane is the smallest thing a quantum machine is built from,
+and physicists call it a qubit. So a lane is never "in" a bin; it <em>has</em> the two bins, and the
+goods are in one.</p>
+
+<p>Start the consignment in bin 0. Now there is a standard piece of equipment &mdash; call it the
+<strong>splitter</strong> &mdash; which halves whatever arrives:</p>
+
+<figure>
+  <figcaption><b>The splitter</b> &nbsp;&mdash;&nbsp; note the one asymmetry</figcaption>
+  <div class="scroll"><table>
+    <tr><th>Arrives in</th><th>Leaves as</th></tr>
+    <tr><td>bin 0</td><td>half in bin 0, arrow <em>forward</em> &nbsp;&middot;&nbsp; half in bin 1, arrow <em>forward</em></td></tr>
+    <tr><td>bin 1</td><td>half in bin 0, arrow <em>forward</em> &nbsp;&middot;&nbsp; half in bin 1, arrow <strong>backward</strong></td></tr>
+  </table></div>
+</figure>
+
+<p>That single backward arrow is the entire content of the splitter &mdash; and, in a sense the
+rest of this document exists to justify, very nearly the entire content of quantum computing. Now send
+a consignment through
+<em>two</em> splitters in a row, starting in bin 0:</p>
+
+<figure class="demo" id="splitDemo">
+  <figcaption><b>Two splitters, beside two coin flips</b> &nbsp;&mdash;&nbsp; step through it</figcaption>
+
+  <div class="demo-tracks">
+    <div class="track">
+      <h5 class="tk-coin">An ordinary coin</h5>
+      <svg viewBox="0 0 340 300" role="img" aria-label="Two coin flips: probabilities accumulate"></svg>
+    </div>
+    <div class="track">
+      <h5 class="tk-split">The splitter</h5>
+      <svg viewBox="0 0 340 300" role="img" aria-label="Two splitters: arrows cancel"></svg>
+    </div>
+  </div>
+
+  <p class="demo-cap" aria-live="polite"></p>
+
+  <div class="demo-ctl">
+    <button type="button" data-go="-1" aria-label="Previous step">&larr; Back</button>
+    <span class="demo-dots" aria-hidden="true"></span>
+    <button type="button" data-go="1" aria-label="Next step">Next &rarr;</button>
+  </div>
+
+  <noscript><p class="demo-cap">Start with everything in bin 0. One splitter gives half in bin 0
+  (forward) and half in bin 1 (forward). The second splitter turns each of those into two, so four
+  routes arrive: bin 0 receives forward and forward, bin 1 receives forward and <em>backward</em>.
+  Adding up, bin 0 has a full arrow and bin 1 has nothing &mdash; so you are certainly back in bin 0.
+  Two coin flips, by contrast, leave you at fifty-fifty, because probabilities only ever pile
+  up.</p></noscript>
+</figure>
+
+<p>You end up back in bin 0 with <em>certainty</em>. Two splitters make nothing happen at all.</p>
+
+<p>Now compare a coin. Flip it twice and you are at fifty-fifty &mdash; the second flip cannot undo the
+first, because probabilities only ever pile up. The splitter is not a coin. Two of them return you
+exactly where you started, and the reason is visible in the table: one route into bin 1 carried a
+backward arrow and destroyed the other.</p>
+
+<h4>Why the same machine turns up at both ends of an algorithm</h4>
+
+<p>Open any description of a quantum algorithm and you will find a splitter at the start and another
+at the finish, with the interesting part in between. There is a plain reason, and the demonstration you
+have just stepped through contains all of it.</p>
+
+<div class="claim">
+  <span class="label">The mismatch the sandwich exists to bridge</span>
+  <p>All the <em>work</em> happens in <strong>arrow directions</strong> &mdash; cancelling is the only
+  thing this machine can do that an ordinary one cannot.</p>
+  <p>All the <em>reading</em> sees only <strong>which bin</strong>. Directions are invisible to it:
+  turn every arrow by the same amount and no measurement anywhere can tell.</p>
+</div>
+
+<p>So the computation is done in a currency the read-out will not accept, and something has to convert.
+<strong>The splitter is that converter, and you have just watched it convert.</strong> Two arrows
+arriving in bin 1 pointing the same way sent you to bin 0; pointing opposite ways they would have sent
+you to bin 1. The second splitter took a question you cannot ask &mdash; <em>are these two arrows
+aligned or opposed?</em> &mdash; and turned it into one you can: <em>which bin?</em></p>
+
+<p>That is the <strong>closing</strong> splitter: an instrument for reading arrow directions. The
+<strong>opening</strong> one does the mirror job. You can only ever prepare a definite bin, and a
+definite bin means exactly <em>one</em> route &mdash; and one route has nothing to interfere with.
+Cancelling needs at least two routes whose arrows can be set against each other, so before anything can
+happen you must spread the goods across the bins. Same instrument, other direction.</p>
+
+<div class="claim">
+  <span class="label">The cleanest way to hold it</span>
+  <p>A splitter <strong>changes the question the bins are answering.</strong> Before it, bin 0 versus
+  bin 1 means "which bin". After it, the same two bins mean "were the arrows aligned or opposed".</p>
+  <p>Which is also why doing it twice does nothing: you have asked for the original question back. An
+  algorithm needs one question to compute in and a different one to read the answer in &mdash; so it
+  gets a converter at each end.</p>
+</div>
+
+<p>Deutsch's algorithm is the smallest real case. You are handed a sealed question and asked whether it
+gives the <em>same</em> answer for both its inputs &mdash; a question about a relationship, not about
+either answer, which is why classically you must ask it twice.</p>
+
+<ol>
+  <li><strong>Opening splitter.</strong> Spread across both bins, so both inputs go to the sealed
+  question on a single run.</li>
+  <li><strong>The sealed question</strong> writes its two answers into the <em>arrow directions</em>:
+  the route through one bin keeps its arrow, the route through the other is turned to point backwards
+  or not, according to whether the two answers differ.</li>
+  <li>So what you wanted to know is now exactly <em>are these two arrows aligned or opposed?</em></li>
+  <li><strong>Closing splitter.</strong> Converts precisely that into a bin. Aligned puts you in bin 0,
+  opposed in bin 1, with certainty &mdash; and you asked once.</li>
+</ol>
+
+<p>It is not only Deutsch. Grover's search wraps a simple reflection in splitters; the Fourier layout of
+&sect;4.2.1 opens each of its stages with one. Wherever a computation is natural to express in one
+currency and its answer only readable in the other, converters appear at both ends.</p>
+
+<p>One line worth keeping: <strong>the demonstration above is a complete quantum algorithm with nothing
+in the middle.</strong> Put in between the two splitters a step that turns one arrow to point backwards
+&mdash; &sect;4 calls it Z &mdash; and instead of bin 0 you land in bin 1, with certainty. The machine
+has detected that a sign was inserted, which no amount of looking at the state in the middle could have
+told you. That is one of the identities &sect;6 checks by <em>running</em> it, read the other way
+round, and it is the entire shape of a quantum algorithm in three steps.</p>
+
+<h4>Where else can an arrow point?</h4>
+
+<p>Everywhere. The demonstration above used only two directions, forward and backward, and that was an
+honest simplification rather than the whole truth: those are simply the only two the splitter ever
+produces. An arrow is free to point <em>anywhere</em> on a full circle, and reaching the directions in
+between is what most of the equipment in &sect;4 exists to do.</p>
+
+<figure>
+  <figcaption><b>Directions, and what happens when two meet</b></figcaption>
+  <pre>An arrow may point anywhere on the circle:
+
+                        ↑
+                    ↖   │   ↗
+                      ╲ │ ╱                 but the splitter only
+                  ←─────┼─────→             ever uses  →  and  ←
+                      ╱ │ ╲
+                    ↙   │   ↘
+                        ↓
+
+
+Two arrows arriving at the same outcome are laid end to end:
+
+     →   and   →      give   ──→──→     twice as long    reinforced
+     →   and   ←      give      ·       nothing at all   cancelled
+     →   and   ↗      give   ──→↗       longer, but less than twice</pre>
+</figure>
+
+<p>So cancellation is a matter of degree rather than an all-or-nothing affair. Two arrows exactly
+opposed and of equal length leave nothing behind; two identical ones reinforce fully; anything in
+between partly reinforces. Algorithms aim squarely at the two extremes, because you want the wrong
+answers <em>dead</em> rather than merely dimmed &mdash; a dimmed wrong answer is still an answer you
+might read when you look.</p>
+
+<p>&sect;4 puts labels on that circle. It turns out the positions have familiar names, and that the
+language can reach only eight of them.</p>
+
+<p>Hold on to this, because it recurs. The splitter is the station everyone calls
+<strong>Hadamard</strong>, and it is the most used piece of equipment in quantum computing: it turns a
+definite arrangement into a spread, and a spread back into a definite answer, which is why it appears
+at both ends of nearly every algorithm. That two of them make the do-nothing procedure is one of the
+identities the tool in &sect;6 checks by <em>running</em> it.</p>
+
+<h3 id="s03"><span class="num">0.3</span>Why looking is special</h3>
+
+<p>Everything above is bookkeeping on arrows. Looking is the one operation that is not, and it behaves
+quite unlike anything in ordinary computing:</p>
+
+<ul>
+  <li>You see exactly <strong>one</strong> outcome, never the spread.</li>
+  <li>Which one is a matter of <strong>chance</strong>, weighted by the square of each arrow's length.
+  Long arrow, likely. No arrow, impossible.</li>
+  <li>And afterwards <strong>the rest is gone</strong>. The spread does not survive being looked at.
+  From then on, the lane simply holds what you saw.</li>
+</ul>
+
+<p>So you get one look, and you do not get to peek along the way. Peeking is not merely inconvenient:
+an arrow you have already observed can no longer cancel against anything, so peeking destroys the very
+cancellation you spent the whole layout setting up. This is why the paper is so careful about where
+looking is allowed to happen (&sect;7), and why it turns out that confining it to the very end costs
+nothing.</p>
+
+<p>An "observer", incidentally, need not be a person. Any interaction that lets information about
+which route was taken escape into something you do not control counts as a look &mdash; a single stray
+photon will do it. The rule is about information leaking, not about consciousness.</p>
+
+<h4>Yes, this is Schr&ouml;dinger's cat</h4>
+
+<p>It is exactly the same rule, and three things about the famous version are worth knowing.</p>
+
+<p><strong>The cat was a complaint, not an explanation.</strong> Schr&ouml;dinger proposed it in 1935
+to argue that the standard interpretation was <em>ridiculous</em> &mdash; he was on Einstein's side of
+that argument. The point was: if you take collapse-on-observation seriously you are committed to a cat
+smeared across alive and dead until someone opens the box, and since that is absurd, something must be
+wrong. He complained that it is one thing to have a blurry photograph and quite another to have a
+sharp photograph of a cloud. The popular use of the cat as "this is how it works" inverts what it was
+for.</p>
+
+<p><strong>What really ends the cat's spread is its size, not the looking.</strong> A cat is in contact
+with something like ten trillion trillion air molecules, plus its own body heat and every passing
+photon. The arrows do not stay in the cat; they leak into all of that, essentially instantly. And once
+they are spread across that many particles you would have to gather every one of them back in exact
+alignment to make anything cancel again. So the cat is definite long before anyone opens the box.
+Nobody has to look &mdash; the environment is already looking, everywhere, continuously.</p>
+
+<p>That is not a digression. <strong>It is the reason quantum computers are hard to build.</strong>
+The whole engineering problem is stopping the environment from looking: refrigerators a hair above
+absolute zero, shielding, and a coherence budget that the layout spends down as it runs. It is also
+why &sect;7.3 exists &mdash; a lane whose look has been postponed is still sitting there, leaking.</p>
+
+<p><strong>Whether the collapse is <em>fundamentally</em> irreversible is genuinely unsettled</strong>,
+and the question has a name: the measurement problem. On the textbook view it is a real, random,
+irreversible event. On another mainstream view nothing ever collapses at all &mdash; everything stays
+reversible forever, and what you call collapse is your branch of events losing the ability to interfere
+with the others, irreversible only in the way an egg is: not forbidden, merely so improbable that it
+never happens. There are other positions still.</p>
+
+<p>Happily, <strong>none of that matters here.</strong> The mainstream interpretations agree on every
+prediction anyone can currently test, and for a person building or programming one of these machines
+looking is irreversible and chancy under all of them. This document, and the paper, make claims about
+what a programmer can do &mdash; not about what reality is &mdash; so they hold either way.</p>
+
+<div class="note">
+  <p><strong>One last connection, for later.</strong> The theorem in &sect;7.2 &mdash; that you never
+  have to look partway through, because you can keep everything in the spread and look at the end
+  &mdash; is a small, precise, engineering-grade version of exactly this. In the textbook telling of
+  teleportation, Alice looks at her two lanes and telephones the result. The language of this paper
+  says: <em>do not open the box.</em> Keep it all entangled, use quantum control instead, and look
+  once at the end.</p>
+</div>
+
+<h3 id="s04"><span class="num">0.4</span>Why reversibility is compulsory</h3>
+
+<p>Now the question behind the whole project: why is a paper about <em>reversible</em> programming
+relevant to quantum computing at all? There are two answers, and they arrive from completely different
+directions.</p>
+
+<div class="ledger two">
+  <div class="entry n">
+    <h4>The physical answer</h4>
+    <p>The law governing an isolated quantum system says its evolution is <strong>invertible</strong>:
+    the state now determines the state at every earlier moment. That is not a design goal or a
+    convention &mdash; it is what the equation says. So every station in a quantum layout
+    <em>must</em> be reversible. There is no "erase this lane" instruction, because physics does not
+    supply one. The only irreversible thing in the entire business is looking, which is exactly why
+    looking has to sit outside.</p>
+  </div>
+  <div class="entry k">
+    <h4>The older answer, about heat</h4>
+    <p>Reversible computing is decades older than quantum computing and started from thermodynamics.
+    Landauer, 1961: erasing one bit of information necessarily releases a definite minimum quantity of
+    heat &mdash; not in practice, but <em>necessarily</em>. Bennett, 1973: therefore a computation that
+    never erases anything has, in principle, no minimum energy cost at all. That is the founding
+    argument of the field the companion paper belongs to, and it has nothing to do with quantum
+    mechanics.</p>
+  </div>
+</div>
+
+<p>So there are two entirely independent reasons to want a language in which nothing may be thrown
+away. And here is the pleasing part: the language in the companion paper was built for
+<em>neither</em> of them. It came from machine translation &mdash; grammars that had to run in both
+directions, turning a sentence into a meaning and a meaning back into a sentence. A third road to the
+same constraint.</p>
+
+<div class="claim">
+  <span class="label">Which is why this paper is possible at all</span>
+  <p>A language designed, for reasons having nothing to do with physics, under exactly the constraint
+  that physics imposes &mdash; turns out, when you change what is written in its ledger, to be a
+  quantum language. Not a language resembling one. The same file, handed to a different reader.</p>
+</div>
+
+<h3 id="s05"><span class="num">0.5</span>So what does a quantum program look like?</h3>
+
+<p>Put all of the above together and the shape of the thing is forced:</p>
+
+<ul>
+  <li><strong>A fixed number of lanes</strong>, decided before you start &mdash; the machine is a
+  physical object with a fixed number of them.</li>
+  <li><strong>A fixed sequence of stations</strong> wired across those lanes. No loops. No branches. No
+  "if". A layout, drawn once, that goods flow through.</li>
+  <li><strong>Every station reversible</strong>, because there is no other kind.</li>
+  <li><strong>One look, at the very end.</strong></li>
+</ul>
+
+<p>Two words for one thing, while we are here: a <em>step</em> is what you write in a procedure, and a
+<em>station</em> is that same step standing on the floor with goods passing through it. The document
+uses whichever fits the sentence.</p>
+
+<p>Which explains, in advance, four things the paper spends its length on. Why losing the "repeat"
+construct is survivable rather than fatal &mdash; a layout was always going to be a fixed, finite
+thing (&sect;4.2). Why there must nevertheless be a <em>family</em> of layouts, one per job size, and
+something to generate them (&sect;4.2.1). Why looking lives outside the language (&sect;7). And why
+every single step has to conserve everything exactly (&sect;3.3).</p>
+
+<p>From here on, the paper.</p>
+
+<h2 id="abstract"><span class="num">Abstract</span>The argument in one page</h2>
+
+<p>There are two known ways to get from a reversible warehouse language to quantum computing. One
+<em>adds machinery</em>: take two copies of the language, bolt them together with an interface layer,
+introduce a special "blank" and a special "check it is blank", and impose a compatibility rule. That
+route works, and it lands you in a world where a step is allowed to quietly lose some of the
+consignment.</p>
+
+<p>This paper takes the other way: <strong>change what the ledger entries are.</strong> Read the very
+same procedures with quantities-that-cancel instead of yes/no, add two new basic steps, and you have
+a fully general quantum language that stays in the world where every step conserves everything.</p>
+
+<p>The interest is the bill, and the bill is exact. Of nineteen constructs, twelve survive unchanged,
+two are added, five are lost &mdash; and the five fall into two groups under two independent rules.
+Two of them go because they were defined using "yes or yes is still yes", which is false of
+quantities. Three of them go because they fail a conservation test. Everything else &mdash; including
+the reversal operator, the reader, and the entire manifest system &mdash; is not merely analogous but
+<em>the same code</em>: the reversal routine of the quantum language is the same routine as the
+classical one, and one file of definitions runs under both readers unmodified.</p>
+
+<p>Losing "repeat" costs the language its only loop, and the paper shows what replaces it: the
+<em>family of layouts</em> that quantum computing actually asks for is generated by the classical
+twin &mdash; and because the generator is itself a reversible program, it runs backwards. The paper
+also shows the rulebook is runnable rather than merely asserted, and that looking at the result can be
+added at the edge without touching the language, along with a compiler stage, which no previous
+language needs, that undoes what the design forces.</p>
+
+<p class="gloss"><b>Keywords</b> reversible computation &middot; quantum programming languages &middot;
+rig categories &middot; semiring semantics &middot; dagger categories</p>
+
+<h2 id="s1"><span class="num">Section 1</span>Two ways to get here</h2>
+
+<p>A reversible warehouse language and a quantum computer look, from a distance, like different
+subjects. Structurally they are not, and the reason is worth stating carefully because everything
+else follows from it.</p>
+
+<p>The meaning of a procedure in the first language is a grid. Down the side, every consignment that
+could go in; across the top, every consignment that could come out; and in each cell, a yes or a no
+&mdash; can this lead to that? Composing two procedures is the obvious grid arithmetic: to get from
+A to C, check every possible midpoint.</p>
+
+<p>That grid is what this document calls a procedure's <strong>ledger</strong>. The two words are one
+thing: the grid is its shape, the ledger is what its cells hold, and everything that follows turns on
+what they are allowed to hold.</p>
+
+<p>Now put numbers in the cells instead of yes and no. Nothing else changes: the same grid, the same
+arithmetic, the same "check every midpoint". But the numbers can be <em>negative</em>, or more
+generally can point in different directions, and so two routes that arrive at the same destination
+can now cancel out completely instead of both counting. Grids of that kind, with the conservation
+rule of &sect;3.3, are exactly the operations of a quantum computer.</p>
+
+<div class="claim">
+  <span class="label">The observation the paper takes literally</span>
+  <p>A language whose basic steps are just the rules for shuffling bins and pairs around does not,
+  from its own text, know which kind of grid it is being read with.</p>
+</div>
+
+<p>So the same file is handed to two different readers. Here is one, in full:</p>
+
+<figure>
+  <figcaption><b>One file, two readings</b></figcaption>
+  <pre>type qubit = 1 + 1                     <span class="c">-- a two-bin choice</span>
+def mat    = dist ; (unitprod + unitprod)
+def not    = swapsum                   <span class="c">-- relabel the two bins</span>
+def ctrl m = mat ; (id + m) ; mat!     <span class="c">-- do m, but only if the flag is set</span>
+def cx     = ctrl not
+def ccx    = ctrl cx                   <span class="c">-- ...only if both flags are set</span></pre>
+</figure>
+
+<p>Read with yes/no, the last line is an ordinary piece of reversible logic: a rule that flips a
+switch when two other switches are both on. Read with quantities, the same six words are one of the
+standard gates of quantum computing. Same text, same parser, same manifest inference, same reverse.
+And the sharing is not a family resemblance &mdash; in the working implementation, the reversal
+routine of the quantum language is <em>the identical piece of code</em> as the classical one.</p>
+
+<h3 id="s11"><span class="num">1.1</span>The other route, for contrast</h3>
+
+<p>This is not the first way anyone has got from a language like this to quantum computing, and the
+contrast is the clearest way to say what this paper does.</p>
+
+<div class="ledger two">
+  <div class="entry l">
+    <h4>Add machinery</h4>
+    <p>Take <em>two</em> copies of the language, turned relative to one another. Bolt them together
+    with an interface layer so their procedures interleave. Add a second layer introducing a blank
+    and a "check this is blank" operation. Impose a compatibility rule between the two copies. Their
+    theorem is that this suffices &mdash; and the cost is stated openly: the resulting world is one of
+    <em>partial</em> steps, where a step may lose part of the consignment.</p>
+  </div>
+  <div class="entry n">
+    <h4>Change the arithmetic</h4>
+    <p>One copy. No interface layer. No imposed rule. Read the existing text with quantities instead
+    of yes/no and add two basic steps. The world stays one in which every step conserves everything
+    exactly. Full generality comes from an existing result: this plumbing plus two extra steps,
+    subject to three equations, is enough for all of quantum computing.</p>
+  </div>
+</div>
+
+<p>Neither route follows from the other, and the difference is not cosmetic: it decides which world
+you end up in, which in turn decides what looking at the result costs you (&sect;7). One shared
+casualty is worth recording. Both routes lose the "either/or" machinery, for entirely unrelated
+reasons. In the other route it simply is not carried across the interface layer. Here it is lost
+because it was defined using an arithmetic fact that is no longer true (&sect;3.2). Same casualty,
+different cause.</p>
+
+<h3 id="s12"><span class="num">1.2</span>What the paper contributes</h3>
+
+<ol>
+  <li><strong>The boundary, with its two reasons</strong> (&sect;3). Nineteen constructs, twelve
+  surviving, five lost, two added &mdash; and a statement of <em>why</em> each is lost that separates
+  two independent causes. The paper knows of no other place where the bill for the classical-to-quantum
+  move is itemised item by item within one language.</li>
+  <li><strong>A runnable rulebook</strong> (&sect;6). The identities that are normally proved on paper
+  &mdash; that two of a certain step cancel out, that a controlled step's reverse is the controlled
+  reverse &mdash; are things you can execute. The tool checks them across a whole library.</li>
+  <li><strong>A layout family, generated by the classical twin</strong> (&sect;4.2.1). The quantum
+  language has no loop, so the plan for a job of size <em>n</em> has to be written somewhere else; here
+  that somewhere is the classical language, using only an ordinary self-referential manifest and an
+  ordinary recursive definition. The paper generates a standard, widely used layout this way &mdash;
+  exact at three lanes, 98.1% faithful at four. And because the generator is a reversible program, the
+  generator <em>runs backwards</em>: it reads a layout and tells you the job size that produced it,
+  which no plan-builder written in an ordinary language can do.</li>
+  <li><strong>Looking, at the edge, and a stage that undoes the deferral</strong> (&sect;7). Looking at
+  the result needs no change to the language, because it is not a step &mdash; it acts on the finished
+  output. Looking <em>partway through</em> is refused, and a theorem says that costs no expressive
+  power; but the deferral is not free on real hardware, so the paper describes a compiler stage that
+  reverses it, which no previous language needs because none is forced to defer in the first
+  place.</li>
+</ol>
+
+<h2 id="s2"><span class="num">Section 2</span>The classical warehouse, briefly</h2>
+
+<p>Only what is needed. Manifests are built the same four ways &mdash; nothing qualifies, exactly one
+possibility, either-A-or-B, A-and-B-together &mdash; and may refer to themselves. Procedures are built
+from thirteen basic steps, which are the rules saying those four builders behave like arithmetic, plus
+copying and bin-merging; and six ways of combining them: <em>then</em>, <em>two bins side by
+side</em>, <em>travelling together</em>, <em>either</em>, <em>repeat</em>, and <em>backwards</em>.</p>
+
+<p>Two properties carry over and matter here. Reversal always works, needing no checks, so it is
+pushed down to the individual steps and never appears in the machinery. And the law of the language
+reads: <em>x is a possible input for y exactly when y is a possible output for x</em> &mdash; with
+"possible", because running forwards and then backwards returns a shortlist containing where you
+started, not where you started. Both properties survive. The second is transformed, in a way that is
+&sect;3.4 and the nicest single fact in the paper.</p>
+
+<h3 id="s21"><span class="num">2.1</span>What "reading it differently" actually means</h3>
+
+<p>This deserves an operational statement, because it is what the software does rather than a
+metaphor.</p>
+
+<div class="ledger two">
+  <div class="entry k">
+    <h4>The classical reader</h4>
+    <p>Give it a consignment; it hands back the <em>set</em> of consignments that could result.
+    Combining steps means taking unions, chaining, tagging by bin, pairing.</p>
+  </div>
+  <div class="entry n">
+    <h4>The quantum reader</h4>
+    <p>Give it a consignment; it hands back a <em>spread</em>: a list of possible results, each
+    carrying an arrow &mdash; the arrows of &sect;0.2, whose only purpose is that they can cancel.
+    Combining steps means the same chaining, tagging and pairing &mdash; but where the classical
+    reader takes a union, this one <strong>lays the arrows end to end</strong>.</p>
+  </div>
+</div>
+
+<div class="claim">
+  <span class="label">The whole difference</span>
+  <p>The two readers walk the procedure in exactly the same way, step for step. What differs is what
+  they do <em>when two routes arrive at the same place</em>. The classical reader writes down
+  "reachable" and moves on. The quantum reader lays the two arrows end to end &mdash; which may give a
+  longer arrow, or, if they point opposite ways, nothing at all.</p>
+  <p>That second case is the one worth the whole paper. It is the only thing a quantum computer can
+  do that a classical one cannot (&sect;0.2), and it is the entire reason for changing what sits in
+  the ledger.</p>
+</div>
+
+<p>And that is the only place the change shows up. The written procedure never mentions what an
+entry in the ledger <em>is</em>: it is built from bin-and-pair rearrangements combined four ways, and
+none of the four asks what kind of thing is in a cell. Numbers appear only when the reader combines
+two routes. Which is why the language never had to be redesigned &mdash; there was nothing in it to
+redesign.</p>
+
+<h2 id="s3"><span class="num">Section 3</span>The boundary</h2>
+
+<h3 id="s31"><span class="num">3.1</span>What survives</h3>
+
+<p>A step survives if, read with quantities, it obeys the conservation rule. <strong>Eight</strong> of
+the thirteen do, for one uniform reason: <strong>each of them merely rearranges</strong>. Nothing is
+created, nothing is lost, each definite arrangement goes to exactly one definite arrangement, and every
+arrangement is reached by exactly one. A pure shuffle conserves everything no matter what the ledger
+entries are. (Eight steps plus the four ways of combining them is the "twelve constructs" of the
+heading below. &sect;3.6 says why it is exactly these eight and not some other eight.)</p>
+
+<figure>
+  <figcaption><b>Twelve constructs, no modification</b></figcaption>
+  <div class="scroll"><table>
+    <tr><th>Construct</th><th>With yes/no</th><th>With quantities</th></tr>
+    <tr><td>relabel, regroup, drop a dead bin</td><td>rearrangements</td><td>rearrangements</td></tr>
+    <tr><td>swap a pair, regroup a triple, drop a token</td><td>rearrangements</td><td>rearrangements</td></tr>
+    <tr><td>pushing an escort into both bins</td><td>rearrangement</td><td>rearrangement</td></tr>
+    <tr><td>then</td><td>chaining</td><td>chaining</td></tr>
+    <tr><td>two bins side by side; travelling together</td><td>the two builders</td><td>the two builders</td></tr>
+    <tr><td>backwards</td><td>the reverse</td><td><strong>the reverse</strong></td></tr>
+    <tr><td>parameters</td><td>one level deep</td><td>unchanged</td></tr>
+    <tr><td>the manifest system</td><td>worked out, not written</td><td>unchanged</td></tr>
+  </table></div>
+</figure>
+
+<p>The manifest system is shared word for word: the rules are the same rules, "a two-bin choice" is a
+name for an existing manifest rather than a new kind of thing, and the inference is the same
+algorithm running with a different table of basic steps plugged in.</p>
+
+<h3 id="s32"><span class="num">3.2</span>What is lost, reason one: adding must not double</h3>
+
+<p>Two constructs are defined by <em>accumulating possibilities</em>. "Either procedure may apply"
+means: take everything the first can do and everything the second can do, and put them together.
+"Repeat any number of times" means the same thing, accumulated over doing it once, twice, three
+times, and so on.</p>
+
+<p>With yes/no entries, accumulating is harmless, because <strong>yes-or-yes is still yes</strong>.
+Listing the same route twice in a manifest changes nothing. With quantities, listing the same route
+twice gives you <em>twice as much</em>. So:</p>
+
+<div class="ledger two">
+  <div class="entry l">
+    <h4>&ldquo;Either t or t&rdquo;</h4>
+    <p>Should obviously mean the same as "t". With quantities it means <em>two of t</em> &mdash; you
+    have conjured a second consignment out of nothing. The construct no longer means anything one
+    wants it to mean.</p>
+  </div>
+  <div class="entry l">
+    <h4>&ldquo;Repeat t&rdquo;</h4>
+    <p>Was defined as the accumulation over all the finite repetitions, and that accumulation settles
+    down to an answer only because listing something twice is harmless. With quantities the sequence
+    need not settle at all.</p>
+  </div>
+</div>
+
+<p>So these two are not dropped for convenience. They are exactly the two constructs whose <em>very
+definition</em> uses a property the new arithmetic does not have. And note what this means for the
+usual intuition: one might expect quantum superposition to arrive as some form of "either/or".
+It does not. Choice is the thing that had to go. Superposition arrives from somewhere else
+entirely (&sect;4).</p>
+
+<p class="gloss"><b>The literature met this from the other side.</b> The authors of the other route
+list, as future work, extending their construction with a repetition operator, and judge that doing so
+"<em>would require answering fundamental open questions about the nature of infinite-dimensional
+quantum computation</em>". The obstruction here is much more elementary and comes first: repetition
+was defined using yes-or-yes-is-yes, so it does not survive the change of arithmetic at all, whatever
+anyone later decides about the deeper question.</p>
+
+<h3 id="s33"><span class="num">3.3</span>What is lost, reason two: conservation</h3>
+
+<p>Five basic steps fail for a completely unrelated reason. Here is the conservation rule in full, and
+it has two halves that must both hold:</p>
+
+<div class="claim">
+  <span class="label">The conservation rule</span>
+  <p><strong>(a)</strong> The step must not lose or duplicate anything: the total going in equals the
+  total coming out.</p>
+  <p><strong>(b)</strong> The step must be able to <em>reach every arrangement</em>: nothing in the
+  outbound warehouse is unreachable.</p>
+  <p>Both halves, or the step is not allowed. And the interesting part is that the five failures fail
+  in three distinguishable ways.</p>
+</div>
+
+<div class="ledger three">
+  <div class="entry l">
+    <h4>The step that never applies</h4>
+    <p>Fails everything. In the classical world "no outcome" was a perfectly respectable answer
+    &mdash; that is what let the first paper say partiality is not failure. Here there is no such
+    step and no such consolation.</p>
+  </div>
+  <div class="entry l">
+    <h4>Merging the two bins</h4>
+    <p>Fails <strong>(a)</strong>. Two different inbound arrangements land on the same outbound one,
+    so the outbound total is doubled and there is no way back. This was the sole source of shortlists
+    in the classical language &mdash; and here there are no shortlists for it to be the source of.</p>
+  </div>
+  <div class="entry l">
+    <h4>Copying; putting into a bin</h4>
+    <p>Fails <strong>(b)</strong> only. Nothing is lost going forward. But their outputs occupy only
+    <em>part</em> of the outbound warehouse. This group deserves the rest of the section.</p>
+  </div>
+</div>
+
+<h4>The one everybody gets wrong</h4>
+
+<p>Ask anyone why a quantum language cannot have a copy operation and you will be told about the
+famous rule that quantum states cannot be cloned. <strong>That is not the reason, and the paper is
+firm about it.</strong></p>
+
+<p>The no-cloning rule forbids a machine that copies an <em>arbitrary</em> consignment, including one
+already spread across several routes with arrows &mdash; and it is a real prohibition, because a
+machine that could duplicate a spread could be used to read it without disturbing it, which &sect;0.3
+says is impossible. The copy step here never does that. It only ever duplicates <em>definite</em>
+arrangements &mdash; and duplicating a definite arrangement is
+entirely permitted. It is, in fact, precisely what physicists mean by choosing a basis to read things
+in. Copying passes half (a) of the conservation rule perfectly.</p>
+
+<p>What it fails is half (b). Run it over every possible inbound consignment and look at what comes
+out: <em>matching pairs, and only matching pairs</em>. A mismatched pair is never produced by
+anything. A whole region of the outbound warehouse is unreachable, so there is nothing to run
+backwards from there, so there is no genuine reverse.</p>
+
+<div class="claim">
+  <span class="label">The correction</span>
+  <p>Copying is excluded for <strong>not reaching everywhere</strong>, not for cloning. The same goes
+  for the two bin operations: "put it in the left bin" never produces anything in the right bin.</p>
+  <p>The second half of the conservation rule is the one doing the work, and it is not any of the
+  physical prohibitions it is easy to mistake it for. Conserving the total is not enough.</p>
+</div>
+
+<p>The two failures are mirror images. Lane-merging fails going one way; copying and the bin
+operations fail going the other. Only the second kind is easy to misread as a law of physics.</p>
+
+<h3 id="s34"><span class="num">3.4</span>What changes meaning: the shortlist collapses</h3>
+
+<p>One construct survives in the text and is transformed in meaning: <em>backwards</em>. In the
+classical world it is the reverse of a table of possibilities. Here it is the reverse of a table of
+arrows. The implementation does not change &mdash; it is the same routine &mdash; because the written
+text only ever manipulates the <em>laws</em> reversal obeys: reverse the order of a chain, distribute
+over the two builders, and reversing twice gets you back.</p>
+
+<p>And now the most satisfying fact in the paper. The classical language's law contained the word
+"possible", because running forwards and then backwards returned a list <em>containing</em> where you
+started. Here, every procedure conserves everything, so:</p>
+
+<figure>
+  <figcaption><b>The refund</b></figcaption>
+  <pre>classical:   forwards then backwards  gives a list containing where you started
+quantum:     forwards then backwards  gives exactly where you started</pre>
+</figure>
+
+<div class="claim">
+  <span class="label">Why this is not a coincidence</span>
+  <p>The constructs that could ever produce a shortlist &mdash; bin-merging above all &mdash; are
+  <em>precisely</em> the ones that failed the conservation rule and had to go. The price the classical
+  language paid for declining uniqueness is refunded, in full, by a change of number system. And the
+  refund is exactly what makes the quantum reading interesting.</p>
+</div>
+
+<h3 id="s35"><span class="num">3.5</span>The boundary, stated</h3>
+
+<figure>
+  <figcaption><b>Figure 1</b> &nbsp;&mdash;&nbsp; the whole bill</figcaption>
+  <div class="scroll"><table>
+    <tr><th></th><th>Construct</th><th>Why</th></tr>
+    <tr><td class="k">survives</td><td>relabel, regroup, drop a dead bin, drop a token, swap a pair, push an escort into both bins</td><td>pure rearrangement</td></tr>
+    <tr><td class="k">survives</td><td>then; two bins side by side; travelling together</td><td>the three ways of combining</td></tr>
+    <tr><td class="k">survives</td><td>backwards</td><td>reverse becomes reverse</td></tr>
+    <tr><td class="k">survives</td><td>parameters, manifests</td><td>shared code</td></tr>
+    <tr><td class="l">lost</td><td>either; repeat</td><td>defined using yes-or-yes-is-yes</td></tr>
+    <tr><td class="l">lost</td><td>the step that never applies</td><td>conserves nothing</td></tr>
+    <tr><td class="l">lost</td><td>merging the two bins</td><td>does not conserve the total</td></tr>
+    <tr><td class="l">lost</td><td>copying; putting into a bin</td><td>conserves, but cannot reach everywhere</td></tr>
+    <tr><td class="n">added</td><td>a turn; a half-swap</td><td>&sect;4</td></tr>
+  </table></div>
+</figure>
+
+<div class="claim">
+  <span class="label">Proposition 1</span>
+  <p>A construct of the classical language survives the change of arithmetic <strong>exactly
+  when</strong> it is neither (i) defined by accumulating possibilities, nor (ii) in breach of the
+  conservation rule. The constructs failing (i) are exactly <em>either</em> and <em>repeat</em>; those
+  failing (ii) are exactly the never-applies step, bin-merging, copying, and the two bin operations.
+  Everything else is read with quantities without modification, and <em>backwards</em> is
+  reinterpreted from one kind of reverse to the other.</p>
+</div>
+
+<p>Twelve survive, five are lost, and &sect;4 adds two.</p>
+
+<h3 id="s351"><span class="num">3.5.1</span>The boundary is not a matter of grammar</h3>
+
+<p>You would expect the two languages to be told apart the way any two languages are: by their
+grammar, with the quantum one simply refusing to accept a word like <code>copy</code>. That is
+<em>not</em> what happens, and what does happen is more useful.</p>
+
+<p><strong>The two languages share a single reader.</strong> Not two readers built alike &mdash; one
+reader, handed a different list of available steps. Which means <code>copy</code> is perfectly good
+Q42 text. The reader parses it quite happily and files it as a reference to some definition the file
+is expected to provide, exactly as it would file an invented word like <code>frobnicate</code>. At
+that stage the two are indistinguishable.</p>
+
+<div class="claim">
+  <span class="label">The consequence</span>
+  <p>Whether a procedure belongs to the quantum language is <strong>not something you can see by
+  looking at it</strong>. Both files are perfectly well formed. What separates them is a lookup in a
+  list of names, which happens afterwards.</p>
+</div>
+
+<p>That is not a technicality, because it is the mechanism behind the two things this paper claims
+most loudly. The file in &sect;3.7 can be <em>one</em> file read by two readers only because neither
+reader throws out the other's text on sight. And the manifest checker of &sect;5 can be a single
+shared checker only because the list of steps is something handed to it, rather than baked into the
+grammar. Were the boundary a matter of grammar, both would be impossible.</p>
+
+<p>There is a consequence for the error message too. Since the refusal is not a grammatical one, it
+does not come for free &mdash; somebody had to write it. A name the reader cannot resolve gets one
+line; <code>copy</code> gets the reason.</p>
+
+<div class="note">
+  <p><strong>How to read the transcripts</strong>, since this is the first one. The tool is invoked
+  as</p>
+  <p style="font-family:var(--f-mono);font-size:.86rem"><code>42q</code> &nbsp; &lt;file&gt; &nbsp;
+  &lt;definition&gt; &nbsp; &lt;input&gt;</p>
+  <p>so <code>42q rejected bad "|0&gt;"</code> means: load the file <code>rejected.42</code>, find the
+  definition called <code>bad</code> inside it, and run that on the input <code>|0&gt;</code>. Later
+  transcripts sometimes put an instruction first &mdash; <code>42q matrix gates h</code> asks for the
+  grid of the definition <code>h</code> in <code>gates.42</code> rather than running it.</p>
+</div>
+
+<p>The two files below are one line each, and they exist only in order to be refused &mdash; hence the
+name of the definition in them. Notice that they are the same shape: a definition whose body is a
+single word the reader cannot resolve.</p>
+
+<figure>
+  <figcaption><b>Two one-line files, and what happens to them</b></figcaption>
+  <pre>   unknown.42                          rejected.42
+   --------------------                --------------------
+   def bad = frobnicate                def bad = copy
+
+
+$ 42q unknown bad "|0&gt;"
+error: `bad` is ill-typed: undefined: frobnicate
+
+$ 42q rejected bad "|0&gt;"
+error: `bad` uses `copy`, a step the quantum language does not have: it
+conserves the total but cannot reach every arrangement, so it is not
+allowed. It copies only definite arrangements, so it is a choice of
+reading basis rather than an illegal cloner -- but it still has no
+reverse that undoes it</pre>
+</figure>
+
+<p>Same shape in, two very different messages out &mdash; and the difference is entirely in what
+somebody chose to say about a name the quantum language happens not to have.</p>
+
+<p>And because the tool has to produce that text, the prose cannot quietly drift away from what the
+implementation does &mdash; which matters more here than anywhere else in the document, since
+&sect;3.3's distinction (excluded for not reaching everywhere, <em>not</em> for cloning) is exactly
+the sort of claim that gets restated wrongly the third time somebody repeats it.</p>
+
+<h3 id="s36"><span class="num">3.6</span>Why this language and not another</h3>
+
+<p>The move of &sect;3 is not available to reversible languages in general, and saying why locates what
+has actually been used. It also means finally making good on a phrase this document has now used three
+times without explaining: that the thirteen basic steps are the ones which say
+<em>the manifest builders behave like arithmetic</em>.</p>
+
+<p>That is meant literally, not as a figure of speech, and the way to see it is to
+<strong>count the possible consignments</strong>.</p>
+
+<figure>
+  <figcaption><b>Why the builders are arithmetic</b> &nbsp;&mdash;&nbsp; count what each one admits</figcaption>
+  <div class="scroll"><table>
+    <tr><th>Manifest builder</th><th>How many consignments qualify</th><th>So it behaves like</th></tr>
+    <tr><td>nothing qualifies</td><td>none</td><td>the number <strong>0</strong></td></tr>
+    <tr><td>exactly one possibility</td><td>one</td><td>the number <strong>1</strong></td></tr>
+    <tr><td>either an A or a B</td><td>however many A, <em>plus</em> however many B</td><td><strong>addition</strong></td></tr>
+    <tr><td>an A and a B together</td><td>however many A, <em>times</em> however many B</td><td><strong>multiplication</strong></td></tr>
+  </table></div>
+</figure>
+
+<p>Three kinds of pallet and five kinds of docket: then "a pallet or a docket" admits eight things, and
+"a pallet with a docket" admits fifteen. The bin builder is not <em>like</em> addition; on the counts it
+<em>is</em> addition, and the pairing builder is multiplication.</p>
+
+<p>So every ordinary law of arithmetic turns into a statement about manifests &mdash; and each such
+statement, being a claim that two manifests admit exactly the same things, is a <em>step</em> that
+converts one into the other:</p>
+
+<figure>
+  <figcaption><b>Seven laws, seven steps</b></figcaption>
+  <div class="scroll"><table>
+    <tr><th>Law</th><th>What it says about consignments</th><th>The step</th></tr>
+    <tr><td class="t">a + b = b + a</td><td>either-A-or-B admits the same things as either-B-or-A</td><td>relabel the two bins</td></tr>
+    <tr><td class="t">(a+b)+c = a+(b+c)</td><td>how you bracket a three-way choice makes no difference</td><td>regroup a choice</td></tr>
+    <tr><td class="t">0 + a = a</td><td>a choice between an impossible kind and A is just A</td><td>drop the dead bin</td></tr>
+    <tr><td class="t">a &times; b = b &times; a</td><td>a pair (A,&nbsp;B) carries the same as a pair (B,&nbsp;A)</td><td>swap the pair</td></tr>
+    <tr><td class="t">(a&times;b)&times;c = a&times;(b&times;c)</td><td>how you bracket a triple makes no difference</td><td>regroup a triple</td></tr>
+    <tr><td class="t">1 &times; a = a</td><td>a token travelling with A is just A</td><td>drop the token</td></tr>
+    <tr><td class="t">(a+b)&times;c = a&times;c + b&times;c</td><td>"either A or B, with C alongside" is "either (A with C) or (B with C)"</td><td>push the escort into both bins</td></tr>
+  </table></div>
+</figure>
+
+<p>Seven laws, seven steps. Add "do nothing" and that is <strong>eight</strong> &mdash; which is exactly
+the number that survived &sect;3.1, and that is not a coincidence:</p>
+
+<div class="claim">
+  <span class="label">What the section has been claiming</span>
+  <p>The steps that survive the change of arithmetic are <em>precisely</em> the ones that were laws of
+  arithmetic in the first place. The five that go are the five that never were.</p>
+</div>
+
+<p>Which is the whole mechanism, and it is almost disappointingly simple once seen. <strong>A law of
+arithmetic does not mention what the numbers are.</strong> It is a statement about shape, and it stays
+true whatever the quantities happen to be. So change what the ledger holds, and every step witnessing a
+law goes on working, untouched, because it never said anything about the ledger to begin with. Nobody
+redesigns anything.</p>
+
+<p>The other five were extras, added for a purpose of their own, and it shows in their shapes. Read them
+as equations and you get statements that are <em>not</em> laws: copying claims <code>a = a &times; a</code>,
+and merging the two bins claims <code>a + a = a</code>. Neither is true of ordinary arithmetic &mdash; though
+the second is perfectly true when the only quantities available are yes and no, which is &sect;3.2
+arriving from another direction.</p>
+
+<h4>And that is the price of admission</h4>
+
+<p>A language whose basic steps were chosen because they were <em>useful</em> has no such handle. Only a
+language whose steps were forced by a structure can have the structure swapped underneath it.</p>
+
+<p>Inv is the closest relative: like this language it has no variables and describes plumbing rather than
+naming values, and it shares the same law about running backwards. But its basic steps are a toolkit
+rather than a set of laws &mdash; swap two things, regroup, duplicate, test whether two things are equal,
+test whether they are not. No bins, no splitting law, no token law anywhere in its core. And there is
+nothing there for a change of arithmetic to act on, because <strong>"these two are not equal" is not a
+law of anything.</strong> It is a useful test. You cannot ask what it means when the ledger holds
+quantities, because it never said anything about what the ledger held. The other languages fail the same
+test in their various ways.</p>
+
+<p>So the entry ticket to this whole construction is having taken the basic steps from a structure
+rather than from a wishlist &mdash; a decision the classical paper makes for reasons with nothing
+whatever to do with quantum computing, and which turns out to be exactly what makes quantum computing
+reachable by <em>rereading</em> the text rather than by extending it.</p>
+
+<h3 id="s37"><span class="num">3.7</span>The classical part is exactly the rearrangements</h3>
+
+<p>Drop the five, and what is left is a well-defined sub-language, and a familiar one: everything
+built from the rearrangement steps by <em>then</em>, <em>two bins</em> and <em>together</em> is a pure
+shuffle. Read with yes/no those are exactly the reversible logic circuits; read with quantities they
+are exactly the shuffles. This is not a translation between two things &mdash; it is one text with two
+readings, and the file from &sect;1 is the demonstration:</p>
+
+<figure>
+  <figcaption><b>The same five definitions, two readers</b></figcaption>
+  <pre>$ 42  classical ccx "(right, (right, left))"
+   -&gt; (right, (right, right))
+      -- 1 result
+
+$ 42q classical ccx "|110&gt;"
+   = |111&gt;</pre>
+</figure>
+
+<p>The classical run reports a <em>set</em> of results, because there the answer to a query is a
+shortlist. The quantum run reports a <em>spread</em>. The definitions are identical, and so is the
+arithmetic being done on the bins.</p>
+
+<h2 id="s4"><span class="num">Section 4</span>What is added</h2>
+
+<p>Removing five steps leaves a language of shuffles: enough for reversible logic, and no more. Two new
+basic steps are needed, and they are taken from an existing result.</p>
+
+<div class="ledger two">
+  <div class="entry n">
+    <h4>A turn</h4>
+    <p>Changes nothing about where anything is. It only rotates an arrow &mdash; by an eighth of a full
+    circle. Sounds like doing nothing, and is the exact opposite: it is what decides whether two routes
+    later reinforce or cancel.</p>
+  </div>
+  <div class="entry n">
+    <h4>A half-swap</h4>
+    <p>Swapping the two bins of a lane is an ordinary step. This is <em>half</em> of it: do it twice
+    and you have swapped. Do it once and you are somewhere in between &mdash; which takes a paragraph
+    to say properly, below.</p>
+  </div>
+</div>
+
+<h4>What a turn does</h4>
+
+<p>The turn is an eighth of a full circle &mdash; forty-five degrees &mdash; and it is the
+<em>only</em> turn the language has. So every other angle must be spelled as some number of eighths,
+and the directions an arrow can hold lie on a compass:</p>
+
+<figure>
+  <figcaption><b>The compass</b> &nbsp;&mdash;&nbsp; every angle is a whole number of eighths</figcaption>
+  <pre>                        2 turns  =  i
+                              ↑
+                              │    ↗   1 turn  =  0.707 + 0.707i
+                              │  ↗
+      4 turns  ←──────────────┼──────────────→   0 turns
+      =  −1                   │                  =  1  (do nothing)
+                              │
+                              ↓
+                        6 turns  =  −i</pre>
+</figure>
+
+<p>Two turns brings an arrow to straight up, which is the number written <code>i</code>. Four brings it
+to pointing backwards, which is &minus;1. Eight brings it the whole way round, which is why the first
+of the three equations below reads "eight turns get you back where you started". The splitter of
+&sect;0.2 only ever produced forward and backward arrows &mdash; the nought-turn and four-turn
+positions &mdash; and the angles in between are what the turn contributes.</p>
+
+<h4>What a half-swap is</h4>
+
+<p><strong>Half of an operation is an ordinary idea, provided the operation is a motion.</strong>
+Turning a crate to face backwards is a half-turn; half of <em>that</em> is a quarter turn. Do the
+quarter turn twice and the crate faces backwards. Nothing strange has happened &mdash; and note that at
+the halfway point the crate is in a perfectly <em>definite</em> position. It simply is not one of the
+two positions you had been thinking about.</p>
+
+<p>Swapping the two bins of a lane is the half-turn. The half-swap is its quarter turn.</p>
+
+<p>Why is there room for a halfway point at all? Because <strong>a lane is not merely a bit.</strong>
+If the only thing it could hold were "bin 0" or "bin 1", there would be no position in between and no
+square root to take. But each bin carries an arrow, and the arrows supply a whole continuum of settings
+between the two definite ones. The half-swap lands on one of them.</p>
+
+<div class="claim">
+  <span class="label">Which is what the usual phrase is trying to say</span>
+  <p>"The consignment is in both bins at once" is a bad way of putting it. Nothing has been duplicated
+  and nothing is in two places. <strong>The lane is at an intermediate setting, as definite as a crate
+  at ninety degrees.</strong></p>
+  <p>What makes it feel strange is &sect;0.3. When you <em>look</em>, there is no intermediate outcome
+  on offer &mdash; you must see bin 0 or bin 1, and which one is a matter of chance. The in-between
+  setting is perfectly real and does real work; it is just never something you can read off
+  directly.</p>
+</div>
+
+<p>And here is the demonstration worth running, because it catches the arrows earning their keep. The
+splitter and the half-swap both take a definite lane to a fifty-fifty spread. <strong>Look immediately
+after either one and you cannot tell them apart:</strong></p>
+
+<figure class="demo" id="halfDemo">
+  <figcaption><b>The splitter beside the half-swap</b> &nbsp;&mdash;&nbsp; step through it</figcaption>
+  <div class="demo-tracks">
+    <div class="track">
+      <h5 class="tk-split">The splitter</h5>
+      <svg viewBox="0 0 320 322" role="img"
+           aria-label="Two splitters return the consignment to bin 0"></svg>
+    </div>
+    <div class="track">
+      <h5 class="tk-split">The half-swap</h5>
+      <svg viewBox="0 0 320 322" role="img"
+           aria-label="Two half-swaps leave the consignment in bin 1"></svg>
+    </div>
+  </div>
+  <p class="demo-cap" aria-live="polite"></p>
+  <div class="demo-ctl">
+    <button type="button" data-go="-1" aria-label="Previous step">&larr; Back</button>
+    <span class="demo-dots" aria-hidden="true"></span>
+    <button type="button" data-go="1" aria-label="Next step">Next &rarr;</button>
+  </div>
+  <noscript><p class="demo-cap">Applied once, both machines give fifty-fifty and are indistinguishable
+  to any measurement. Their arrows differ: the splitter leaves both halves at 0&deg;, the half-swap
+  leaves them at 135&deg; and 225&deg; &mdash; a quarter turn apart. Applied a second time, two
+  splitters return the consignment to bin 0 and two half-swaps leave it in bin 1.</p></noscript>
+</figure>
+
+<p>Two splitters return you to the start; two half-swaps leave you swapped. Same chances at every
+point, different operations throughout, and <em>nothing but the arrow directions</em> to tell them
+apart &mdash; which is as sharp a demonstration as this document can offer that the chances are not the
+whole story, and that the arrows are not a bookkeeping device.</p>
+
+<p>The tool gives the arrows exactly, and they are worth seeing written down. After one splitter both
+halves read <code>0.707107</code>, which is length 0.707 at nought turns. After one half-swap they read
+<code>-0.5+0.5i</code> and <code>-0.5-0.5i</code>, which are the same length 0.707 at three turns and
+five turns on the compass above &mdash; a quarter circle apart, and neither of them anywhere the
+splitter ever goes.</p>
+
+<p>The existing result says that the plumbing plus these two steps, subject to three equations, is
+enough for all of quantum computing &mdash; and is moreover exactly right, neither too weak nor too
+strong, for three well-studied families of circuits. The three equations are: eight turns get you back
+where you started; two half-swaps make a swap; and one interleaving identity relating the two. All
+three are checkable by running them rather than assumed.</p>
+
+<p>One remark before the catalogue. The turn acts on the <em>token</em> manifest &mdash; the one that
+carries no information at all &mdash; which is why a language with no numbers in it can express a
+rotation: a step from a token to a token cannot move anything, since there is nowhere to move it to, so
+the only thing it can possibly do is change an arrow. An operation on the thing that carries no
+information is, structurally, exactly what a number is. And it is the half-swap, not Hadamard, that is
+basic here: the splitter of &sect;0.2 is the one piece of quantum equipment this document has described
+in detail, and it turns out to be <em>derived</em> &mdash; five ordinary steps and a turn, as the table
+records. Taking a square root of swapping rather than a basis change as the primitive is what makes the
+extension two steps rather than a whole gate catalogue.</p>
+
+<h4>Everything else is derived &mdash; here is the catalogue</h4>
+
+<p>The names below are the standard vocabulary of quantum computing, and the point of listing them is
+that <strong>not one of them is a feature of the language</strong>. Each is an ordinary definition in a
+file, twenty-six of them altogether, and you could delete the file without touching the language at
+all.</p>
+
+<p>One idiom recurs and is worth reading once, because it demystifies half the table. "Two bins side by
+side" &mdash; one of the eight survivors of &sect;3.1 &mdash; lets you say <em>do one thing to the
+bin-0 half and something else to the bin-1 half</em>. Write "leave bin 0 alone, and turn bin 1 four
+times" and you have written the gate everyone calls Z. So the phase gates are not new machinery at all;
+they are the ordinary bin plumbing with a turn in one arm.</p>
+
+<figure>
+  <figcaption><b>The gate library</b> &nbsp;&mdash;&nbsp; every one an ordinary definition</figcaption>
+  <div class="scroll"><table>
+    <tr><th>In the file</th><th>What it is, and what it does</th><th>Built from</th></tr>
+
+    <tr><td class="t">x</td>
+        <td><strong>X</strong>, or "not" &mdash; one of the three <em>Pauli</em> gates, named after
+        Wolfgang Pauli, which are the basic single-lane operations. Relabels the two bins: what was in
+        bin 0 is now in bin 1. Ordinary negation.</td>
+        <td>Nothing new. It <em>is</em> one of the eight survivors &mdash; the step that relabels a
+        two-way choice.</td></tr>
+
+    <tr><td class="t">z</td>
+        <td><strong>Z</strong>, a Pauli gate. Leaves both bins exactly where they are and turns the
+        arrow of the bin-1 half by a half turn, so it points backwards. Invisible until something
+        cancels against it &mdash; which is the entire point of it.</td>
+        <td>Two bins side by side, with four turns in one arm.</td></tr>
+
+    <tr><td class="t">y</td>
+        <td><strong>Y</strong>, the third Pauli gate: X followed by Z.</td>
+        <td>The two above.</td></tr>
+
+    <tr><td class="t">s &nbsp; t</td>
+        <td><strong>S</strong> and <strong>T</strong>, the <em>phase</em> gates &mdash; the same shape
+        as Z but a quarter turn and an eighth turn instead of a half. Finer control over what will
+        cancel later. <code>t</code> is the one that matters in &sect;4.2.1 and &sect;8.</td>
+        <td>Two bins side by side, with two turns / one turn in one arm.</td></tr>
+
+    <tr><td class="t">h</td>
+        <td><strong>Hadamard</strong> &mdash; the splitter of &sect;0.2, and the most important entry
+        here. Halves a lane across both bins, with the one backward arrow that makes cancelling
+        possible. It turns a definite arrangement into a spread and a spread back into a definite
+        answer, so it opens and closes nearly every algorithm.</td>
+        <td>One half-swap wrapped in phases and relabellings: five steps and a turn.</td></tr>
+
+    <tr><td class="t">cx</td>
+        <td><strong>Controlled-not</strong>, or CNOT. Two lanes: if the first lane's goods are in
+        bin 1, relabel the second lane's bins; otherwise leave everything alone. The reversible version of "exclusive or".</td>
+        <td>Controlled-by, applied to <code>x</code>.</td></tr>
+
+    <tr><td class="t">ccx</td>
+        <td><strong>Toffoli</strong>. Three lanes: relabel the third lane's bins only if the goods
+        in the first two are <em>both</em> in bin 1. The reversible version of "and" &mdash; and by itself enough to build
+        every classical reversible circuit there is, which is &sect;3.7's claim made concrete.</td>
+        <td>Controlled-by, applied to <code>cx</code>.</td></tr>
+
+    <tr><td class="t">cswap</td>
+        <td><strong>Fredkin</strong>, the controlled swap. Three lanes: exchange the second and third
+        if the first lane's goods are in bin 1.</td>
+        <td>Controlled-by, applied to swapping a pair.</td></tr>
+
+    <tr><td class="t">bell</td>
+        <td>The <strong>entangled pair</strong>: Hadamard on the first lane, then controlled-not. This
+        is the state &sect;4.1 examines.</td>
+        <td>The two above.</td></tr>
+
+    <tr><td class="t">ghz</td>
+        <td>The same idea across <strong>three</strong> lanes, all entangled together.</td>
+        <td>Ditto, once more.</td></tr>
+  </table></div>
+</figure>
+
+<p>Read the right-hand column downwards. Only <em>two</em> rows mention anything that was not already
+in the classical language: the turns, and the single half-swap inside Hadamard. Everything else is the
+plumbing of &sect;2 and one combinator &mdash; controlled-by &mdash; applied over and over, to itself
+included.</p>
+
+<p>That combinator needs no separate reverse, either. The reverse of "do <em>m</em> only if the flag is
+set" is automatically "do the reverse of <em>m</em> only if the flag is set". Physicists write that
+down as a law about controlled operations; here it simply falls out of the machinery, because reversal
+distributes over the pieces and the flag is untouched by it.</p>
+
+<h3 id="s41"><span class="num">4.1</span>What the two new steps actually buy</h3>
+
+<p>That two steps suffice is not this paper's theorem. What an implementation adds is the ability to
+watch the qualitative change happen.</p>
+
+<p>Before the two new steps, every procedure is a shuffle, and a shuffle sends a definite arrangement
+to a definite arrangement. No spread can ever arise, whatever you write. Adding them changes that in a
+single move:</p>
+
+<figure>
+  <figcaption><b>The moment it becomes quantum</b></figcaption>
+  <pre>$ 42q gates bell "|00&gt;"
+bell |00&gt;
+  = 0.707107|00&gt;  +  0.707107|11&gt;</pre>
+</figure>
+
+<p>Two lanes, one splitter (&sect;0.2) and one controlled flip. Read the output: the goods in the
+two lanes are either <em>both</em> in bin 0 or <em>both</em> in bin 1, with nothing in between. That is stronger
+than it looks. It does not mean "one of the two happened and we do not know which" &mdash; it means
+the two lanes no longer have separate states at all. There is no way to describe lane one on its own
+and lane two on its own such that putting the descriptions side by side gives you this. The lanes have
+become <strong>entangled</strong>: a single object with two ends, and whatever you eventually see at
+one end fixes what you would see at the other, however far apart you carry them.</p>
+
+<p>Entanglement is the resource the interesting algorithms actually spend, and here it is checkable
+rather than asserted. Lay the four arrows out in a two-by-two square; the two lanes are separable
+exactly when a certain simple combination of the four comes to zero. Here it comes to a half. So
+entanglement, in this presentation, is a number failing to vanish &mdash; computed by the same reader
+that runs the classical shuffles.</p>
+
+<p>That is the whole qualitative content of the change, in two definitions: controlled-not does
+nothing a shuffle cannot; Hadamard does; and the pair together produce something no combination of
+separate lanes can equal.</p>
+
+<h3 id="s42"><span class="num">4.2</span>Repetition is gone, and the host is the classical language</h3>
+
+<p>Losing "repeat" (&sect;3.2) removes the language's only open-ended control construct, and the
+obvious question is what becomes of a procedure that has to do something a number of times. It divides
+into four cases, and <strong>only the last is a limit rather than a chore</strong>.</p>
+
+<h4>One &mdash; the count is fixed when you write it</h4>
+
+<p>Then just write it out. Three stations in a row rather than a loop that runs three times. A
+Fibonacci step on two small registers, composed with itself, walks the sequence and returns to its
+starting point after six steps &mdash; because a conserving step on a finite warehouse is a shuffle,
+and a shuffle repeated enough times always comes back round.</p>
+
+<h4>Two &mdash; the count is fixed by the size of the job</h4>
+
+<p>This is most real quantum algorithms. Grover's search runs roughly the square root of the number of
+possibilities; the standard frequency-analysis layout has a depth set by the number of lanes. Writing
+it out still suffices, because <em>fixing the number of lanes fixes the count</em> &mdash; and you have
+to fix the number of lanes anyway, since in this language the number of lanes <em>is</em> the manifest.</p>
+
+<h5 style="font-family:var(--f-display);font-size:.95rem;margin:1.6rem 0 .2rem;color:var(--ink)">Grover's search, in six lines</h5>
+
+<p>Worth doing properly, because it is the algorithm this case is named after and because it shows the
+whole argument of &sect;0.2 in one run. The problem: one of several possibilities is the one you want,
+and nothing distinguishes it except a sealed test that says yes to it and no to the rest. Classically
+you try them one at a time.</p>
+
+<figure>
+  <figcaption><b>grover.42</b> &nbsp;&mdash;&nbsp; two lanes, given the plumbing</figcaption>
+  <pre>def h2       = h * h
+def cz       = ctrl z                <span class="c">-- flips the sign of |11&gt;, nothing else</span>
+def mark11   = cz                    <span class="c">-- so it is already the sealed test</span>
+def mark00   = (x * x) ; cz ; (x * x)
+def diffuse  = h2 ; mark00 ; h2      <span class="c">-- reflect about the average</span>
+def grover11 = h2 ; mark11 ; diffuse
+
+$ 42q grover grover11 "|00&gt;"   =  -1|11&gt;        <span class="c">100% when sampled</span></pre>
+</figure>
+
+<p>Found with <em>certainty</em>, in one turn of the crank. But run it in stages and you catch the
+interesting part:</p>
+
+<figure>
+  <figcaption><b>The same run, in three stages</b></figcaption>
+  <pre>$ 42q grover stage1   "|00&gt;"   =  0.5|00&gt; + 0.5|01&gt; + 0.5|10&gt; +  0.5|11&gt;
+$ 42q grover stage2   "|00&gt;"   =  0.5|00&gt; + 0.5|01&gt; + 0.5|10&gt; + -0.5|11&gt;
+$ 42q grover grover11 "|00&gt;"   = -1|11&gt;</pre>
+</figure>
+
+<div class="claim">
+  <span class="label">Look at the middle line</span>
+  <p>The sealed test has run, and <strong>every outcome still has exactly the same chance as
+  before</strong> &mdash; all four at a quarter. Look at that point and you learn <em>nothing whatever</em>.
+  The only thing that changed in the whole step is one arrow's direction, which &sect;0.3 says no
+  measurement can see.</p>
+  <p>Then the last line. What the reflection does is <strong>convert an unmeasurable difference into a
+  certain one</strong> &mdash; and it is built as <code>h2 ; &middot; ; h2</code>, a splitter at each
+  end, for exactly the reason &sect;0.2 gives.</p>
+</div>
+
+<p>Now the point this case is about. Two lanes want <em>one</em> turn of the crank; three lanes want
+<em>two</em> &mdash; one turn on three lanes reaches 78.1%, and two reach 94.5%. So the number of turns
+is settled by the width of the register and by nothing else, which means it is known before the program
+runs and can simply be written out.</p>
+
+<p>None of that is peculiar to this language. The standard model of quantum computation is a
+<em>family</em> of layouts: for each job size a layout, with the map from size to layout worked out by
+an ordinary classical program. No layout's shape is allowed to depend on the goods flowing through it.
+What the model does require is somewhere to write that classical program, and every quantum toolkit
+answers with a general-purpose host language &mdash; the big industrial one builds layouts from Python,
+another from Haskell. <strong>Here the host is the classical warehouse language itself</strong>, and
+&sect;4.2.1 is that construction.</p>
+
+<h4>Three &mdash; the count is capped, but depends on the goods</h4>
+
+<p>Guard every step. Each pass becomes a station that acts only while a "still running" flag is set, so
+that passes after the job is done are stations that do nothing, and you write out the worst case. This
+needs nothing new &mdash; it is the controlled-by combinator that is already there:</p>
+
+<figure>
+  <figcaption><b>Over-running a guarded loop is free</b></figcaption>
+  <pre>def inc2   = (ctrl x) ; (x * id)   <span class="c">-- add one to a small register</span>
+def gstep  = ctrl inc2             <span class="c">-- ...but only while the flag is set</span>
+def run4   = gstep ; gstep ; gstep ; gstep
+
+run4 |000&gt; = |000&gt;     <span class="c">flag off: four stations that do nothing</span>
+run4 |100&gt; = |100&gt;     <span class="c">flag on:  four increments, wrapping round</span></pre>
+</figure>
+
+<p>Running past the end costs nothing at all, which is what makes a worst-case cap usable rather than
+merely correct. And note that the cap is itself usually a function of the number of lanes &mdash; so at
+any realistic size this case <em>reduces to case two</em>, and one host answers both.</p>
+
+<h4>Four &mdash; no cap at all</h4>
+
+<p>Here the language genuinely stops, and not by a design shortcut. Deciding whether to go round again
+means knowing something about the goods, which means <em>looking</em>, which means leaving the world
+where everything conserves &mdash; the same wall as &sect;7.2, approached from the other side. The one
+existing language with real unbounded loops gets them exactly by paying that price: its loop condition
+is a measurement. And the authors of the other route judge the corresponding extension to
+"<em>require answering fundamental open questions</em>". The loss is over-determined.</p>
+
+<p>The architectural answer is the one real hardware already uses. Shor's algorithm &mdash; the famous
+one &mdash; is a single quantum layout and one look at the end, with the number-theory step and the
+try-again-if-it-failed loop living in ordinary classical code wrapped around the outside. Unbounded
+repetition belongs to the classical driver, not to the layout.</p>
+
+<h3 id="s421"><span class="num">4.2.1</span>A layout family, generated</h3>
+
+<p>The quantum language cannot express a family of layouts. The classical language can &mdash; and the
+two are the same language up to what is in the ledger. Three ingredients, and only the third is
+new.</p>
+
+<div class="ledger three">
+  <div class="entry k">
+    <h4>Layouts as goods</h4>
+    <p>A layout is a tree: stations, "then", and "side by side". A tree is exactly what a
+    self-referential manifest describes. So a layout is an ordinary consignment in the classical
+    language, needing no new feature whatsoever.</p>
+  </div>
+  <div class="entry k">
+    <h4>The generator</h4>
+    <p>A family is a computable map from a job size to such a tree, and the first paper proved the
+    classical language expresses every listable behaviour &mdash; so every computable family is
+    reachable. And crucially it is an ordinary self-referential definition, <em>not</em> a
+    parameterised one, so the one-level-deep restriction never bites.</p>
+  </div>
+  <div class="entry n">
+    <h4>The bridge</h4>
+    <p>A layout-as-goods is not yet a layout-as-procedure. Goods and procedures are different things.
+    So something outside both languages has to hand one to the other &mdash; and that something is
+    twenty lines, precisely because the two languages already share a parser and a manifest checker.</p>
+  </div>
+</div>
+
+<p>Every host has that last seam; the industrial toolkit's is the stage that consumes its
+layout objects. Here it is as narrow as it can possibly be, and the generated text is handed straight
+back to the same checkers the hand-written libraries use.</p>
+
+<h4>What gets generated</h4>
+
+<p>The standard frequency-analysis layout &mdash; the workhorse inside most quantum algorithms worth
+naming, including Shor's. Its recursive shape is: do a Hadamard on the first lane; then, controlled by
+that lane, apply a fan of turns to all the others; then do the whole thing again on the remaining
+lanes. The fan is the pretty part: the turns act on <em>different</em> lanes, so they all happen at
+once rather than one after another, and one control covers the lot.</p>
+
+<figure>
+  <figcaption><b>The generator, and what it prints</b></figcaption>
+  <pre>def aqft = (qh + (copy ; (unitprod! * id) ; ((oneN * id) * id)
+                 ; (rotchain * aqft) ; (qctrl * idpar) ; qseq
+                 ; unitprod! ; (hpar * id) ; qseq)) ; join
+
+$ emit aqft 2      <span class="c">-- three lanes</span>
+((h * id) ; (ctrl ((s * t)) ; (id * ((h * id) ; (ctrl (s) ; (id * h))))))
+
+$ emit aqft 3      <span class="c">-- four lanes</span>
+((h * id) ; (ctrl ((s * (t * id))) ; (id * ((h * id) ; (ctrl ((s * t)) ; ...</pre>
+</figure>
+
+<h4>Why the layout is approximate, and where you can see it</h4>
+
+<p>Recall that the only turn available is an eighth of a full rotation. The layout wants turns of a
+half, a quarter, an eighth, a sixteenth, and so on, halving each time &mdash; and the first three of
+those can be built from eighths while the fourth cannot. There is no exact sixteenth-turn in this
+language, because there is none in the standard gate set it is built from, which is universal only in
+the sense of getting arbitrarily close.</p>
+
+<p>So the generator <em>drops</em> the turns finer than an eighth, which is what real hardware does
+anyway. And look at the second line of output above: the <code>id</code> sitting inside
+<code>(s * (t * id))</code> is a station that does nothing. <strong>That is the approximation, showing
+up in the generated text at exactly the point where the available turns run out.</strong></p>
+
+<div class="claim">
+  <span class="label">How good is it</span>
+  <p>At three lanes nothing is dropped, and the generated layout <em>is</em> the exact transform
+  &mdash; verified against the textbook formula, agreeing to fifteen decimal places. At four lanes,
+  where one turn is dropped, the worst-case faithfulness is <strong>98.1%</strong>, and the tool
+  confirms the result still conserves everything exactly.</p>
+</div>
+
+<h4>And one thing no other host can do</h4>
+
+<div class="claim">
+  <span class="label">The generator runs backwards</span>
+  <p>It is a program in a reversible language, and reversal is total, so it reverses like anything
+  else. Feed the three-lane layout to the generator <em>backwards</em> and it returns the job size that
+  produced it.</p>
+  <p>A plan-builder written in Python or Haskell has no reverse to offer. Here, a family generator
+  inverts into a layout <em>recogniser</em>, for free.</p>
+</div>
+
+<p>Two things this does not supply. Being able to build the family is not the same as building it
+efficiently &mdash; that is a property of a particular generator, to be proved about it. And a layout
+tree is guaranteed to be well-formed, not to be a correctly-sized layout; saying <em>that</em> inside
+the language would need a much more powerful manifest system. So generated layouts are checked rather
+than correct by construction &mdash; which is cheap, because the checker is already shared.</p>
+
+<h3 id="s43"><span class="num">4.3</span>Control and the plumbing are the same thing</h3>
+
+<p>That "do this only if the flag is set" is <em>derived</em> here rather than being a basic step is
+not an economy; it is a theorem, and it belongs to somebody else. A recent result shows that if you
+take a bare set of stations and add seven rules describing how control behaves, what you generate is
+<em>exactly</em> the plumbing of &sect;2 &mdash; the bins, the pairs, the distribution law, all of it.
+Their thesis, in their words, is that the plumbing "<em>encapsulates controlled computation, and only
+controlled computation</em>".</p>
+
+<p>So control and plumbing are two views of one thing, and this paper and that one build from opposite
+ends: here the plumbing is basic and control is derived from the distribution law; there control is
+the added theory and the plumbing falls out.</p>
+
+<h4>A no-go theorem this language walks past</h4>
+
+<p>The same authors record an impossibility result: <strong>you cannot build a controlled version of an
+operation that is handed to you as a sealed box.</strong> If all you can do is feed things in and read
+things out, there is no arrangement of wires that turns it into "do this only if the flag is set".</p>
+
+<p>The controlled-by combinator here is untroubled by that, for a reason that has nothing to do with
+physics. A parameter in this language stands for a <em>piece of text</em>, not for a device, and
+parameters are filled in before anything runs. So it never receives a sealed box &mdash; it receives a
+recipe, and expands. The one-level-deep restriction that the classical paper records as a limitation
+turns out to be precisely what keeps this construct on the right side of an impossibility result.</p>
+
+<h2 id="s5"><span class="num">Section 5</span>The manifest system is unchanged</h2>
+
+<p>Sharing a reader between two languages would be unremarkable. Sharing the <em>manifest checker</em>
+is the part that tests whether the change is really as local as claimed. It is.</p>
+
+<p>Manifests are the classical manifests, unchanged: the four builders, self-reference allowed, worked
+out with no annotations. "A two-bin choice with arrows" is not a new kind of manifest, it is a
+<em>name</em> for one that already existed. So a register of several lanes is a nest of pairs, and the
+number two shows up because a lane is a choice between two things &mdash; the same reason it shows up
+classically.</p>
+
+<p>The inference engine is not forked but <em>instantiated</em>: the table of basic steps is handed to
+it as an input, so the classical and quantum languages are one checker run with two different tables,
+and nothing in the machinery that solves the constraints knows the difference. Which means the checker
+reports things in the same form and with the same generality:</p>
+
+<figure>
+  <figcaption><b>The checker, on the controlled-by combinator</b></figcaption>
+  <pre>$ 42q type gates ctrl
+ctrl  : (a &lt;-&gt; a) -&gt; (qubit x a &lt;-&gt; qubit x a)</pre>
+</figure>
+
+<p>Read: <em>given any procedure from something back to itself, produce a procedure from
+(a lane, together with that something) back to itself.</em> The "something" is genuinely open, so
+controlled-controlled-not works out at three lanes with nothing written down anywhere. And the
+requirement that the controlled thing go from a manifest back to <em>the same</em> manifest is not
+imposed for quantum reasons at all &mdash; it falls out of the two branches of a bin choice having to
+meet up, which is equally true classically. The quantum reading gives it a physical gloss (a
+controlled station must return goods to the place it took them from), but the constraint was already
+there.</p>
+
+<div class="claim">
+  <span class="label">Where manifests and physics do diverge</span>
+  <p>Not every valid manifest is a valid lane layout. "One of three things" is a perfectly good
+  manifest and a perfectly bad register &mdash; you cannot build it from two-way lanes. So a compiler
+  targeting real hardware needs a side condition, and the right one is not "is the size a power of
+  two" but a recursive width check. It is a dozen lines over machinery that already exists, and it does
+  not bite: every non-parameterised definition in every library already satisfies it.</p>
+</div>
+
+<h2 id="s6"><span class="num">Section 6</span>The rulebook, runnable</h2>
+
+<p>The existing result this paper builds on contributes a <em>rulebook</em> &mdash; rules for proving
+two layouts equivalent. Implementing it makes those rules something you execute rather than something
+you argue. Three commands do the work: one prints the grid a procedure denotes, one checks that each
+result reverses back, and one checks across a whole library that every procedure composed with its own
+reverse is the do-nothing procedure.</p>
+
+<figure>
+  <figcaption><b>Two of the three</b></figcaption>
+  <pre>$ 42q matrix gates h
+h : qubit &lt;-&gt; qubit
+     |0&gt;  [  0.707107   0.707107 ]
+     |1&gt;  [  0.707107  -0.707107 ]
+
+$ 42q unitary gates
+-- 24/26 conserving, 2 with no single grid</pre>
+</figure>
+
+<p>The two exceptions are not failures. They are the controlled-by combinator and one of its uses at
+unspecified size &mdash; things that take a parameter, and so have no single grid until the parameter
+is supplied. The tool says so rather than guessing.</p>
+
+<p>Each of the three equations from &sect;4, and each standard identity that follows from them, is a
+test in the suite rather than a claim in prose: two Hadamards cancel; Hadamard-then-flip-then-Hadamard
+is a phase flip; two quarter-turns make a half-turn; the reverse of a controlled step is the controlled
+reverse. They are checked by <em>evaluating</em> rather than by rewriting, which verifies the model
+rather than the calculus &mdash; the appropriate direction for an implementation paper, and the
+complement of the machine-checked development accompanying the other route, which checks the
+calculus.</p>
+
+<p>The tool also prints arrows rather than only samples, which no physical device can. Deutsch's
+algorithm &mdash; the simplest thing that is genuinely faster on a quantum machine &mdash; is six lines,
+of which four are the four possible sealed questions being asked, all written in the <em>classical</em>
+part of the language (&sect;3.7). So the quantum content sits visibly in the two Hadamards and nowhere
+else, rather than being hidden in a gate table. Run it and you get two outcomes with arrows; the first
+lane holds the same bin in both, so that bin is certain, and the answer is read off directly &mdash; and you can
+<em>see</em> why, rather than inferring it from a histogram, which is all a real device offers.</p>
+
+<h2 id="s7"><span class="num">Section 7</span>Looking</h2>
+
+<h3 id="s71"><span class="num">7.1</span>Looking at the end costs nothing</h3>
+
+<p>Looking is not a step, and &sect;0.3 says why: it cannot be undone, and it is not even predictable,
+since which outcome you see is a matter of chance weighted by the squares of the arrow lengths. Every
+other operation in a quantum machine is a reversible rearrangement. This one is not, and it is the
+only one.</p>
+
+<p>So the language does not contain it. Looking is an operation on the <em>finished output</em>: take
+the spread the procedure produced, square the arrow lengths to get the chances, and draw. No construct
+was added, reversal is untouched, the manifest system is untouched, and conservation-by-construction
+survives entirely intact. It is one rule and a random number.</p>
+
+<p>That covers every algorithm whose last step is a single look &mdash; Deutsch, Bernstein&ndash;Vazirani,
+Grover, and the quantum part of Shor.</p>
+
+<h3 id="s72"><span class="num">7.2</span>Looking partway through is refused, and costs nothing</h3>
+
+<p>Looking <em>within</em> a procedure is absent by decision. A "look here" step would be one whose
+reverse has no answer, and every property in &sect;3 would become conditional on where you had put your
+looks.</p>
+
+<p>The refusal is affordable because of a theorem, and it is a genuinely surprising one:</p>
+
+<div class="claim">
+  <span class="label">Deferred looking</span>
+  <p>Any procedure that looks partway through and then acts differently depending on what it saw can
+  be rewritten so that all the looking happens at the very end &mdash; by replacing "act on what I saw"
+  with "act under quantum control", which is the controlled-by combinator that is already there.</p>
+</div>
+
+<figure class="demo" id="deferDemo">
+  <figcaption><b>Sliding the look to the end</b> &nbsp;&mdash;&nbsp; step through it</figcaption>
+  <svg viewBox="0 0 520 196" role="img"
+       aria-label="A mid-procedure look replaced by quantum control, with the look moved to the end"></svg>
+  <p class="demo-cap" aria-live="polite"></p>
+  <div class="demo-ctl">
+    <button type="button" data-go="-1" aria-label="Previous step">&larr; Back</button>
+    <span class="demo-dots" aria-hidden="true"></span>
+    <button type="button" data-go="1" aria-label="Next step">Next &rarr;</button>
+  </div>
+  <noscript><p class="demo-cap">Written the usual way, lane 1 is looked at halfway through and lane 2
+  is flipped only if bin 1 was seen &mdash; so everything after the look lies outside the conserving
+  world. The theorem replaces that with a flip under quantum control and moves the look to the very
+  end, giving the same outcomes. The price is that lane 1 must stay alive to the end.</p></noscript>
+</figure>
+
+<p>The canonical example is teleportation &mdash; the protocol usually offered as <em>the</em> reason a
+language needs mid-procedure looking. Here it runs as a single conserving procedure on three lanes,
+verified by the tool. The two classical bits are never extracted at all: the four possible outcomes
+stay in the spread, and the corrections at the far end are applied under control. The paper checks it
+by preparing a state carrying a genuine arrow direction, teleporting it, and undoing the preparation at
+the other end &mdash; returning to the starting point with certainty is the test.</p>
+
+<p>The contrast with the other route is exact. There, looking is obtained by adding yet another layer,
+built on an operation whose own authors write is "<em>dangerous, as it does not enforce that it is only
+applied to total maps</em>". Which is the honest general statement:</p>
+
+<div class="claim">
+  <span class="label">The general point</span>
+  <p>Adding looking to a conserving language is not an addition to it. It is <em>leaving</em> the
+  conserving world. This language stays, and pays by keeping looking outside.</p>
+</div>
+
+<h3 id="s73"><span class="num">7.3</span>A stage that undoes the deferral</h3>
+
+<p>Deferring is free in a simulation and not free on hardware. A lane whose look has been postponed
+goes on consuming the machine's limited coherence time and cannot be reused for anything else. So a
+compiler emitting these procedures to a real device would want to run the theorem of &sect;7.2
+<strong>backwards</strong>: spot a controlled station whose control lane is never touched again, and
+emit look-and-branch where the text says quantum control.</p>
+
+<p>That is a rewrite over something the language already expresses, not a feature it lacks. To the
+paper's knowledge no previous language requires such a stage &mdash; because none of them is
+structurally obliged to defer in the first place. It is stated as a consequence of the design rather
+than as an implemented optimisation, and it is the clearest piece of future work the paper has.</p>
+
+<h2 id="s8"><span class="num">Section 8</span>Neighbours, limits, and what this is not</h2>
+
+<h4>Related work</h4>
+
+<p>The background observation &mdash; that the world of yes/no grids and the world of quantum
+operations satisfy the same structural laws &mdash; is long established, and the first world has long
+been used as a toy model for quantum protocols on that basis. This paper differs from the toy-model
+tradition in <em>direction</em>: the question is not what quantum-like behaviour the classical world
+exhibits, but what a language written for the classical world <em>loses</em> when the world is
+replaced.</p>
+
+<p>Among implemented systems, Quipper is the closest in ambition &mdash; an embedded layout-generating
+toolchain aimed at estimating resources, and, like the industrial toolkit, a layout generator hosted in
+a general-purpose classical language, which is what &sect;4.2.1 does with the classical twin. Silq is
+closest in spirit: its headline feature is <em>working out</em> where to insert the undoing of
+temporary work, which here is three characters, because reversal is part of the language and is exact
+rather than inferred. Neither shares an implementation with a classical reversible language, which is
+this paper's specific claim.</p>
+
+<h4>On the cost of simulating</h4>
+
+<p>A station acting on <em>n</em> lanes is a grid with two-to-the-<em>n</em> rows, so running these
+procedures on an ordinary computer costs time and memory that double with every added lane. That does
+not distinguish this from any other classical simulator, the industrial ones included; a quantum
+<em>language</em> is not in competition with quantum <em>hardware</em>. One genuine nuance: a known
+result says that layouts built only from a certain restricted family of stations can be simulated
+cheaply despite looking thoroughly quantum, entanglement and all. It is the eighth-turn that takes a
+layout beyond that family &mdash; and this language has it.</p>
+
+<h4>Limitations</h4>
+
+<ul>
+  <li>The layouts <em>are</em> now emitted, in the standard interchange format, and every definition
+  in every library comes out and is checked against what the language itself says it means. What is
+  emitted is unoptimised, though: correctness came first, and tidying it is a separable job.</li>
+  <li>No noise model, no error correction, no gate fidelities. Looking is at the end only, by the
+  decision of &sect;7.2.</li>
+  <li>Of the four repetition regimes of &sect;4.2, only the last is a limitation of the
+  <em>language</em>. The first three are all discharged by writing the stations out, and the writing-out
+  is done by the host of &sect;4.2.1 rather than by hand. The last cannot be lifted, since it requires
+  leaving the conserving world.</li>
+  <li>The host has the two caveats &sect;4.2.1 records: efficiency is proved of a particular generator
+  rather than supplied by the manifest system, and generated layouts are checked rather than correct by
+  construction.</li>
+</ul>
+
+<h4>How to read the overlap</h4>
+
+<div class="claim">
+  <span class="label">A measurement, not a commitment</span>
+  <p>The sharing this document keeps pointing at &mdash; one reader, one manifest checker, one
+  reversal routine &mdash; is a <strong>finding</strong>, not a design goal. The classical language was
+  built for translating between human languages (&sect;0.4). Quantum computing was not in view, and
+  nothing about it was chosen to make any of this work.</p>
+  <p>Which is exactly what makes the overlap worth reporting. The parts that coincide do so because
+  the mathematics makes them coincide, and a project that had set out to keep the two aligned could
+  claim far less from the same measurements.</p>
+</div>
+
+<p>It follows that <strong>nothing obliges the two to stay aligned</strong>, and the emitter is the
+natural place to stop trying: the classical language has no device to target, so an emitter has
+nothing to share with it. Whatever else a quantum language turns out to need &mdash; noise, resource
+estimation, lowering for particular hardware &mdash; can be built without any of it counting as a
+loss. The interesting number was never how much is shared. It is which parts turned out to be
+shareable, and why.</p>
+
+<h4>What this is not</h4>
+
+<p>It is not a claim that changing the arithmetic is better than adding machinery; the two routes land
+in different worlds and answer to different questions. It is not a new proof that this is enough for
+quantum computing &mdash; that result belongs to somebody else. And it is not an argument that quantum
+programming ought to be done this way. It is the observation that a great deal of what a quantum
+language needs is <em>already present</em> in a classical reversible one, and that the leftover is
+small enough to write down exactly.</p>
+
+<h2 id="s9"><span class="num">Section 9</span>Conclusion</h2>
+
+<p>Rereading a classical reversible language with quantities instead of yes/no costs five constructs
+and buys two, and the five go under two independent rules &mdash; "adding must not double" for the two
+choice constructs, conservation for the other three. Everything else, including the reversal operator,
+the reader and the entire manifest system, is shared code. And the word "possible" that the classical
+language pays for declining uniqueness collapses into "is" the moment the ledger holds quantities.</p>
+
+<p>Two things are worth remembering.</p>
+
+<div class="ledger two">
+  <div class="entry l">
+    <h4>Why copying is really excluded</h4>
+    <p>Not by the famous no-cloning rule &mdash; which it does not violate, only ever duplicating
+    definite arrangements &mdash; but by the plainer failure of not being able to reach everywhere.
+    The distinction is exactly the sort of thing an implementation forces you to get right, and prose
+    alone lets you get wrong.</p>
+  </div>
+  <div class="entry n">
+    <h4>What the twin says for it</h4>
+    <p>What the quantum language cannot express, its classical sibling expresses on its behalf. The
+    loop that "repeat" used to provide comes back as a generator, written in the same syntax, checked
+    by the same checker &mdash; and inverting for free.</p>
+  </div>
+</div>
+
+<h4>Artifact</h4>
+
+<p>One repository implements both languages, with no external dependencies. The quantum reader and its
+table of basic steps come to roughly three hundred lines; everything else is shared with the classical
+language.</p>
+
+<p class="end">This retelling follows <em>What Survives the Semiring</em> section by section, and
+assumes the previous retelling of the companion paper. Everything asserted here is asserted there;
+only the vocabulary has changed. Where this version says "arrows that cancel", the paper says
+"amplitudes"; where it says "conserving", the paper says "unitary"; where it says "cannot reach
+everywhere", the paper says "isometric but not surjective"; and where it says "the ledger holds
+quantities", the paper says "the semiring is &#8450;".</p>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var fig = document.getElementById("splitDemo");
+  if (!fig) return;
+
+  var NS = "http://www.w3.org/2000/svg";
+  var svgs = fig.querySelectorAll(".track svg");
+  var cap  = fig.querySelector(".demo-cap");
+  var dots = fig.querySelector(".demo-dots");
+  var btns = fig.querySelectorAll(".demo-ctl button");
+
+  // geometry
+  var AX = 170, B0 = 75, B1 = 265, NW = 130, NH = 58;
+  var AY = 18, BY = 118, CY = 220;
+
+  // the two machines.  `c` are the contributions arriving in each bin.
+  var COIN = { a: 1, b: [0.5, 0.5], c: [[0.25, 0.25], [0.25, 0.25]], out: [0.5, 0.5] };
+  var SPLIT = { a: 1, b: [0.7071, 0.7071], c: [[0.5, 0.5], [0.5, -0.5]], out: [1, 0] };
+
+  var CAPS = [
+    "Everything starts in <b>bin 0</b>. One full arrow on the right, one certainty on the left.",
+    "One flip, one splitter. Both give a half-and-half spread, and <b>so far the coin and the " +
+      "splitter are indistinguishable</b> &mdash; equal chances either side.",
+    "Now the second one. Four routes, two arriving in each bin. The coin's contributions are " +
+      "quantities; the splitter's are arrows, and <b>one of them points backwards</b>.",
+    "Add up what arrived. The coin's two contributions pile up to fifty-fifty, because probabilities " +
+      "can only ever accumulate. The splitter's are equal and opposite, so <b>bin 1 is left with " +
+      "nothing at all</b> and the consignment is certainly back where it began."
+  ];
+
+  var step = 0, MAX = CAPS.length - 1;
+
+  function el(name, attrs, text) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function pct(v, quantum) { return Math.round((quantum ? v * v : v) * 100) + "%"; }
+
+  function node(g, x, y, label, lit) {
+    g.appendChild(el("rect", { x: x - NW / 2, y: y, width: NW, height: NH, rx: 3,
+                               "class": "nd" + (lit ? " lit" : "") }));
+    g.appendChild(el("text", { x: x - NW / 2 + 8, y: y + 14, "class": "lbl" }, label));
+  }
+
+  function arrow(g, cx, cy, v, scale) {
+    var L = Math.abs(v) * scale, dir = v < 0 ? -1 : 1, cls = v < 0 ? "bck" : "fwd";
+    if (L < 1) return;
+    var x0 = cx - dir * L / 2, x1 = cx + dir * L / 2;
+    g.appendChild(el("line", { x1: x0, y1: cy, x2: x1 - dir * 5, y2: cy, "class": cls }));
+    g.appendChild(el("polygon", {
+      points: [x1, cy, x1 - dir * 7, cy - 4, x1 - dir * 7, cy + 4].join(" "), "class": cls }));
+  }
+
+  function bar(g, cx, cy, p) {
+    var W = 92;
+    g.appendChild(el("rect", { x: cx - W / 2, y: cy - 4, width: W, height: 8, rx: 2, "class": "bar-bg" }));
+    if (p > 0) g.appendChild(el("rect", { x: cx - W / 2, y: cy - 4, width: W * p, height: 8, rx: 2,
+                                          "class": "bar" }));
+  }
+
+  // one bin's interior, either a single combined value or the two contributions
+  function fill(g, cx, y, vals, quantum, combined) {
+    if (combined) {
+      var v = vals[0];
+      if (quantum) {
+        if (Math.abs(v) < 1e-9) {
+          g.appendChild(el("text", { x: cx, y: y + 36, "class": "zero", "text-anchor": "middle" },
+                            "nothing"));
+          g.appendChild(el("text", { x: cx, y: y + 50, "class": "dim", "text-anchor": "middle" }, "0%"));
+          return;
+        }
+        arrow(g, cx, y + 32, v, 46);
+        g.appendChild(el("text", { x: cx, y: y + 50, "class": "dim", "text-anchor": "middle" },
+                          pct(v, true)));
+      } else {
+        bar(g, cx, y + 30, v);
+        g.appendChild(el("text", { x: cx, y: y + 50, "class": "dim", "text-anchor": "middle" },
+                          pct(v, false)));
+      }
+      return;
+    }
+    // contributions, one per row
+    for (var i = 0; i < vals.length; i++) {
+      var ry = y + 26 + i * 18;
+      if (quantum) {
+        arrow(g, cx - 22, ry, vals[i], 40);
+        g.appendChild(el("text", { x: cx + 14, y: ry + 4, "class": "val" },
+                          (vals[i] < 0 ? "−" : "+") + "½"));
+      } else {
+        g.appendChild(el("text", { x: cx, y: ry + 4, "class": "val", "text-anchor": "middle" },
+                          "25%"));
+      }
+    }
+  }
+
+  function route(g, x1, y1, x2, y2, lit) {
+    g.appendChild(el("path", { d: "M" + x1 + " " + y1 + " C " + x1 + " " + (y1 + 22) + ", " +
+                                  x2 + " " + (y2 - 22) + ", " + x2 + " " + y2,
+                               "class": "rt" + (lit ? " lit" : "") }));
+  }
+
+  function draw(svg, M, quantum, st) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var g = el("g", { "class": "fade" });
+
+    if (st >= 1) { route(g, AX, AY + NH, B0, BY, true); route(g, AX, AY + NH, B1, BY, true); }
+    if (st >= 2) {
+      route(g, B0, BY + NH, B0, CY, true); route(g, B0, BY + NH, B1, CY, true);
+      route(g, B1, BY + NH, B0, CY, true); route(g, B1, BY + NH, B1, CY, true);
+    }
+
+    node(g, AX, AY, "bin 0", st === 0);
+    fill(g, AX, AY, [M.a], quantum, true);
+
+    if (st >= 1) {
+      node(g, B0, BY, "bin 0", st === 1); fill(g, B0, BY, [M.b[0]], quantum, true);
+      node(g, B1, BY, "bin 1", st === 1); fill(g, B1, BY, [M.b[1]], quantum, true);
+    }
+    if (st >= 2) {
+      var done = st >= 3;
+      node(g, B0, CY, "bin 0", done); fill(g, B0, CY, done ? [M.out[0]] : M.c[0], quantum, done);
+      node(g, B1, CY, "bin 1", done); fill(g, B1, CY, done ? [M.out[1]] : M.c[1], quantum, done);
+    }
+    svg.appendChild(g);
+  }
+
+  function render() {
+    draw(svgs[0], COIN, false, step);
+    draw(svgs[1], SPLIT, true, step);
+    cap.innerHTML = CAPS[step];
+    btns[0].disabled = step === 0;
+    btns[1].disabled = step === MAX;
+    dots.innerHTML = "";
+    for (var i = 0; i <= MAX; i++) {
+      var d = document.createElement("i");
+      if (i === step) d.className = "on";
+      dots.appendChild(d);
+    }
+  }
+
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      step = Math.min(MAX, Math.max(0, step + (+this.getAttribute("data-go"))));
+      render();
+    });
+  }
+  fig.setAttribute("tabindex", "0");
+  fig.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" && step < MAX) { step++; render(); e.preventDefault(); }
+    if (e.key === "ArrowLeft"  && step > 0)   { step--; render(); e.preventDefault(); }
+  });
+
+  render();
+})();
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var fig = document.getElementById("halfDemo");
+  if (!fig) return;
+
+  var NS = "http://www.w3.org/2000/svg";
+  var svgs = fig.querySelectorAll(".track svg");
+  var cap  = fig.querySelector(".demo-cap");
+  var dots = fig.querySelector(".demo-dots");
+  var btns = fig.querySelectorAll(".demo-ctl button");
+
+  // each entry is [magnitude, angle in degrees].  null means an empty bin.
+  var SPLIT = [
+    [[1, 0], null],
+    [[0.7071, 0], [0.7071, 0]],
+    [[1, 0], null]
+  ];
+  var HALF = [
+    [[1, 0], null],
+    [[0.7071, 135], [0.7071, 225]],
+    [null, [1, 0]]
+  ];
+
+  var CAPS = [
+    "Both start the same way: everything in <b>bin 0</b>, one full arrow.",
+    "Apply each machine once. <b>Both give fifty-fifty</b> &mdash; and at this point there is no " +
+      "measurement of any kind, however clever, that tells the two apart.",
+    "Now show the arrows. The splitter leaves both halves pointing <b>the same way</b>; the half-swap " +
+      "leaves them <b>a quarter turn apart</b>. Same chances, different bookkeeping.",
+    "Apply each a second time, and the bookkeeping decides. Two splitters return you to <b>bin 0</b>. " +
+      "Two half-swaps leave you in <b>bin 1</b> &mdash; between them they have performed a swap. " +
+      "Nothing but the arrow directions ever told the splitter and the half-swap apart."
+  ];
+
+  var step = 0, MAX = CAPS.length - 1;
+  var CX = [116, 236], NW = 110, ROWY = [26, 124, 222], NH = 86, R = 21;
+  var ROWLBL = ["start", "after one", "after two"];
+
+  function el(n, a, t) {
+    var e = document.createElementNS(NS, n);
+    for (var k in a) e.setAttribute(k, a[k]);
+    if (t != null) e.textContent = t;
+    return e;
+  }
+
+  function dial(g, cx, cy, vec, showArrow) {
+    g.appendChild(el("circle", { cx: cx, cy: cy, r: R, "class": "dial" }));
+    g.appendChild(el("line", { x1: cx - R, y1: cy, x2: cx + R, y2: cy, "class": "tick" }));
+    g.appendChild(el("line", { x1: cx, y1: cy - R, x2: cx, y2: cy + R, "class": "tick" }));
+    if (!vec || !showArrow) return;
+    var rad = vec[1] * Math.PI / 180, L = vec[0] * R;
+    var ex = cx + L * Math.cos(rad), ey = cy - L * Math.sin(rad);
+    var bx = cx + (L - 6) * Math.cos(rad), by = cy - (L - 6) * Math.sin(rad);
+    var px = -Math.sin(rad) * 4, py = -Math.cos(rad) * 4;
+    g.appendChild(el("line", { x1: cx, y1: cy, x2: bx, y2: by, "class": "fwd" }));
+    g.appendChild(el("polygon", { points: [ex, ey, bx + px, by + py, bx - px, by - py].join(" "),
+                                  "class": "fwd" }));
+  }
+
+  function draw(svg, M, st) {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var g = el("g", { "class": "fade" });
+
+    g.appendChild(el("text", { x: CX[0], y: 14, "class": "hd", "text-anchor": "middle" }, "bin 0"));
+    g.appendChild(el("text", { x: CX[1], y: 14, "class": "hd", "text-anchor": "middle" }, "bin 1"));
+
+    var rows = st === 0 ? 1 : (st < 3 ? 2 : 3);
+    for (var r = 0; r < rows; r++) {
+      var y = ROWY[r];
+      g.appendChild(el("text", { x: 4, y: y + NH / 2 + 3, "class": "row" }, ROWLBL[r]));
+      for (var b = 0; b < 2; b++) {
+        var vec = M[r][b];
+        g.appendChild(el("rect", { x: CX[b] - NW / 2, y: y, width: NW, height: NH, rx: 3,
+                                   "class": "nd" }));
+        // the arrows are withheld until step 2, so that step 1 shows only the chances
+        dial(g, CX[b], y + 34, vec, r === 0 || r === 2 || st >= 2);
+        var pc = vec ? Math.round(vec[0] * vec[0] * 100) + "%" : "0%";
+        g.appendChild(el("text", { x: CX[b], y: y + 74, "class": vec ? "dim" : "empty",
+                                   "text-anchor": "middle" }, pc));
+      }
+    }
+    svg.appendChild(g);
+  }
+
+  function render() {
+    draw(svgs[0], SPLIT, step);
+    draw(svgs[1], HALF, step);
+    cap.innerHTML = CAPS[step];
+    btns[0].disabled = step === 0;
+    btns[1].disabled = step === MAX;
+    dots.innerHTML = "";
+    for (var i = 0; i <= MAX; i++) {
+      var d = document.createElement("i");
+      if (i === step) d.className = "on";
+      dots.appendChild(d);
+    }
+  }
+
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      step = Math.min(MAX, Math.max(0, step + (+this.getAttribute("data-go"))));
+      render();
+    });
+  }
+  fig.setAttribute("tabindex", "0");
+  fig.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" && step < MAX) { step++; render(); e.preventDefault(); }
+    if (e.key === "ArrowLeft"  && step > 0)   { step--; render(); e.preventDefault(); }
+  });
+
+  render();
+})();
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var fig = document.getElementById("deferDemo");
+  if (!fig) return;
+
+  var NS = "http://www.w3.org/2000/svg";
+  var svg  = fig.querySelector("svg");
+  var cap  = fig.querySelector(".demo-cap");
+  var dots = fig.querySelector(".demo-dots");
+  var btns = fig.querySelectorAll(".demo-ctl button");
+
+  var Y1 = 64, Y2 = 136, X0 = 68, X1 = 506, BW = 62, BH = 32;
+  var SPLIT = 116, LOOK_MID = 214, CTRL = 330, LOOK_END = 444;
+
+  var CAPS = [
+    "The usual way to write it. Do something to lane 1, <b>look</b> at it halfway through, and flip " +
+      "lane 2 only if you saw bin 1. This is how the textbooks draw teleportation &mdash; and it is " +
+      "the shape the language refuses.",
+    "Here is why it is refused. A look cannot be undone (&sect;0.3), so <b>everything downstream of " +
+      "it lies outside the conserving world</b> &mdash; and the flip on lane 2 now waits on an " +
+      "ordinary classical bit, which is not a thing the language can express.",
+    "The theorem says you never had to look. Replace \"flip if you saw bin 1\" with <b>a flip under " +
+      "quantum control</b> &mdash; the controlled-by combinator that is already in the language " +
+      "&mdash; and slide the look to the very end. Same outcomes, every time.",
+    "And now the price, which is &sect;7.3. Lane 1 can no longer be read and released halfway: it " +
+      "<b>must stay alive all the way to the end</b>, spending coherence the whole distance. Free in " +
+      "a simulation, expensive on real hardware &mdash; which is why a compiler would want to run " +
+      "this transformation <em>backwards</em>."
+  ];
+
+  var step = 0, MAX = CAPS.length - 1;
+
+  function el(n, a, t) {
+    var e = document.createElementNS(NS, n);
+    for (var k in a) e.setAttribute(k, a[k]);
+    if (t != null) e.textContent = t;
+    return e;
+  }
+  function line(g, x1, y1, x2, y2, cls) {
+    g.appendChild(el("line", { x1: x1, y1: y1, x2: x2, y2: y2, "class": cls || "wire" }));
+  }
+  function gate(g, cx, cy, label, look) {
+    g.appendChild(el("rect", { x: cx - BW / 2, y: cy - BH / 2, width: BW, height: BH, rx: 3,
+                               "class": "gb" + (look ? " lk" : "") }));
+    g.appendChild(el("text", { x: cx, y: cy + 4, "class": "gt" + (look ? " lk" : ""),
+                               "text-anchor": "middle" }, label));
+  }
+  function shade(g, x, w, label) {
+    g.appendChild(el("rect", { x: x, y: 34, width: w, height: 128, rx: 3, "class": "shade" }));
+    g.appendChild(el("text", { x: x + w / 2, y: 28, "class": "shtx", "text-anchor": "middle" }, label));
+  }
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var g = el("g", { "class": "fade" });
+    var deferred = step >= 2;
+
+    if (step === 1) shade(g, LOOK_MID + BW / 2, X1 - LOOK_MID - BW / 2, "outside the conserving world");
+    if (step === 3) shade(g, CTRL, LOOK_END + BW / 2 - CTRL, "lane 1 must stay alive");
+
+    // after a look the wire carries an ordinary classical bit, drawn doubled
+    if (deferred) {
+      line(g, X0, Y1, X1, Y1);
+    } else {
+      line(g, X0, Y1, LOOK_MID - BW / 2, Y1);
+      line(g, LOOK_MID + BW / 2, Y1 - 2, X1, Y1 - 2, "link cl");
+      line(g, LOOK_MID + BW / 2, Y1 + 2, X1, Y1 + 2, "link cl");
+    }
+    line(g, X0, Y2, X1, Y2);
+    g.appendChild(el("text", { x: 6, y: Y1 + 4, "class": "lnl" }, "lane 1"));
+    g.appendChild(el("text", { x: 6, y: Y2 + 4, "class": "lnl" }, "lane 2"));
+
+    gate(g, SPLIT, Y1, "split", false);
+
+    if (!deferred) {
+      line(g, CTRL - 2, Y1, CTRL - 2, Y2, "link cl");
+      line(g, CTRL + 2, Y1, CTRL + 2, Y2, "link cl");
+      gate(g, LOOK_MID, Y1, "look", true);
+      gate(g, CTRL, Y2, "flip if 1", false);
+    } else {
+      if (step === 2) g.appendChild(el("line", { x1: CTRL, y1: Y1, x2: CTRL, y2: Y2, "class": "glow" }));
+      line(g, CTRL, Y1, CTRL, Y2, "link");
+      g.appendChild(el("circle", { cx: CTRL, cy: Y1, r: 5, "class": "dot" }));
+      gate(g, CTRL, Y2, "flip", false);
+      gate(g, LOOK_END, Y1, "look", true);
+    }
+    svg.appendChild(g);
+  }
+
+  function render() {
+    draw();
+    cap.innerHTML = CAPS[step];
+    btns[0].disabled = step === 0;
+    btns[1].disabled = step === MAX;
+    dots.innerHTML = "";
+    for (var i = 0; i <= MAX; i++) {
+      var d = document.createElement("i");
+      if (i === step) d.className = "on";
+      dots.appendChild(d);
+    }
+  }
+
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      step = Math.min(MAX, Math.max(0, step + (+this.getAttribute("data-go"))));
+      render();
+    });
+  }
+  fig.setAttribute("tabindex", "0");
+  fig.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" && step < MAX) { step++; render(); e.preventDefault(); }
+    if (e.key === "ArrowLeft"  && step > 0)   { step--; render(); e.preventDefault(); }
+  });
+
+  render();
+})();
+</script>

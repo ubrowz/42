@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>42 Expressiveness Theorem</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A proof that the relations denotable in 42 are exactly the recursively enumerable ones, with Turing completeness as the single-valued case.">
+<style>
+:root {
+  --paper:      #fcfcfd;
+  --raised:     #f4f6f8;
+  --ink:        #16191f;
+  --muted:      #5c6470;
+  --faint:      #8b93a1;
+  --rule:       #e2e5ea;
+  --accent:     #0b6e6e;
+  --accent-dim: #0b6e6e1a;
+  --shadow:     0 1px 2px #16191f0d;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino,
+           "Book Antiqua", Georgia, serif;
+  --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+           "Cascadia Mono", "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+    --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+    --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+  --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+  --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shell ---- */
+.shell { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); gap: 3.5rem;
+         max-width: 74rem; margin: 0 auto; padding: 0 2rem; align-items: start; }
+@media (max-width: 60rem) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 1.25rem; }
+}
+
+/* ---- masthead ---- */
+.mast { display: flex; flex-direction: column; gap: .5rem;
+        padding: 2.75rem 0 1.5rem; border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1; }
+.mark { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--accent); }
+.mark b { font-weight: 500; }
+.mast h1 { margin: 0; font-size: 2.1rem; line-height: 1.15; letter-spacing: -.015em;
+           text-wrap: balance; font-weight: 600; }
+.mast p { margin: 0; color: var(--muted); max-width: 46ch; }
+.switch { display: flex; gap: .4rem; margin-top: .85rem; flex-wrap: wrap; }
+.switch a { font-family: var(--mono); font-size: .78rem; letter-spacing: .02em;
+            text-decoration: none; color: var(--muted); border: 1px solid var(--rule);
+            border-radius: 2px; padding: .3rem .65rem; background: var(--paper); }
+.switch a:hover { color: var(--accent); border-color: var(--accent); }
+.switch a[aria-current="page"] { color: var(--paper); background: var(--ink);
+                                 border-color: var(--ink); }
+
+/* ---- table of contents ---- */
+.rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem);
+        overflow-y: auto; padding: 2rem 0 3rem; font-family: var(--mono);
+        font-size: .8rem; line-height: 1.5; }
+.rail h2 { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+           color: var(--faint); margin: 0 0 .9rem; font-family: var(--mono);
+           font-weight: 500; }
+.rail ol { list-style: none; margin: 0; padding: 0;
+           display: flex; flex-direction: column; gap: .12rem; }
+.rail a { display: block; text-decoration: none; color: var(--muted);
+          padding: .2rem .55rem; border-left: 2px solid transparent;
+          border-radius: 0 2px 2px 0; }
+.rail a:hover { color: var(--ink); background: var(--raised); }
+.rail a.sub { padding-left: 1.5rem; color: var(--faint); font-size: .76rem; }
+.rail a.here { color: var(--accent); border-left-color: var(--accent);
+               background: var(--accent-dim); }
+@media (max-width: 60rem) {
+  .rail { position: static; max-height: none; border-bottom: 1px solid var(--rule);
+          padding: 1.25rem 0; }
+  .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  .rail a.sub { display: none; }
+}
+
+/* ---- prose ---- */
+main { padding: 2rem 0 6rem; min-width: 0; max-width: 68ch; }
+main > :first-child { margin-top: 0; }
+h1, h2, h3, h4 { line-height: 1.22; letter-spacing: -.012em; text-wrap: balance;
+                 font-weight: 600; position: relative; }
+h1 { font-size: 1.9rem; margin: 3rem 0 1rem; }
+h2 { font-size: 1.5rem; margin: 3.25rem 0 1rem; padding-bottom: .4rem;
+     border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 2.25rem 0 .75rem; }
+h4 { font-size: 1rem; margin: 1.75rem 0 .6rem; color: var(--muted); }
+p { margin: 0 0 1.05rem; }
+a { color: var(--accent); text-underline-offset: .18em;
+    text-decoration-thickness: .06em; }
+strong { font-weight: 650; }
+ul, ol { margin: 0 0 1.05rem; padding-left: 1.35rem;
+         display: flex; flex-direction: column; gap: .38rem; }
+li { padding-left: .15rem; }
+li::marker { color: var(--faint); }
+hr { border: 0; height: 1px; background: var(--rule); margin: 2.75rem 0; }
+
+.anchor { position: absolute; left: -1.1rem; width: 1.1rem; text-align: left;
+          color: var(--faint); text-decoration: none; opacity: 0;
+          font-family: var(--mono); font-weight: 400; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus { opacity: 1; }
+@media (max-width: 60rem) { .anchor { display: none; } }
+
+blockquote { margin: 1.4rem 0; padding: .1rem 0 .1rem 1.15rem;
+             border-left: 2px solid var(--accent); color: var(--muted); }
+blockquote p { margin: 0; }
+
+/* ---- code ---- */
+code { font-family: var(--mono); font-size: .855em; }
+p code, li code, td code, th code, blockquote code, h2 code, h3 code, h4 code {
+  background: var(--raised); border: 1px solid var(--rule);
+  border-radius: 3px; padding: .07em .32em; white-space: nowrap;
+}
+.code { margin: 0 0 1.3rem; background: var(--raised);
+        border: 1px solid var(--rule); border-radius: 4px;
+        overflow-x: auto; box-shadow: var(--shadow); }
+.code pre { margin: 0; padding: .95rem 1.15rem; }
+.code code { background: none; border: 0; padding: 0; white-space: pre;
+             font-size: .83rem; line-height: 1.58; }
+
+/* ---- tables ---- */
+.scroller { overflow-x: auto; margin: 0 0 1.4rem; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem;
+        font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule);
+         vertical-align: top; }
+th { font-family: var(--mono); font-size: .74rem; letter-spacing: .06em;
+     text-transform: uppercase; color: var(--faint); font-weight: 500;
+     border-bottom-color: var(--ink); }
+tbody tr:last-child td { border-bottom: 0; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px;
+                 border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="mast">
+    <div class="mark"><b>42</b> &nbsp;x &isin; P(y) &nbsp;&harr;&nbsp; y &isin; inv(P)(x)</div>
+    <h1>42 &mdash; What 42 Can Compute</h1>
+    <p>A proof that the relations denotable in 42 are exactly the recursively enumerable ones, with Turing completeness as the single-valued case.</p>
+    <nav class="switch"><a href="index.html">home</a><a href="manual.html">42 manual</a><a href="qmanual.html">Q42 manual</a><a href="readme.html">design notes</a><a href="related.html">related work</a><a href="theorem.html" aria-current="page">the theorem</a><a href="https://github.com/ubrowz/42">source</a></nav>
+  </header>
+  <nav class="rail" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol><li><a class="" href="#1-the-statement">1. The statement</a></li><li><a class="" href="#2-conventions">2. Conventions</a></li><li><a class="sub" href="#21-types-and-values">2.1 Types and values</a></li><li><a class="sub" href="#22-the-typing-judgement">2.2 The typing judgement</a></li><li><a class="sub" href="#23-the-denotation">2.3 The denotation</a></li><li><a class="sub" href="#24-programs">2.4 Programs</a></li><li><a class="sub" href="#25-the-type-system-is-sound-and-the-dagger-makes-it-two-sided">2.5 The type system is sound, and the dagger makes it two-sided</a></li><li><a class="" href="#3-soundness-everything-42-denotes-is-re">3. Soundness: everything 42 denotes is r.e.</a></li><li><a class="" href="#4-four-gadgets">4. Four gadgets</a></li><li><a class="sub" href="#lemma-5-discard">Lemma 5 (Discard)</a></li><li><a class="sub" href="#lemma-6-universal-relation">Lemma 6 (Universal relation)</a></li><li><a class="sub" href="#lemma-7-filter">Lemma 7 (Filter)</a></li><li><a class="sub" href="#lemma-8-serialisation">Lemma 8 (Serialisation)</a></li><li><a class="" href="#5-simulation">5. Simulation</a></li><li><a class="sub" href="#51-normalising-the-machine">5.1 Normalising the machine</a></li><li><a class="sub" href="#52-the-encoding-and-the-one-place-it-is-lossy">5.2 The encoding, and the one place it is lossy</a></li><li><a class="sub" href="#53-the-term">5.3 The term</a></li><li><a class="sub" href="#54-correctness">5.4 Correctness</a></li><li><a class="sub" href="#55-the-inputoutput-form">5.5 The input/output form</a></li><li><a class="sub" href="#56-the-instance">5.6 The instance</a></li><li><a class="" href="#6-completeness">6. Completeness</a></li><li><a class="" href="#7-what-is-not-proved">7. What is not proved</a></li></ol>
+  </nav>
+  <main><p>A proof that the relations denotable in 42 are exactly the recursively enumerable ones, and that ordinary Turing completeness is the single-valued case of it.</p>
+<p><strong>Status.</strong> The proof is complete: sections 3 to 6 establish both directions for an arbitrary machine and an arbitrary r.e. relation. It rests on three standard normalisations of Turing machines, cited rather than reproved (section 5.1), and it is not mechanised in a proof assistant; section 7 is precise about both. Every construction in sections 4 and 5 is in <code>theorem.42</code> or <code>tm.42</code>, and is exercised by <code>tests/test_rel42.py</code>.</p>
+<hr aria-hidden="true">
+<h2 id="1-the-statement"><a class="anchor" href="#1-the-statement" aria-label="Link to this section">#</a>1. The statement</h2>
+<blockquote><p><strong>Theorem.</strong> Let <code>A</code> and <code>B</code> be closed 42 types and <code>R ⊆ V(A) × V(B)</code> a relation between their values. There is a closed 42 program denoting <code>R</code> if and only if <code>R</code> is recursively enumerable.</p></blockquote>
+<p>Two remarks on why this, and not the theorem the neighbouring languages prove.</p>
+<p><strong>It is a characterisation, not a lower bound.</strong> "42 is Turing complete" is the <code>⊇</code> half only. The <code>⊆</code> half is the more informative one: it says 42 denotes <em>exactly</em> <code>Σ⁰₁</code>, so no program in it decides the complement of the halting problem, and no extension of the primitive table can change that without adding a form of negation.</p>
+<p><strong>It has the right shape for a relational language.</strong> Reversible languages in this family prove Axelsen &amp; Glück's result: reversible Turing machines compute exactly the <em>injective computable functions</em>. Chardonnet, Lemonnier &amp; Valiron (FSCD 2024) prove the corresponding statement for a Theseus-descended language, concluding that it "fully characterises all of the computable morphisms in PInj". That is right for a language whose terms denote injections, and wrong for 42, whose terms denote relations. Read together, their theorem and Theorem 14 below are the same statement in two different categories — <em>every computable morphism of the ambient category is denotable</em> — with PInj there and Rel here. The class here is strictly larger, and — this is the part that matters — it is <strong>closed under converse</strong>, because the converse of an r.e. relation is r.e.: swap the pairs in the enumeration. That closure property is the semantic reason <code>!</code> can be total with no side conditions. An injective language has to earn its inverse; 42's class comes with one.</p>
+<p>Ordinary Turing completeness follows as Corollary 15.</p>
+<h2 id="2-conventions"><a class="anchor" href="#2-conventions" aria-label="Link to this section">#</a>2. Conventions</h2>
+<h3 id="21-types-and-values"><a class="anchor" href="#21-types-and-values" aria-label="Link to this section">#</a>2.1 Types and values</h3>
+<p><strong>Types.</strong> <code>T ::= 0 | 1 | T + T | T × T | X | μX. T</code>, equirecursive: <code>μX. F</code> and <code>F[μX.F/X]</code> are <em>the same type</em>, not merely isomorphic. All types below are closed, and a <em>ground</em> type is one with no free variables.</p>
+<p><strong>Values.</strong> <code>V(0) = ∅</code>, <code>V(1) = {()}</code>, <code>V(A+B) = {L a : a ∈ V(A)} ∪ {R b : b ∈ V(B)}</code>, <code>V(A×B) = V(A) × V(B)</code>, and <code>V(μX.F) = V(F[μX.F/X])</code>. Every value is a <strong>finite</strong> tree, so this is well founded on values even where it is circular on types; <code>V(μX. X) = ∅</code>. Each <code>V(T)</code> is a decidable set of finite trees with decidable equality, and is computably numbered. Write <code>𝕍</code> for the union of all of them — the untyped universe, which is what the evaluator actually works on.</p>
+<h3 id="22-the-typing-judgement"><a class="anchor" href="#22-the-typing-judgement" aria-label="Link to this section">#</a>2.2 The typing judgement</h3>
+<p><code>⊢ t : A &lt;-&gt; B</code>. Thirteen primitives are axioms, at every ground instantiation of the schemes below — these are <code>PRIM_SCHEMES</code> in <code>rel42/types.py</code>, printed by the checker itself:</p>
+<div class="scroller"><table><thead><tr><th>primitive</th><th>scheme</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>a &lt;-&gt; a</code></td></tr><tr><td><code>zero</code></td><td><code>a &lt;-&gt; b</code></td></tr><tr><td><code>swapsum</code></td><td><code>a + b &lt;-&gt; b + a</code></td></tr><tr><td><code>assocsum</code></td><td><code>a + (b + c) &lt;-&gt; a + b + c</code></td></tr><tr><td><code>unitsum</code></td><td><code>0 + a &lt;-&gt; a</code></td></tr><tr><td><code>swapprod</code></td><td><code>a x b &lt;-&gt; b x a</code></td></tr><tr><td><code>assocprod</code></td><td><code>a x (b x c) &lt;-&gt; a x b x c</code></td></tr><tr><td><code>unitprod</code></td><td><code>1 x a &lt;-&gt; a</code></td></tr><tr><td><code>dist</code></td><td><code>(a + b) x c &lt;-&gt; a x c + b x c</code></td></tr><tr><td><code>inl</code></td><td><code>a &lt;-&gt; a + b</code></td></tr><tr><td><code>inr</code></td><td><code>a &lt;-&gt; b + a</code></td></tr><tr><td><code>copy</code></td><td><code>a &lt;-&gt; a x a</code></td></tr><tr><td><code>join</code></td><td><code>a + a &lt;-&gt; a</code></td></tr></tbody></table></div>
+<p>and six rules build on them:</p>
+<div class="code"><pre><code>    ⊢ t : A &lt;-&gt; B    ⊢ u : B &lt;-&gt; C            ⊢ t : A &lt;-&gt; B    ⊢ u : C &lt;-&gt; D
+    ──────────────────────────────  seq       ──────────────────────────────  sum
+          ⊢ t ; u : A &lt;-&gt; C                     ⊢ t + u : A + C &lt;-&gt; B + D
+
+    ⊢ t : A &lt;-&gt; B    ⊢ u : C &lt;-&gt; D            ⊢ t : A &lt;-&gt; B    ⊢ u : A &lt;-&gt; B
+    ──────────────────────────────  prod      ──────────────────────────────  union
+      ⊢ t * u : A × C &lt;-&gt; B × D                      ⊢ t | u : A &lt;-&gt; B
+
+              ⊢ t : A &lt;-&gt; A                              ⊢ t : A &lt;-&gt; B
+              ─────────────  star                        ─────────────  dagger
+             ⊢ t^ : A &lt;-&gt; A                             ⊢ t! : B &lt;-&gt; A</code></pre></div>
+<p>There are no <code>fold</code> and <code>unfold</code> rules, and their absence <em>is</em> the equirecursive choice: <code>μX.F</code> and its unfolding are the same type, so nothing has to be written to pass between them. Two rules are worth reading twice. <strong>star</strong> is the only rule that constrains a term to be an endorelation, which is why <code>t^</code> is where ill-typedness usually surfaces. And <strong>dagger</strong> is the type-level shadow of the defining law — it exchanges the two sides and does nothing else, which is what makes it implementable as a swap of the inferred scheme.</p>
+<h3 id="23-the-denotation"><a class="anchor" href="#23-the-denotation" aria-label="Link to this section">#</a>2.3 The denotation</h3>
+<p>The evaluator is <strong>untyped</strong>: <code>⟦t⟧ ⊆ 𝕍 × 𝕍</code>, and a shape mismatch denotes the empty relation rather than raising. The thirteen primitives (<code>PRIMS</code> in <code>rel42/core.py</code>), where <code>v</code>, <code>a</code>, <code>b</code>, <code>c</code> range over all of <code>𝕍</code>:</p>
+<div class="code"><pre><code>⟦id⟧        = { (v, v) }                    ⟦zero⟧   = ∅
+⟦swapsum⟧   = { (L v, R v) } ∪ { (R v, L v) }
+⟦assocsum⟧  = { (L a, L (L a)) } ∪ { (R (L b), L (R b)) } ∪ { (R (R c), R c) }
+⟦unitsum⟧   = { (R v, v) }
+⟦swapprod⟧  = { ((a, b), (b, a)) }
+⟦assocprod⟧ = { ((a, (b, c)), ((a, b), c)) }
+⟦unitprod⟧  = { (((), v), v) }
+⟦dist⟧      = { ((L a, c), L (a, c)) } ∪ { ((R b, c), R (b, c)) }
+⟦inl⟧       = { (v, L v) }                  ⟦inr⟧    = { (v, R v) }
+⟦copy⟧      = { (v, (v, v)) }               ⟦join⟧   = { (L v, v) } ∪ { (R v, v) }</code></pre></div>
+<p>and the six combinators:</p>
+<div class="code"><pre><code>⟦t ; u⟧ = { (a, c) : ∃b. (a, b) ∈ ⟦t⟧ ∧ (b, c) ∈ ⟦u⟧ }
+⟦t + u⟧ = { (L a, L b) : (a, b) ∈ ⟦t⟧ } ∪ { (R c, R d) : (c, d) ∈ ⟦u⟧ }
+⟦t * u⟧ = { ((a, c), (b, d)) : (a, b) ∈ ⟦t⟧ ∧ (c, d) ∈ ⟦u⟧ }
+⟦t | u⟧ = ⟦t⟧ ∪ ⟦u⟧
+⟦t^⟧    = ⋃_{n ≥ 0} ⟦t⟧ⁿ
+⟦t!⟧    = ⟦t⟧° = { (b, a) : (a, b) ∈ ⟦t⟧ }</code></pre></div>
+<p>Note that <code>⟦inl⟧</code> and <code>⟦inr⟧</code> are total functions forwards and <em>partial</em> going back — <code>⟦inl!⟧</code> is undefined on an <code>R</code> — and that <code>⟦join!⟧</code> is the only primitive whose image can have two elements. Every set larger than a singleton anywhere in the language traces back to it.</p>
+<h3 id="24-programs"><a class="anchor" href="#24-programs" aria-label="Link to this section">#</a>2.4 Programs</h3>
+<p>A program is a finite system of definitions <code>f₁ = t₁, …, f_n = t_n</code>, possibly mutually recursive, in which each <code>t_i</code> may mention any <code>f_j</code> and any <code>f_j!</code>. It induces <code>Φ : Rel^n → Rel^n</code>. Every operation above is monotone and Scott-continuous in each argument — including converse, which is a lattice isomorphism — so <code>Φ</code> is continuous, and the program denotes</p>
+<div class="code"><pre><code>    lfp Φ  =  ⋃_{k≥0} Φ^k(∅, …, ∅).</code></pre></div>
+<p>The typing of a recursive group is Milner-style: the group is solved as a unit against monomorphic assumptions and generalised once.</p>
+<p><strong>Parameterised definitions</strong> (<code>def ctrl m = …</code>) are second-order: a parameter denotes a relation, never another combinator. They are therefore eliminable by substitution, which is what <code>expand</code> in <code>rel42/core.py</code> does, so we assume throughout that programs contain none.</p>
+<h3 id="25-the-type-system-is-sound-and-the-dagger-makes-it-two-sided"><a class="anchor" href="#25-the-type-system-is-sound-and-the-dagger-makes-it-two-sided" aria-label="Link to this section">#</a>2.5 The type system is sound, and the dagger makes it two-sided</h3>
+<p>The rules of §2.2 constrain the untyped relations of §2.3. Stating how takes one turn of care, because the naive form is not what the dagger rule needs.</p>
+<blockquote><p><strong>Proposition 1 (Soundness).</strong> Let <code>⊢ t : A &lt;-&gt; B</code> with <code>A</code>, <code>B</code> ground. Then for every <code>(v, w) ∈ ⟦t⟧</code>,  ``<code> v ∈ V(A)  or  w ∈ V(B)   implies   v ∈ V(A) and w ∈ V(B). </code>``</p></blockquote>
+<p><em>Why it is stated that way.</em> The expected form — <em><code>v ∈ V(A)</code> implies <code>w ∈ V(B)</code></em> — cannot be proved by induction here. At the <strong>dagger</strong> rule the goal for <code>t!</code> is about the codomain of <code>t!</code>, which is the <em>domain</em> of <code>t</code>, and the induction hypothesis says nothing about domains. So the statement has to carry both directions at once. Written as above it is <strong>self-dual</strong>: the claim for <code>t : A &lt;-&gt; B</code> and the claim for <code>t! : B &lt;-&gt; A</code> are literally the same sentence, so the dagger case is discharged by observing that <code>⟦t!⟧ = ⟦t⟧°</code> and the condition is symmetric. This is the defining law showing up in the metatheory: a language whose inversion is total cannot have a one-sided type soundness theorem, and does not need one.</p>
+<p><em>Proof.</em> Induction on the derivation.</p>
+<p><strong>Primitives.</strong> Thirteen checks against §2.3, each immediate; three are representative. For <code>join : A' + A' &lt;-&gt; A'</code>, a pair is <code>(L a, a)</code> or <code>(R a, a)</code>, and <code>L a ∈ V(A'+A') ⟺ a ∈ V(A')</code>, which is the biconditional the statement wants. For <code>inl : A &lt;-&gt; A + B'</code>, a pair is <code>(v, L v)</code>, and <code>L v ∈ V(A + B') ⟺ v ∈ V(A)</code>. For <code>unitsum : 0 + A &lt;-&gt; A</code>, a pair is <code>(R v, v)</code>, and <code>V(0 + A)</code> has no <code>L</code> component at all because <code>V(0) = ∅</code> — which is exactly why the evaluator returns the empty set on an <code>Inl</code>. <code>zero</code> is vacuous.</p>
+<p><strong>seq.</strong> Let <code>(a, c) ∈ ⟦t ; u⟧</code>, so <code>(a, x) ∈ ⟦t⟧</code> and <code>(x, c) ∈ ⟦u⟧</code> for some <code>x</code>. If <code>a ∈ V(A)</code> the hypothesis for <code>t</code> gives <code>x ∈ V(B)</code>, and then the hypothesis for <code>u</code> gives <code>c ∈ V(C)</code>. If instead <code>c ∈ V(C)</code>, the hypothesis for <code>u</code> gives <code>x ∈ V(B)</code> and then that for <code>t</code> gives <code>a ∈ V(A)</code>. Both directions are available precisely because the statement is two-sided.</p>
+<p><strong>sum.</strong> A pair in <code>⟦t + u⟧</code> is <code>(L a, L b)</code> with <code>(a, b) ∈ ⟦t⟧</code> or <code>(R c, R d)</code> with <code>(c, d) ∈ ⟦u⟧</code>. In the first case <code>L a ∈ V(A + C) ⟺ a ∈ V(A)</code> and <code>L b ∈ V(B + D) ⟺ b ∈ V(B)</code>, so the claim reduces to the hypothesis for <code>t</code>; likewise for the second.</p>
+<p><strong>prod.</strong> <code>((a, c), (b, d))</code> with <code>(a,b) ∈ ⟦t⟧</code>, <code>(c,d) ∈ ⟦u⟧</code>. Membership in <code>V(A × C)</code> is membership of both components, so the claim is the conjunction of the two hypotheses. Note this case needs the two-sided form even without a dagger in sight: knowing <code>(a,c) ∈ V(A×C)</code> gives both components, but knowing only <code>(b,d) ∈ V(B×D)</code> requires reading each hypothesis backwards.</p>
+<p><strong>union.</strong> Both branches carry the same two types; either hypothesis applies.</p>
+<p><strong>star.</strong> Here <code>A = B</code>. <code>⟦t^⟧ = ⋃_n ⟦t⟧ⁿ</code>; the case <code>n = 0</code> is the identity, and each further step is the hypothesis for <code>t</code> with <code>A = B</code>, in whichever direction the given end supplies.</p>
+<p><strong>dagger.</strong> As above: the statement is symmetric in <code>(v, A)</code> and <code>(w, B)</code>, and <code>⟦t!⟧ = ⟦t⟧°</code>, so this is the hypothesis for <code>t</code> verbatim.</p>
+<p><strong>Definitions.</strong> For a recursive group, <code>⟦f_i⟧ = ⋃_k Φ^k(∅⃗)_i</code>. Each <code>Φ^k(∅⃗)</code> satisfies the property — <code>∅</code> does vacuously, and one application of <code>Φ</code> is a derivation over the components — and the property is preserved by unions of chains, since it is a condition on individual pairs. ∎</p>
+<blockquote><p><strong>Corollary 2.</strong> If <code>⊢ t : A &lt;-&gt; B</code> and <code>v ∈ V(A)</code>, then every result of running <code>t</code> forwards on <code>v</code> lies in <code>V(B)</code>; and if <code>w ∈ V(B)</code>, every result of running it backwards lies in <code>V(A)</code>.</p></blockquote>
+<p>This is what <code>rel42</code>'s CLI relies on when it type-checks an argument before running, and it is asserted empirically by <code>tests/test_types.py::TestOutputsLandInTheCodomain</code> over the libraries. Note what it does <em>not</em> say: nothing here promises a result exists. <code>⟦pred⟧</code> at <code>0</code> is empty and that is a legitimate morphism of Rel, so there is no progress property to state and none is lost.</p>
+<h2 id="3-soundness-everything-42-denotes-is-re"><a class="anchor" href="#3-soundness-everything-42-denotes-is-re" aria-label="Link to this section">#</a>3. Soundness: everything 42 denotes is r.e.</h2>
+<blockquote><p><strong>Theorem 3.</strong> For every program <code>D</code> and every closed term <code>t : A &lt;-&gt; B</code> over it, <code>⟦t⟧</code> is recursively enumerable, and an index for it is computable from <code>t</code> and <code>D</code>.</p></blockquote>
+<p><em>Proof.</em> Three steps.</p>
+<p><strong>(i) The primitives are decidable relations.</strong> Each is a finite condition on finite trees: <code>⟦swapprod⟧ = {((a,b),(b,a))}</code>, <code>⟦copy⟧ = {(a,(a,a))}</code>, <code>⟦join⟧ = {(L a, a)} ∪ {(R a, a)}</code>, <code>⟦zero⟧ = ∅</code>, and so on. Membership is decidable, hence each is r.e. with an index we can write down.</p>
+<p><strong>(ii) The six operations preserve r.e., uniformly.</strong> Given indices for <code>R</code> and <code>S</code> we can compute an index for:</p>
+<div class="scroller"><table><thead><tr><th></th><th>why</th></tr></thead><tbody><tr><td><code>R ; S</code></td><td><code>(a,c)</code> iff <code>∃b. (a,b) ∈ R ∧ (b,c) ∈ S</code>; dovetail the two enumerations</td></tr><tr><td><code>R ∪ S</code></td><td>interleave</td></tr><tr><td><code>R + S</code>, <code>R × S</code></td><td>apply the tag or the pairing to each enumerated pair</td></tr><tr><td><code>R°</code></td><td>swap each enumerated pair</td></tr><tr><td><code>R*</code></td><td><code>⋃_{n≥0} Rⁿ</code>; <code>Rⁿ</code> is uniformly r.e. in <code>n</code>, so dovetail over <code>n</code></td></tr></tbody></table></div>
+<p>Only the last needs a word: <code>R*</code> is a countable union of r.e. relations whose indices are computable from <code>n</code>, and such a union is r.e.</p>
+<p><strong>(iii) Recursion adds nothing.</strong> By continuity, <code>lfp Φ = ⋃_k Φ^k(∅⃗)</code>. By (i) and (ii) and induction on <code>k</code>, an index for each component of <code>Φ^k(∅⃗)</code> is computable from <code>k</code>. Dovetailing over <code>k</code> gives an index for the limit. Since the approximants increase, the union is exactly <code>lfp Φ</code>. ∎</p>
+<blockquote><p><strong>Corollary 4.</strong> No 42 program denotes a relation that is not <code>Σ⁰₁</code>. In particular the complement of the halting relation is not 42-definable, and neither is any properly <code>Π⁰₁</code> set.</p></blockquote>
+<p><strong>Where the bound comes from.</strong> Not from reversibility, and not from the absence of general recursion — 42 has general recursion. It comes from the <em>shape of the syntax</em>: every combinator is a positive operation. Composition, union, sum, product, converse and star all preserve r.e.; <strong>nothing in 42 forms a complement.</strong> A hypothetical combinator "<code>t</code> fails here" would denote the complement of a domain and would break Theorem 3 immediately. This is worth knowing before extending the language: the primitive table can be enlarged freely with decidable relations, and the theorem survives.</p>
+<h2 id="4-four-gadgets"><a class="anchor" href="#4-four-gadgets" aria-label="Link to this section">#</a>4. Four gadgets</h2>
+<p>The completeness half is assembled from four constructions. Each is a schema indexed by a type, defined by structural recursion on that type; <code>theorem.42</code> holds one instance of every clause.</p>
+<h3 id="lemma-5-discard"><a class="anchor" href="#lemma-5-discard" aria-label="Link to this section">#</a>Lemma 5 (Discard)</h3>
+<blockquote><p>For every closed type <code>C</code> there is a term <code>drop_C : C &lt;-&gt; 1</code> with <code>⟦drop_C⟧ = V(C) × {()}</code>.</p></blockquote>
+<p><em>Construction</em>, by induction on <code>C</code>:</p>
+<div class="code"><pre><code>drop_0        = zero
+drop_1        = id
+drop_{A+B}    = (drop_A + drop_B) ; join
+drop_{A×B}    = (drop_A * drop_B) ; unitprod
+drop_{μX.F}   = the recursive definition following F, with X ↦ itself</code></pre></div>
+<p><em>Correctness.</em> The first four clauses are immediate. For <code>μX.F</code>, the definition is recursive and its denotation is a least fixpoint, so we must check totality: by induction on the size of the finite tree <code>v ∈ V(μX.F)</code>, <code>(v, ())</code> appears in <code>Φ^k(∅)</code> for some <code>k</code>, since the recursive calls are on proper subtrees. When <code>V(C) = ∅</code> — <code>C = 0</code>, or <code>C = μX.X</code> — the least fixpoint is <code>∅</code>, which is what the statement demands. ∎</p>
+<p>This one deserves a comment. <code>discard</code> is exactly the operation MANUAL section 2 says the language is built to avoid, and 42 has no such primitive. It is definable anyway, and there is no contradiction: the manual's rule is that if a step loses information then <em>the backward direction must be allowed to return several candidates</em>, and <code>drop!</code> returns all of them. <strong>42 forbids forgetting reversibly, not forgetting.</strong> Checked:</p>
+<div class="code"><pre><code>$ 42 theorem dropnat 5
+dropnat(5) =
+  ()
+  -- 1 result</code></pre></div>
+<h3 id="lemma-6-universal-relation"><a class="anchor" href="#lemma-6-universal-relation" aria-label="Link to this section">#</a>Lemma 6 (Universal relation)</h3>
+<blockquote><p>For closed <code>A</code>, <code>B</code>, the term <code>univ = drop_A ; drop_B!</code> has <code>⟦univ⟧ = V(A) × V(B)</code>.</p></blockquote>
+<p><em>Proof.</em> <code>(a, ()) ∈ ⟦drop_A⟧</code> for every <code>a</code>, and <code>((), b) ∈ ⟦drop_B!⟧</code> for every <code>b</code>, so composing relates every <code>a</code> to every <code>b</code>. ∎</p>
+<h3 id="lemma-7-filter"><a class="anchor" href="#lemma-7-filter" aria-label="Link to this section">#</a>Lemma 7 (Filter)</h3>
+<blockquote><p>Let <code>test : C &lt;-&gt; 1</code> be any term and <code>U = {c : (c, ()) ∈ ⟦test⟧}</code> its domain. Then <code>filt = copy ; (test * id) ; unitprod</code> has <code>⟦filt⟧ = {(c, c) : c ∈ U}</code>.</p></blockquote>
+<p><em>Proof.</em> <code>copy</code> sends <code>c</code> to <code>(c,c)</code>. <code>(test * id)</code> requires the left component to be in <code>U</code> and replaces it by <code>()</code>, giving <code>((), c)</code>. <code>unitprod</code> drops the unit. Nothing else survives, and nothing is added. ∎</p>
+<p>This is how a semi-decision becomes a program. <code>double!</code> is defined on the even numbers and nowhere else, so <code>testeven = double! ; dropnat</code> succeeds exactly there:</p>
+<div class="code"><pre><code>$ 42 theorem onlyeven 6
+onlyeven(6) =
+  6
+  -- 1 result</code></pre></div>
+<div class="code"><pre><code>$ 42 theorem onlyeven 7
+onlyeven(7) =
+  {}   (empty: no result)</code></pre></div>
+<h3 id="lemma-8-serialisation"><a class="anchor" href="#lemma-8-serialisation" aria-label="Link to this section">#</a>Lemma 8 (Serialisation)</h3>
+<blockquote><p>For every closed type <code>C</code> there is a term <code>ser_C : C &lt;-&gt; bits</code> denoting the graph of an injective computable <code>e_C : V(C) → {0,1}*</code> whose image is prefix-free and decidable, where <code>bits = μX. 1 + ((1+1) × X)</code>.</p></blockquote>
+<p><em>Construction</em>, by induction on <code>C</code>:</p>
+<div class="code"><pre><code>ser_0        = zero
+ser_1        = inl                                        ()  ↦  []
+ser_{A+B}    = ((ser_A ; cons0) + (ser_B ; cons1)) ; join
+ser_{A×B}    = (ser_A * ser_B) ; append
+ser_{μX.F}   = the recursive definition following F</code></pre></div>
+<p><em>Prefix-freeness</em>, by the same induction. For <code>1</code> the image is the single codeword <code>[]</code>. For <code>A+B</code> the two images are distinguished by their first bit. For <code>A×B</code>, suppose <code>u₁v₁</code> is a prefix of <code>u₂v₂</code> with <code>uᵢ</code> in the image of <code>e_A</code> and <code>vᵢ</code> in that of <code>e_B</code>. Then <code>u₁</code> and <code>u₂</code> are both prefixes of <code>u₂v₂</code>, and two prefixes of one string are comparable, so prefix-freeness of <code>e_A</code>'s image forces <code>u₁ = u₂</code>; cancelling, <code>v₁</code> is a prefix of <code>v₂</code>, so <code>v₁ = v₂</code>. Prefix-free codes are therefore closed under concatenation, and injectivity of <code>e_{A×B}</code> follows. <em>Decidability of the image</em>: parse left to right; at each step the induction hypothesis says which codeword is being read and where it ends. ∎</p>
+<p>The product clause is worth pausing on, because it looks unsound and is not. <code>append</code> run backwards gives <strong>every</strong> way to split a list:</p>
+<div class="code"><pre><code>$ 42 theorem splits "[R (), L (), R (), R (), L ()]"
+splits([R (), L (), R (), R (), L ()]) =
+  ([R (), 0, R (), R ()], [0])
+  ([R (), 0, R ()], [R (), 0])
+  ([R (), 0], [R (), R (), 0])
+  ([R ()], [0, R (), R (), 0])
+  ([], [R (), 0, R (), R (), 0])
+  -- 6 results</code></pre></div>
+<p>Yet <code>serpair = (sernat * sernat) ; append</code> is injective, and running <em>it</em> backwards finds the one split that decodes:</p>
+<div class="code"><pre><code>$ 42 theorem unpair "[R (), L (), R (), R (), L ()]"
+unpair([R (), L (), R (), R (), L ()]) =
+  (1, 2)
+  -- 1 result</code></pre></div>
+<p>Composition restoring determinism that a factor lacks is the same phenomenon as <code>double = copy ; add</code> in the prelude. Here it is doing real work in a proof.</p>
+<h2 id="5-simulation"><a class="anchor" href="#5-simulation" aria-label="Link to this section">#</a>5. Simulation</h2>
+<p>The one construction the completeness proof cannot get from section 4 is a Turing machine. This section builds it for an arbitrary machine and proves it correct.</p>
+<p>What section 6 actually needs is weaker than a full input/output simulation: it needs a term whose <strong>domain</strong> is the halting set of <code>M</code>, because the output is discarded immediately. Lemma 12 is that statement, and it is what is proved in full. Proposition 13 records the input/output form, which needs one extra hypothesis.</p>
+<h3 id="51-normalising-the-machine"><a class="anchor" href="#51-normalising-the-machine" aria-label="Link to this section">#</a>5.1 Normalising the machine</h3>
+<p>Assume throughout that <code>M</code> is a deterministic Turing machine satisfying:</p>
+<ul><li><strong>(N1)</strong> the tape alphabet is <code>{0,1}</code> with blank <code>0</code>;</li><li><strong>(N2)</strong> the tape is one-way infinite and <code>M</code> never attempts to move left from cell <code>0</code>;</li><li><strong>(N3)</strong> there is a single halting state <code>q_h</code>, and <code>δ</code> is defined on <code>(Q \ {q_h}) × {0,1}</code> and nowhere else.</li></ul>
+<p>Each is a standard normalisation that preserves the halting set and the computed function, and each costs at most a linear-time preamble: alphabet reduction by block encoding, one-way tape by folding the two halves onto one, and a single halting state by routing every halt through it. None is proved here; all three are textbook (Hopcroft &amp; Ullman). Write <code>Q = {q₁, …, q_h}</code> with <code>q₁</code> the start state.</p>
+<h3 id="52-the-encoding-and-the-one-place-it-is-lossy"><a class="anchor" href="#52-the-encoding-and-the-one-place-it-is-lossy" aria-label="Link to this section">#</a>5.2 The encoding, and the one place it is lossy</h3>
+<div class="code"><pre><code>bits = μX. 1 + ((1+1) × X)
+tape = bits × ((1+1) × bits)          left (reversed), head, right
+conf = tape + (tape + (⋯ + tape))     h summands, right-nested</code></pre></div>
+<p>State tags are injections into <code>conf</code>:</p>
+<div class="code"><pre><code>tag_{q_i} = inl ; inr^{i-1}   for i &lt; h,        tag_{q_h} = inr^{h-1}</code></pre></div>
+<p>Each <code>tag_q</code> is injective, and distinct tags have disjoint images, since they land in distinct summands.</p>
+<p><strong>Decoding.</strong> For <code>v = (ls, (c, rs)) ∈ V(tape)</code> define <code>⌈v⌉ = (T_v, |ls|)</code>, the infinite tape and head position it stands for:</p>
+<div class="code"><pre><code>T_v(j) =  reverse(ls)_j          j &lt; |ls|
+          c                      j = |ls|
+          rs_{j - |ls| - 1}      |ls| &lt; j ≤ |ls| + |rs|
+          0                      otherwise</code></pre></div>
+<p>Two facts, both immediate:</p>
+<ul><li><strong>(E1)</strong> <code>⌈v⌉ = ⌈v'⌉</code> iff <code>ls = ls'</code>, <code>c = c'</code>, and <code>rs</code>, <code>rs'</code> agree up to trailing <code>0</code>s.</li><li><strong>(E2)</strong> every eventually-blank tape with a head position is <code>⌈v⌉</code> for some <code>v</code>.</li></ul>
+<p>So <strong>the encoding is many-to-one.</strong> It has to be: a Turing tape is infinite and a 42 value is a finite tree, so the blanks past the end of <code>rs</code> are represented by their absence, and a value carrying two extra trailing blanks means the same thing as one that does not. This is the only mismatch in the construction, and the proof below is arranged so that it never has to be repaired — Lemma 10 is stated for <em>every</em> representative rather than for a canonical one.</p>
+<h3 id="53-the-term"><a class="anchor" href="#53-the-term" aria-label="Link to this section">#</a>5.3 The term</h3>
+<p>Movement, reading and writing are as in <code>tm.42</code>:</p>
+<div class="code"><pre><code>right    = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
+left     = right!
+pad      = id * (id * (isnil ; cons0))
+stepover = ((id * (id * iscons)) ; right) | (pad ; right)
+
+focus    = assocprod ; (swapprod * id) ; assocprod!
+readhead = focus ; dist ; (unitprod + unitprod)
+write_0  = inl ; readhead!            write_1 = inr ; readhead!</code></pre></div>
+<p>with <code>move_R = stepover</code>, <code>move_L = left</code>, <code>move_S = id</code>. For every <code>q ≠ q_h</code> and <code>s ∈ {0,1}</code>, let <code>δ(q,s) = (q', s', m)</code> and put</p>
+<div class="code"><pre><code>β_{q,s}   = write_{s'} ; move_m ; tag_{q'}              : bits×bits &lt;-&gt; conf
+δ_q       = readhead ; (β_{q,0} + β_{q,1}) ; join       : tape &lt;-&gt; conf
+δ_{q_h}   = zero
+
+collapse₁ = id           collapse_k = (id + collapse_{k-1}) ; join
+step      = (δ_{q₁} + (δ_{q₂} + (⋯ + δ_{q_h}))) ; collapse_h    : conf &lt;-&gt; conf</code></pre></div>
+<p>Loading an input, including the empty one — the head needs a cell to sit on, so the empty string becomes a single blank:</p>
+<div class="code"><pre><code>loadnil  = copy ; (id * copy) ; (inl * (inl * inl))     : 1    &lt;-&gt; tape
+load     = (inr! ; unitprod! ; (inl * id)) | (inl! ; loadnil)
+                                                        : bits &lt;-&gt; tape
+halts_M  = load ; tag_{q₁} ; step^ ; tag_{q_h}! ; drop_tape</code></pre></div>
+<p><code>load</code> is total: its two branches have disjoint domains — the input is a cons or it is nil — and cover <code>V(bits)</code>. <code>drop_tape</code> is Lemma 5 at the type <code>tape</code>. All of <code>collapse₄</code>, <code>load</code> and the tags are in <code>theorem.42</code>.</p>
+<h3 id="54-correctness"><a class="anchor" href="#54-correctness" aria-label="Link to this section">#</a>5.4 Correctness</h3>
+<blockquote><p><strong>Lemma 9.</strong> <code>⟦step⟧</code> is a partial function.</p></blockquote>
+<p><em>Proof.</em> <code>⟦readhead⟧</code> is a bijection from <code>V(tape)</code> onto <code>V((bits×bits) + (bits×bits))</code>: it is a composite of the bijections <code>focus</code> and <code>dist</code> with <code>unitprod + unitprod</code>. Each <code>β_{q,s}</code> is a composite of partial functions: <code>write_{s'}</code> is <code>readhead!</code> restricted to one summand; <code>move_S = id</code>; <code>move_L = right!</code> is a partial function because <code>right</code> is <em>injective</em> — from <code>(c:ls, (r, rs₀))</code> one reads back <code>c</code>, <code>ls</code>, <code>r</code> and <code>rs₀</code> uniquely; and <code>move_R = stepover</code> is a union of two partial functions whose domains are disjoint, since <code>iscons</code> and <code>isnil</code> cannot both apply. Finally <code>tag_{q'}</code> is injective, <code>+</code> of partial functions is a partial function, and <code>join</code> is single-valued forwards. The outer sum and <code>collapse_h</code> are the same two facts again. ∎</p>
+<blockquote><p><strong>Lemma 10 (step simulates δ).</strong> Let <code>q ≠ q_h</code>, let <code>v ∈ V(tape)</code> with <code>⌈v⌉ = (T, i)</code>, put <code>s = T(i)</code> and <code>δ(q,s) = (q', s', m)</code>. If <code>m = L</code> assume <code>i &gt; 0</code>. Then  ``<code> ⟦step⟧(tag_q(v))  =  { tag_{q'}(v') } </code>`<code>  for a single </code>v'<code>, and </code>⌈v'⌉ = (T[i ↦ s'], i + Δ)<code> with </code>Δ = +1, −1, 0<code> for </code>m = R, L, S`.</p></blockquote>
+<p><em>Proof.</em> Write <code>v = (ls, (c, rs))</code>, so <code>|ls| = i</code> and <code>c = T(i) = s</code>. Feeding <code>tag_q(v)</code> to <code>step</code>, the outer sum selects the <code>q</code>-th summand and hence <code>δ_q</code>; no other summand contributes, because the tags have disjoint images.</p>
+<p><code>readhead</code> sends <code>v</code> to <code>inl (ls, rs)</code> when <code>s = 0</code> and to <code>inr (ls, rs)</code> when <code>s = 1</code>, so the branch taken is <code>β_{q,s}</code> — the row of the table for the symbol actually under the head. Then <code>write_{s'} = inj_{s'} ; readhead!</code> returns <code>(ls, (s', rs))</code>, whose reading is <code>(T[i ↦ s'], i)</code>. It remains to check <code>move_m</code>, and there are four cases.</p>
+<ul><li><strong><code>m = S</code>.</strong> <code>move_S = id</code>, giving <code>v' = (ls, (s', rs))</code>, reading <code>(T[i ↦ s'], i)</code>. ✓</li><li><strong><code>m = L</code>.</strong> By hypothesis <code>i &gt; 0</code>, so <code>ls = l : ls₀</code>, and <code>right!</code> gives <code>v' = (ls₀, (l, s' : rs))</code>. Then <code>|ls₀| = i − 1</code>, the cell just vacated holds <code>s'</code>, and the cell moved onto holds <code>l = T(i−1)</code>. Reading: <code>(T[i ↦ s'], i − 1)</code>. ✓</li><li><strong><code>m = R</code>, <code>rs = r : rs₀</code>.</strong> The first branch of <code>stepover</code> applies and the second does not; <code>right</code> gives <code>v' = (s' : ls, (r, rs₀))</code>, of length <code>|ls| + 1 = i + 1</code>, with the vacated cell holding <code>s'</code> and the new head cell holding <code>r = T(i+1)</code>. Reading: <code>(T[i ↦ s'], i + 1)</code>. ✓</li><li><strong><code>m = R</code>, <code>rs = []</code>.</strong> Now the <em>second</em> branch applies and the first does not: <code>pad</code> replaces <code>rs</code> by <code>[0]</code>, and <code>right</code> gives <code>v' = (s' : ls, (0, []))</code>. Reading: <code>(T[i ↦ s'], i+1)</code> — and this is correct precisely because <code>rs = []</code> forces <code>T(i+1) = 0</code>, which is the blank the padding invented. ✓</li></ul>
+<p>Uniqueness of <code>v'</code> is Lemma 9. ∎</p>
+<p>The fourth case is the whole cost of the finite/infinite mismatch: one extra branch in <code>stepover</code>, and one line of the proof. Note what the lemma does <em>not</em> say — it does not claim <code>v'</code> is canonical. Feed it a <code>v</code> with three trailing blanks and it returns a <code>v'</code> with three trailing blanks. The statement is about <code>⌈v'⌉</code>, so padding simply rides along, and no normalisation step is ever needed.</p>
+<blockquote><p><strong>Lemma 11 (halting is a dead end).</strong> <code>⟦step⟧(tag_{q_h}(v)) = ∅</code> for every <code>v</code>.</p></blockquote>
+<p><em>Proof.</em> The <code>h</code>-th summand selects <code>δ_{q_h} = zero</code>, and no other summand contributes. ∎</p>
+<blockquote><p><strong>Lemma 12 (Halting).</strong> <code>⟦halts_M⟧ = { (x, ()) : M halts on input x }</code>.</p></blockquote>
+<p><em>Proof.</em> Fix <code>x ∈ V(bits)</code> and let <code>v₀ = load(x)</code>; checking the two branches of <code>load</code>, <code>⌈v₀⌉</code> is <code>M</code>'s initial configuration on <code>x</code> — the input written from cell <code>0</code>, head at cell <code>0</code>, blanks beyond — in the cons case directly, and in the nil case as the all-blank tape.</p>
+<p>Let <code>C₀ → C₁ → ⋯</code> be the run of <code>M</code> from <code>C₀</code>, with <code>C_n = (q^{(n)}, T^{(n)}, i^{(n)})</code>, and let <code>N ∈ ℕ ∪ {∞}</code> be the least <code>n</code> with <code>q^{(n)} = q_h</code>. By induction on <code>n ≤ N</code>, using Lemma 10 — whose side condition is discharged by (N2) — there is a single <code>v_n</code> with</p>
+<div class="code"><pre><code>⟦step⟧ⁿ (tag_{q₁}(v₀))  =  { tag_{q^{(n)}}(v_n) },      ⌈v_n⌉ = (T^{(n)}, i^{(n)}).</code></pre></div>
+<p>For <code>n &gt; N</code> the set is empty, by Lemma 11 and induction. Hence</p>
+<div class="code"><pre><code>⟦step^⟧ (tag_{q₁}(v₀))  =  ⋃_{n≥0} ⟦step⟧ⁿ(…)  =  { tag_{q^{(n)}}(v_n) : n ≤ N }.</code></pre></div>
+<p>Now <code>tag_{q_h}!</code> keeps exactly the elements of that set lying in the <code>h</code>-th summand. Because the tags are injective with disjoint images, those are the <code>tag_{q^{(n)}}(v_n)</code> with <code>q^{(n)} = q_h</code>, and by minimality of <code>N</code> there is at most one such <code>n</code>, namely <code>N</code> itself. So the result is <code>{v_N}</code> if <code>M</code> halts and <code>∅</code> if it does not. Composing with <code>drop_tape</code> (Lemma 5) gives <code>{()}</code> in the first case and <code>∅</code> in the second. ∎</p>
+<h3 id="55-the-inputoutput-form"><a class="anchor" href="#55-the-inputoutput-form" aria-label="Link to this section">#</a>5.5 The input/output form</h3>
+<blockquote><p><strong>Proposition 13.</strong> Suppose <code>M</code> additionally halts with its head at cell <code>0</code>. Then  ``<code> run_M = load ; tag_{q₁} ; step^ ; tag_{q_h}! ; load! </code>`<code>  denotes </code>{ (x, y) : M started on the tape represented by x halts on the tape represented by y }`, and this relation is a partial function.</p></blockquote>
+<p><em>Proof.</em> Exactly Lemma 12 up to the last step, where <code>load!</code> is applied to <code>v_N</code> instead of <code>drop_tape</code>. <code>load!</code> is defined on a tape value precisely when its left component is <code>[]</code>, which is the added hypothesis, and it then returns the single bit list <code>c : rs</code>. Single-valuedness is Lemma 9. ∎</p>
+<p>The hypothesis is not cosmetic: without it <code>load!</code> is empty and so is <code>run_M</code>. Any machine can be made to satisfy it by appending a rewind phase, which is what the <code>rewind</code> state of <code>tm.42</code> is for.</p>
+<p><code>run_M</code> is a partial function but <strong>is not injective</strong>, and this is the encoding of section 5.2 surfacing in the answer rather than a defect. <code>tm.42</code>'s increment machine sends both <code>[1,1]</code> and <code>[1,1,0]</code> — the same number, written two ways — to <code>[0,0,1]</code>, because the first grows a blank during the run and becomes the second. Running it backwards reports both:</p>
+<div class="code"><pre><code>$ 42 tm dec "[L (), L (), R ()]"
+dec([L (), L (), R ()]) =
+  [R (), R (), L ()]
+  [R (), R ()]
+  -- 2 results</code></pre></div>
+<p>A language requiring injectivity would have to canonicalise the representation before this program could be written at all. Here it is simply what the converse of a non-injective function looks like, and nothing in the proof had to prevent it.</p>
+<h3 id="56-the-instance"><a class="anchor" href="#56-the-instance" aria-label="Link to this section">#</a>5.6 The instance</h3>
+<p><code>tm.42</code> is this construction for a three-state machine — <code>carry</code>, <code>rewind</code>, <code>halt</code> — that increments a binary number, and it runs; MANUAL section 13 walks through it. <code>theorem.42</code> carries the pieces that a three-state machine with a non-empty input does not exhibit: <code>loadtotal</code>, and the tag and collapse schemas at four states.</p>
+<h2 id="6-completeness"><a class="anchor" href="#6-completeness" aria-label="Link to this section">#</a>6. Completeness</h2>
+<blockquote><p><strong>Theorem 14.</strong> Let <code>A</code>, <code>B</code> be closed types and <code>R ⊆ V(A) × V(B)</code> recursively enumerable. Then some closed 42 program denotes <code>R</code>.</p></blockquote>
+<p><em>Proof.</em> Write <code>C = A × B</code>, so <code>V(C) = V(A) × V(B)</code> and <code>R ⊆ V(C)</code>.</p>
+<p><strong>Step 1 — flatten.</strong> By Lemma 8 take <code>ser_C : C &lt;-&gt; bits</code> with underlying injection <code>e_C</code>. Put <code>S = e_C(R) ⊆ {0,1}*</code>. Since <code>e_C</code> is a computable injection with decidable image, <code>S</code> is r.e.</p>
+<p><strong>Step 2 — semi-decide.</strong> <code>S</code> is r.e., so there is a deterministic Turing machine <code>M</code> that halts on exactly the strings in <code>S</code>; normalise it as in section 5.1, which changes neither. By Lemma 12, <code>⟦halts_M⟧ = {(x, ()) : x ∈ S}</code>, so</p>
+<div class="code"><pre><code>test  =  ser_C ; halts_M                  : C &lt;-&gt; 1</code></pre></div>
+<p>has domain <code>{c ∈ V(C) : e_C(c) ∈ S} = R</code>. Note that only the <em>domain</em> of the simulation is used: the machine's output is never read, which is why Lemma 12 rather than Proposition 13 is the load-bearing statement.</p>
+<p><strong>Step 3 — filter.</strong> By Lemma 7,</p>
+<div class="code"><pre><code>filt  =  copy ; (test * id) ; unitprod    : C &lt;-&gt; C</code></pre></div>
+<p>denotes the partial identity on <code>R</code>.</p>
+<p><strong>Step 4 — assemble.</strong> With <code>univ = drop_A ; drop_B!</code> from Lemma 6, put</p>
+<div class="code"><pre><code>t  =  copy ; (id * univ) ; filt ; (drop_A * id) ; unitprod        : A &lt;-&gt; B</code></pre></div>
+<p>and trace a value <code>x ∈ V(A)</code> through it:</p>
+<div class="scroller"><table><thead><tr><th>after</th><th>value</th><th>reason</th></tr></thead><tbody><tr><td><code>copy</code></td><td><code>(x, x)</code></td><td></td></tr><tr><td><code>(id * univ)</code></td><td><code>(x, y)</code> for <strong>every</strong> <code>y ∈ V(B)</code></td><td>Lemma 6</td></tr><tr><td><code>filt</code></td><td>those <code>(x, y)</code> with <code>(x, y) ∈ R</code></td><td>Lemma 7, Step 3</td></tr><tr><td><code>(drop_A * id)</code></td><td><code>((), y)</code></td><td>Lemma 5</td></tr><tr><td><code>unitprod</code></td><td><code>y</code></td><td></td></tr></tbody></table></div>
+<p>So <code>⟦t⟧ = {(x, y) : (x,y) ∈ R} = R</code>. ∎</p>
+<p>The two halves together give the Theorem of section 1. Note the shape of the argument: <strong>guess the output, then check it.</strong> 42 supplies the guess from <code>drop!</code>, which is nondeterminism the language already has because <code>join!</code> and <code>drop!</code> are converses of many-to-one maps, and supplies the check from <code>copy</code>. Neither is a device invented for the proof.</p>
+<blockquote><p><strong>Corollary 15 (Turing completeness).</strong> Every partial computable function <code>f : V(A) ⇀ V(B)</code> is denoted by some 42 program, since its graph is r.e.; and by Theorem 3 no program denotes anything worse.</p></blockquote>
+<blockquote><p><strong>Corollary 16.</strong> The denotable relations form the largest class this family of languages can reach. Injective reversible languages denote exactly the injective computable functions; 42's class strictly contains that, contains its own converses, and is closed under everything the syntax can do.</p></blockquote>
+<h2 id="7-what-is-not-proved"><a class="anchor" href="#7-what-is-not-proved" aria-label="Link to this section">#</a>7. What is not proved</h2>
+<p>Three things, stated plainly.</p>
+<ul><li><strong>Three facts about Turing machines are cited, not proved.</strong> Section 5.1 assumes <code>M</code> has been normalised to a binary alphabet, a one-way infinite tape it never falls off, and a single halting state. All three are textbook, all three preserve the halting set, and none is reproved here. Everything else about the machine — that <code>step</code> really is its transition function on representations, that <code>step^</code> really is its run, that the finite/infinite tape mismatch is harmless — is proved in section 5.4.</li><li><strong>This is about <code>⟦·⟧</code>, not about the interpreter.</strong> <code>rel42</code> bounds its search depth and reports <code>DepthExceeded</code> rather than diverging, which is the right behaviour for a tool and is not what the theorem is about. Theorem 14 asserts that a denotation exists, not that any particular query terminates. Indeed it cannot: <code>halts_M</code> denotes the halting set, so no evaluator can decide it.</li><li><strong>None of this is mechanised.</strong> No proof assistant has seen it. The constructions of sections 4 and 5 are executable and are run by the test suite, which catches a mistyped term but is not a substitute for checking a proof.</li></ul>
+<p>The two halves have different characters, and it is worth being explicit about which is doing more work. <strong>Soundness (Theorem 3) is unconditional</strong> — a short induction, complete as given, depending on nothing in sections 4 to 6. The upper bound <code>Σ⁰₁</code> therefore stands on its own. Completeness is the longer argument and the one that leans on the cited normalisations, but it leans on nothing about 42 that is not proved here.</p></main>
+</div>
+<script>
+const links = [...document.querySelectorAll('.rail a')];
+const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const seen = new Set();
+const spy = new IntersectionObserver(entries => {
+  for (const e of entries) e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id);
+  const order = [...byId.keys()].filter(id => seen.has(id));
+  links.forEach(a => a.classList.remove('here'));
+  const active = byId.get(order[0]);
+  if (active) active.classList.add('here');
+}, { rootMargin: '0px 0px -70% 0px' });
+document.querySelectorAll('h2[id], h3[id]').forEach(h => spy.observe(h));
+</script>
+</body>
+</html>

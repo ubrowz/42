@@ -1,0 +1,130 @@
+-- theorem.42 -- the constructions used in THEOREM.md, in runnable form.
+--
+-- THEOREM.md proves that the relations denotable in 42 are exactly the
+-- recursively enumerable ones.  The completeness half is built from four
+-- gadgets, each defined by structural recursion on a *type*, so each is a
+-- schema rather than a single program.  A .42 file can only hold instances, so
+-- what follows is one instance of every clause of each induction -- 0, 1, +, x
+-- and mu -- which is enough to see that the schema is well formed.
+--
+-- Nothing here is a primitive.  That is the point: `drop` in particular looks
+-- like the one thing MANUAL section 2 says the language cannot have, and it is
+-- definable anyway, because forgetting is allowed as long as the backward
+-- direction is permitted to return several candidates.
+
+type nat  = mu X. 1 + X
+type bits = mu X. 1 + ((1 + 1) x X)
+type list a = mu X. 1 + (a x X)
+
+
+-- ---------------------------------------------------------------------------
+-- Lemma 2 (Discard).  For every type C there is `drop : C <-> 1`.
+--
+--   drop_0        = zero                     drop_1        = id
+--   drop_{A+B}    = (drop_A + drop_B) ; join
+--   drop_{AxB}    = (drop_A * drop_B) ; unitprod
+--   drop_{muX.F}  = a recursive definition following F
+--
+-- One instance of each clause:
+-- ---------------------------------------------------------------------------
+
+def drop0    = zero                              -- 0 <-> 1  (vacuously total)
+def drop1    = id                                -- 1 <-> 1
+def dropbool = join                              -- 1 + 1 <-> 1
+def dropnat  = (id + dropnat) ; join             -- nat <-> 1
+def droppair = (dropnat * dropnat) ; unitprod    -- nat x nat <-> 1
+def dropbits = (id + ((dropbool * dropbits) ; unitprod)) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- Lemma 3 (Universal relation).  `drop_A ; drop_B!` relates every value of A
+-- to every value of B.  Shown at a finite type, because at an infinite one it
+-- is an infinite answer.
+-- ---------------------------------------------------------------------------
+
+def univbool = dropbool ; dropbool!
+
+
+-- ---------------------------------------------------------------------------
+-- Lemma 4 (Filter).  A test `t : C <-> 1` becomes the partial identity on the
+-- values where it succeeds.  `iseven` is a test only in the semi-decision
+-- sense: `double!` is defined on the even numbers and nowhere else.
+-- ---------------------------------------------------------------------------
+
+def add      = dist ; (unitprod + (add ; inr)) ; join
+def double   = copy ; add
+def testeven = double! ; dropnat                 -- nat <-> 1, succeeds on evens
+def onlyeven = copy ; (testeven * id) ; unitprod -- nat <-> nat
+
+
+-- ---------------------------------------------------------------------------
+-- Lemma 5 (Serialisation).  `ser_C : C <-> bits` is injective, because the
+-- code it produces is prefix-free:
+--
+--   ser_1       = inl                                  ()  |-> []
+--   ser_{A+B}   = ((ser_A ; cons0) + (ser_B ; cons1)) ; join
+--   ser_{AxB}   = (ser_A * ser_B) ; append
+--   ser_{muX.F} = a recursive definition following F
+--
+-- The product clause is the interesting one.  `append` run backwards gives
+-- every way to split a list, so it is thoroughly many-valued -- and yet
+-- `serpair!` has exactly one answer, because prefix-freeness leaves only one
+-- split that decodes.  Composition restoring determinism that a factor lacks
+-- is the same phenomenon as `double = copy ; add`.
+-- ---------------------------------------------------------------------------
+
+def cons0  = unitprod! ; (inl * id) ; inr
+def cons1  = unitprod! ; (inr * id) ; inr
+def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
+
+def ser1    = inl                                        -- 1 <-> bits
+def sernat  = ((inl ; cons0) + (sernat ; cons1)) ; join  -- nat <-> bits
+def serpair = (sernat * sernat) ; append                 -- nat x nat <-> bits
+def sersum  = ((sernat ; cons0) + (sernat ; cons1)) ; join
+
+def unpair  = serpair!
+def unnat   = sernat!
+def splits  = append!                            -- for contrast with unpair
+
+
+-- ---------------------------------------------------------------------------
+-- Section 5.  Pieces of the simulation that `tm.42` does not exhibit, because
+-- that machine has three states and a non-empty input.
+--
+-- `loadtotal` is the initial tape for *any* input, empty included: the head
+-- needs a cell to sit on, so the empty string becomes a single blank.
+-- ---------------------------------------------------------------------------
+
+def loadnil   = copy ; (id * copy) ; (inl * (inl * inl))   -- 1 <-> tape
+def loadcons  = inr! ; unitprod! ; (inl * id)              -- bits <-> tape
+def loadtotal = loadcons | (inl! ; loadnil)
+
+-- The state tags are `inl ; inr^(i-1)`, and the branches are put back together
+-- by a chain of `join`s.  Shown at four states; the schema is
+--   collapse_1 = id,  collapse_k = (id + collapse_{k-1}) ; join
+def tag1      = inl
+def tag2      = inl ; inr
+def tag3      = inl ; inr ; inr
+def tag4      = inr ; inr ; inr
+def collapse4 = (id + ((id + join) ; join)) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- The 1993 open question (RELATED.md section 0.3).
+--
+-- 4_2 had a primitive test operator `R?` and observed that it loses
+-- "syntactical reversibility": reading it backwards is the same as reading it
+-- forwards.  It proposed restricting tests to symmetrical programs and left the
+-- cost of that restriction open.
+--
+-- Here the filter is not a construct but the composite of Lemma 5, so the
+-- question can just be asked: `keep!` is `keep`, for any test whatever, and no
+-- restriction was needed.  `inter` is 4_2's intersection operator `&`, likewise
+-- a composite rather than a primitive.
+-- ---------------------------------------------------------------------------
+
+def istrue = inr!                                -- 1 + 1 <-> 1, only on R ()
+def keep   = copy ; (istrue * id) ; unitprod
+def keepd  = keep!
+
+def inter f g = copy ; (f * g) ; copy!           -- 4_2's `&`

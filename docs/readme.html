@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>42 Design Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="What the language is, in mathematical terms: the dagger, where 42 sits among reversible languages, the type system, and the honest limitations.">
+<style>
+:root {
+  --paper:      #fcfcfd;
+  --raised:     #f4f6f8;
+  --ink:        #16191f;
+  --muted:      #5c6470;
+  --faint:      #8b93a1;
+  --rule:       #e2e5ea;
+  --accent:     #0b6e6e;
+  --accent-dim: #0b6e6e1a;
+  --shadow:     0 1px 2px #16191f0d;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino,
+           "Book Antiqua", Georgia, serif;
+  --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+           "Cascadia Mono", "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+    --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+    --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+  --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+  --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shell ---- */
+.shell { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); gap: 3.5rem;
+         max-width: 74rem; margin: 0 auto; padding: 0 2rem; align-items: start; }
+@media (max-width: 60rem) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 1.25rem; }
+}
+
+/* ---- masthead ---- */
+.mast { display: flex; flex-direction: column; gap: .5rem;
+        padding: 2.75rem 0 1.5rem; border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1; }
+.mark { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--accent); }
+.mark b { font-weight: 500; }
+.mast h1 { margin: 0; font-size: 2.1rem; line-height: 1.15; letter-spacing: -.015em;
+           text-wrap: balance; font-weight: 600; }
+.mast p { margin: 0; color: var(--muted); max-width: 46ch; }
+.switch { display: flex; gap: .4rem; margin-top: .85rem; flex-wrap: wrap; }
+.switch a { font-family: var(--mono); font-size: .78rem; letter-spacing: .02em;
+            text-decoration: none; color: var(--muted); border: 1px solid var(--rule);
+            border-radius: 2px; padding: .3rem .65rem; background: var(--paper); }
+.switch a:hover { color: var(--accent); border-color: var(--accent); }
+.switch a[aria-current="page"] { color: var(--paper); background: var(--ink);
+                                 border-color: var(--ink); }
+
+/* ---- table of contents ---- */
+.rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem);
+        overflow-y: auto; padding: 2rem 0 3rem; font-family: var(--mono);
+        font-size: .8rem; line-height: 1.5; }
+.rail h2 { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+           color: var(--faint); margin: 0 0 .9rem; font-family: var(--mono);
+           font-weight: 500; }
+.rail ol { list-style: none; margin: 0; padding: 0;
+           display: flex; flex-direction: column; gap: .12rem; }
+.rail a { display: block; text-decoration: none; color: var(--muted);
+          padding: .2rem .55rem; border-left: 2px solid transparent;
+          border-radius: 0 2px 2px 0; }
+.rail a:hover { color: var(--ink); background: var(--raised); }
+.rail a.sub { padding-left: 1.5rem; color: var(--faint); font-size: .76rem; }
+.rail a.here { color: var(--accent); border-left-color: var(--accent);
+               background: var(--accent-dim); }
+@media (max-width: 60rem) {
+  .rail { position: static; max-height: none; border-bottom: 1px solid var(--rule);
+          padding: 1.25rem 0; }
+  .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  .rail a.sub { display: none; }
+}
+
+/* ---- prose ---- */
+main { padding: 2rem 0 6rem; min-width: 0; max-width: 68ch; }
+main > :first-child { margin-top: 0; }
+h1, h2, h3, h4 { line-height: 1.22; letter-spacing: -.012em; text-wrap: balance;
+                 font-weight: 600; position: relative; }
+h1 { font-size: 1.9rem; margin: 3rem 0 1rem; }
+h2 { font-size: 1.5rem; margin: 3.25rem 0 1rem; padding-bottom: .4rem;
+     border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 2.25rem 0 .75rem; }
+h4 { font-size: 1rem; margin: 1.75rem 0 .6rem; color: var(--muted); }
+p { margin: 0 0 1.05rem; }
+a { color: var(--accent); text-underline-offset: .18em;
+    text-decoration-thickness: .06em; }
+strong { font-weight: 650; }
+ul, ol { margin: 0 0 1.05rem; padding-left: 1.35rem;
+         display: flex; flex-direction: column; gap: .38rem; }
+li { padding-left: .15rem; }
+li::marker { color: var(--faint); }
+hr { border: 0; height: 1px; background: var(--rule); margin: 2.75rem 0; }
+
+.anchor { position: absolute; left: -1.1rem; width: 1.1rem; text-align: left;
+          color: var(--faint); text-decoration: none; opacity: 0;
+          font-family: var(--mono); font-weight: 400; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus { opacity: 1; }
+@media (max-width: 60rem) { .anchor { display: none; } }
+
+blockquote { margin: 1.4rem 0; padding: .1rem 0 .1rem 1.15rem;
+             border-left: 2px solid var(--accent); color: var(--muted); }
+blockquote p { margin: 0; }
+
+/* ---- code ---- */
+code { font-family: var(--mono); font-size: .855em; }
+p code, li code, td code, th code, blockquote code, h2 code, h3 code, h4 code {
+  background: var(--raised); border: 1px solid var(--rule);
+  border-radius: 3px; padding: .07em .32em; white-space: nowrap;
+}
+.code { margin: 0 0 1.3rem; background: var(--raised);
+        border: 1px solid var(--rule); border-radius: 4px;
+        overflow-x: auto; box-shadow: var(--shadow); }
+.code pre { margin: 0; padding: .95rem 1.15rem; }
+.code code { background: none; border: 0; padding: 0; white-space: pre;
+             font-size: .83rem; line-height: 1.58; }
+
+/* ---- tables ---- */
+.scroller { overflow-x: auto; margin: 0 0 1.4rem; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem;
+        font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule);
+         vertical-align: top; }
+th { font-family: var(--mono); font-size: .74rem; letter-spacing: .06em;
+     text-transform: uppercase; color: var(--faint); font-weight: 500;
+     border-bottom-color: var(--ink); }
+tbody tr:last-child td { border-bottom: 0; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px;
+                 border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="mast">
+    <div class="mark"><b>42</b> &nbsp;x &isin; P(y) &nbsp;&harr;&nbsp; y &isin; inv(P)(x)</div>
+    <h1>42 &mdash; Design Notes</h1>
+    <p>What the language is, in mathematical terms: the dagger, where 42 sits among reversible languages, the type system, and the honest limitations.</p>
+    <nav class="switch"><a href="index.html">home</a><a href="manual.html">42 manual</a><a href="qmanual.html">Q42 manual</a><a href="readme.html" aria-current="page">design notes</a><a href="related.html">related work</a><a href="theorem.html">the theorem</a><a href="https://github.com/ubrowz/42">source</a></nav>
+  </header>
+  <nav class="rail" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol><li><a class="" href="#the-dagger">The dagger</a></li><li><a class="" href="#where-42-sits">Where 42 sits</a></li><li><a class="" href="#the-language">The language</a></li><li><a class="" href="#values">Values</a></li><li><a class="" href="#types">Types</a></li><li><a class="sub" href="#abbreviations">Abbreviations</a></li><li><a class="" href="#usage">Usage</a></li><li><a class="" href="#q42--the-same-language-over-ℂ">Q42 — the same language over ℂ</a></li><li><a class="" href="#honest-limitations">Honest limitations</a></li><li><a class="" href="#layout">Layout</a></li></ol>
+  </nav>
+  <main><p>A point-free reversible programming language, interpreted in <strong>Rel</strong> — the category of sets and relations.</p>
+<p><strong>The manuals are the way in:</strong> <a href="https://ubrowz.github.io/42/manual.html">42</a> and <a href="https://ubrowz.github.io/42/qmanual.html">Q42</a>, with everything else at <a href="https://ubrowz.github.io/42/">ubrowz.github.io/42</a>. This file is the design note behind them, and assumes more mathematics than they do.</p>
+<p>A program denotes a relation, and the defining law of the language is</p>
+<div class="code"><pre><code>x ∈ P(y)   ⟺   y ∈ inv(P)(x)</code></pre></div>
+<p><code>inv</code> is the converse. Rel is a <em>dagger category</em>: <code>inv</code> is an identity-on-objects, involutive, contravariant functor. Every rule in the implementation is forced by that fact rather than chosen, which is the whole point of the design.</p>
+<div class="code"><pre><code>$ 42 prelude add "(2, 3)"
+add(2, 3) =
+  5
+  -- 1 result
+
+$ 42 prelude add 5 --backward
+add!(5) =
+  (0, 5)
+  (1, 4)
+  (2, 3)
+  (3, 2)
+  (4, 1)
+  (5, 0)
+  -- 6 results</code></pre></div>
+<p>Forwards, <code>add</code> is a function. Backwards, it enumerates every preimage. Both directions run the <em>same definition</em>; the backward one is its dagger, computed mechanically.</p>
+<p>The three words after <code>42</code> are a file, a program defined in it, and an input: <code>prelude</code> is <code>prelude.42</code>, a file of worked examples that ships with the project, and <code>add</code> is one of the definitions in it.</p>
+<p><strong>New here? Start with <a href="MANUAL.md"><code>MANUAL.md</code></a></strong> — a ground-up user manual that assumes no vocabulary beyond a CS background. This README describes the <em>design</em> in mathematical terms and will be much easier after it.</p>
+<h2 id="the-dagger"><a class="anchor" href="#the-dagger" aria-label="Link to this section">#</a>The dagger</h2>
+<p>The entire inversion algorithm, from <code>rel42/core.py</code>:</p>
+<div class="code"><pre><code>def dagger(t: Term) -&gt; Term:
+    match t:
+        case Prim(n, i):  return Prim(n, not i)
+        case Ref(n, i):   return Ref(n, not i)
+        case Seq(s, u):   return Seq(dagger(u), dagger(s))   # contravariant
+        case Union(s, u): return Union(dagger(s), dagger(u))
+        case Sum(s, u):   return Sum(dagger(s), dagger(u))
+        case Prod(s, u):  return Prod(dagger(s), dagger(u))
+        case Star(s):     return Star(dagger(s))</code></pre></div>
+<p>It is <strong>total</strong>: no side conditions, no well-formedness checks, no proof obligations, no undecidable questions. <code>dagger(dagger(t)) == t</code> holds syntactically, on the nose.</p>
+<p>Compare Janus, which needs every conditional to carry an exit assertion (<code>if b then … else … fi a</code>) so that backward execution can tell which branch it came from. 42 needs no such thing, because nondeterministic choice is a first-class construct: where Janus must <em>separate</em> two branches with a predicate, 42 simply keeps both. <strong>Dropping restrictions is what buys the elegance here</strong> — the more general setting has the simpler metatheory.</p>
+<p>Because <code>dagger</code> is total, the surface syntax can eliminate <code>!</code> at parse time. It never appears in the abstract syntax:</p>
+<div class="code"><pre><code>parse("(copy ; join)!")  ==  parse("join! ; copy!")</code></pre></div>
+<h2 id="where-42-sits"><a class="anchor" href="#where-42-sits" aria-label="Link to this section">#</a>Where 42 sits</h2>
+<p>Set size is the design dial, and it picks out three nested settings:</p>
+<div class="scroller"><table><thead><tr><th>Setting</th><th><code>|P(y)|</code></th><th>Law</th><th>In 42</th></tr></thead><tbody><tr><td><strong>Groupoid</strong> (bijections)</td><td>exactly 1</td><td><code>S ; S† = id</code></td><td><code>not</code>, <code>swap</code>, <code>rot3</code></td></tr><tr><td><strong>PInj</strong> (partial injections)</td><td>≤ 1</td><td><code>S ; S† ; S = S</code></td><td><code>succ</code>, <code>pred</code>, <code>double</code></td></tr><tr><td><strong>Rel</strong> (relations)</td><td>arbitrary</td><td><code>S ⊆ S ; S† ; S</code></td><td><code>add</code>, <code>append</code></td></tr></tbody></table></div>
+<p>Be clear-eyed about the bottom row: <strong>in Rel, running forward then backward does not return you to where you started.</strong> It returns a set <em>containing</em> where you started. That is the price of the generality, and the <code>∈</code> in the defining law is where it is paid.</p>
+<p>Two illustrations the interpreter makes concrete:</p>
+<ul><li><strong>Partiality is not failure.</strong> <code>pred 0</code> is the empty set, because 0 has no predecessor. Being outside a relation's domain is not an error condition; it is simply having no image. A shape <em>mismatch</em> denotes the empty relation for the same reason — though the CLI now type-checks first and refuses it, since you almost never mean it.</li><li><strong>Composition can restore determinism.</strong> <code>add!</code> is many-valued, yet <code>double = copy ; add</code> has a single-valued dagger: <code>copy!</code> keeps only the pairs whose components agree, so <code>double! 6 = {3}</code> and <code>double! 7 = {}</code>.</li></ul>
+<h2 id="the-language"><a class="anchor" href="#the-language" aria-label="Link to this section">#</a>The language</h2>
+<div class="code"><pre><code>program := (typedecl | 'def' IDENT IDENT* '=' term)*
+typedecl := 'type' IDENT IDENT* '=' typeexpr
+term := comp ('|' comp)*        -- nondeterministic choice (union)
+comp := sum  (';' sum)*         -- composition, diagrammatic order
+sum  := prod ('+' prod)*        -- the sum functor
+prod := app  ('*' app)*         -- the product functor
+app  := post+                   -- application, by juxtaposition
+post := atom ('!' | '^')*       -- dagger, reflexive transitive closure
+atom := '(' term ')' | IDENT</code></pre></div>
+<p>The extra identifiers after a definition's name are <strong>parameters</strong>, and they range over <em>terms</em>, not values — 42 still has no binder over a value. That is enough to write a combinator once:</p>
+<div class="code"><pre><code>def ctrl m = mat ; (id + m) ; mat!      -- (a &lt;-&gt; a) -&gt; ((1+1) x a &lt;-&gt; (1+1) x a)
+def cx     = ctrl swapsum
+def ccx    = ctrl cx</code></pre></div>
+<p>Two conventions make this survive inversion, and they are a matched pair. A <code>!</code> written on a parameter is recorded on the variable, so <code>dagger</code> flips it exactly as it flips a reference; and <code>dagger</code> therefore leaves an application's <em>argument</em> alone, <code>dagger(f a) = dagger(f) a</code>, letting substitution discharge the inversion later. The result is that <code>dagger</code> commutes with reduction, so <code>ctrl! m</code> is <code>ctrl m!</code> — in physics, <code>(Ctrl U)† = Ctrl U†</code>. <code>dagger</code> stays total, stays an involution, and gains no side condition.</p>
+<p>Applications are reduced away before evaluation, which is why neither evaluator has a case for one. Deliberately second-order: a parameter denotes a relation, never another combinator.</p>
+<p>Primitives are the isomorphisms witnessing the commutative-semiring structure of <code>0, 1, +, ×</code>, plus the two morphisms that make this Rel rather than a groupoid:</p>
+<div class="scroller"><table><tbody><tr><td><code>id</code>, <code>zero</code></td><td>identity, empty relation</td></tr><tr><td><code>swapsum</code>, <code>assocsum</code>, <code>unitsum</code></td><td><code>a+b ↔ b+a</code>, <code>a+(b+c) ↔ (a+b)+c</code>, <code>0+a ↔ a</code></td></tr><tr><td><code>swapprod</code>, <code>assocprod</code>, <code>unitprod</code></td><td><code>a×b ↔ b×a</code>, <code>a×(b×c) ↔ (a×b)×c</code>, <code>1×a ↔ a</code></td></tr><tr><td><code>dist</code></td><td><code>(a+b)×c ↔ (a×c)+(b×c)</code></td></tr><tr><td><code>inl</code>, <code>inr</code></td><td>injections — partial injections, not bijections</td></tr><tr><td><code>copy</code></td><td>the diagonal <code>a → a×a</code>; its converse is the partial "these agree"</td></tr><tr><td><code>join</code></td><td>the codiagonal <code>a+a → a</code>; <strong>its converse is the only source of nondeterminism in the language</strong></td></tr></tbody></table></div>
+<p>Everything with more than one answer traces back to <code>join!</code>. That is worth knowing: ambiguity in 42 has exactly one origin.</p>
+<p>Two primitives are deliberately absent:</p>
+<ul><li><code>absorb : 0×a ↔ 0</code> is omitted because <code>0×a</code> has no inhabitants, so it is extensionally just <code>zero</code>.</li><li><code>discard : a → 1</code> is omitted because its converse must generate <em>every</em> value of a type, which is not finitary.</li></ul>
+<p>The second omission constrains the <em>shape</em> of what you can write, but far less than it first appears. <code>mul : (m, n) → m×n</code> is indeed not expressible, since the base case <code>0 × n = 0</code> must discard <code>n</code>. But <code>mul : (m, n) → (n, m×n)</code> is, and keeping the multiplier costs one component and buys injectivity — so <code>mul!</code> is exact division. See <code>arith.42</code>, where <code>divexact</code>, <code>divmod</code> and <code>sub</code> are all defined as inverses of the easy direction, with no algorithm written for any of them.</p>
+<h2 id="values"><a class="anchor" href="#values" aria-label="Link to this section">#</a>Values</h2>
+<p>Untyped at runtime. The universe is generated by <code>0, 1, +, ×</code>:</p>
+<div class="code"><pre><code>()              the inhabitant of 1
+L v   R v       injections
+(a, b)          pairs
+3               sugar for the Peano nat over  μX. 1 + X
+[1, 2, 3]       sugar for the list over  μX. 1 + (A × X)</code></pre></div>
+<p>Note that <code>0</code>, <code>[]</code> and <code>L ()</code> are <strong>the same value</strong> — both recursive types use <code>Inl ()</code> as their base constructor and the interpreter is untyped. The printer picks <code>0</code>. This is a genuine consequence of an untyped Rel, not a printing bug; resolving it requires types, not a better <code>show</code>.</p>
+<p>So <code>run</code> and <code>law</code> print against the type they inferred, and get it right:</p>
+<div class="code"><pre><code>$ 42 prelude append "[1,2,3]" --backward
+append!([1, 2, 3]) =
+  ([], [1, 2, 3])
+  ([1], [2, 3])
+  ([1, 2], [3])
+  ([1, 2, 3], [])</code></pre></div>
+<p>The rule is conservative: it overrides only where the type <em>positively</em> identifies an encoding, and recognising one has to be done by unification rather than by matching syntax, since a list can arrive as <code>μX. b + (a × X)</code> or as <code>b + (μY. a × (b + Y))</code>. Where the inferred type is more general than the one you meant — <code>succ = inr</code> gets <code>a &lt;-&gt; b + a</code>, which never says "nat" — the old guessing stands, because printing <code>succ 3</code> as <code>R 3</code> would be a regression dressed up as rigour.</p>
+<h2 id="types"><a class="anchor" href="#types" aria-label="Link to this section">#</a>Types</h2>
+<p>A term denotes a relation, so its type has two sides: <code>t : A ↔ B</code> means <code>⟦t⟧ ⊆ A × B</code>. Types are the trees over the same four things the values are — <code>0</code>, <code>1</code>, <code>+</code>, <code>×</code> — plus variables, because the plumbing is polymorphic, plus <code>μX. F(X)</code> for the recursive ones. The primitive schemes are therefore just the semiring axioms read as types, which is what the primitives were chosen to be.</p>
+<p><strong>All 166 definitions in the nine libraries typecheck</strong>, with no annotation added to any of them. Types are inferred, never written: nothing in the surface syntax mentions one, and there is no <code>fold</code>/<code>unfold</code>.</p>
+<div class="code"><pre><code>$ 42 type prelude
+not       : a + b &lt;-&gt; b + a
+rot3      : a x (b x c) &lt;-&gt; c x (a x b)
+succ      : a &lt;-&gt; b + a
+pred      : a + b &lt;-&gt; b
+add       : nat x (mu Y. a + Y) &lt;-&gt; mu Y. a + Y
+double    : nat &lt;-&gt; nat
+downfrom  : mu X. a + X &lt;-&gt; mu X. a + X</code></pre></div>
+<p>(<code>nat</code> is an abbreviation the file declares; see below. <code>add</code>'s second argument is <em>not</em> <code>nat</code> — its zero case carries an unconstrained <code>a</code>, because <code>inr</code> is polymorphic — and the printer is right not to pretend otherwise.)</p>
+<p>Recursion is <strong>equirecursive</strong>: <code>μX. F(X)</code> and <code>F(μX. F(X))</code> are silently the same type. A <code>μ</code> is never something the programmer reaches for — it is what the checker infers when unification closes a loop. <code>nat</code> is not declared anywhere; <code>double = copy ; add</code> comes out as <code>μX. 1 + X ↔ μY. 1 + Y</code> because <code>copy</code> forces <code>add</code>'s two summands to agree, and that <em>is</em> <code>nat ↔ nat</code>.</p>
+<p>Four things fall out rather than being decided:</p>
+<ul><li><strong>Inversion swaps the two sides, and does nothing else.</strong> <code>dagger</code> is identity-on-objects and contravariant, so at the level of shapes it can only exchange domain and codomain. Inference implements <code>!</code> by swapping a scheme, so <code>t : A ↔ B ⟹ t! : B ↔ A</code> holds by construction — the type-level shadow of the defining law, checked over all 166 definitions.</li><li><strong>Generalisation is nearly trivial, because 42 has almost no binders.</strong> Every definition is a closed term, so there is no environment of monomorphic assumptions to avoid capturing and none of the usual machinery (levels, ranks, the value restriction) is needed. The one exception is a mutually recursive group — <code>cipher.42</code>'s <code>cbc</code>/<code>cbcstep</code> — which is solved as a unit against monomorphic assumptions and generalised once, Milner-style.</li><li>**A cycle in unification <em>is</em> the recursive type.** Where a finite-tree checker runs an occurs check and gives up, this one binds the variable to a term containing itself and carries on. Unification then works up to unfolding, coinductively: assume the two sides equal and check the assumption survives a layer. The set of assumptions is what makes it terminate.</li><li><strong>But a cycle is still read before it is trusted.</strong> <code>b = a + b</code> is <code>μX. a + X</code>, a list, which has finite values. <code>a = a × a</code> is <code>μX. X × X</code>, which has none — and <code>copy^</code> is how you write it. One unfolding with the variable taken empty settles which: <code>μX. F(X)</code> has a finite value exactly when <code>F(0)</code> does, and if <code>F(0)</code> is empty then so is <code>F(F(0))</code>.</li></ul>
+<p>What the types say is sharper than it looks. <code>cipher.42</code>'s <code>cnot1</code> comes out as <code>(a + b) × (c + c) ↔ (a + b) × (c + c)</code>, and that repeated <code>c</code> is the type-level content of "the second argument is a bit" — the summands forced equal by the fact that the program negates it.</p>
+<p>One wrinkle is inherent to the choice: equirecursive types have no unique syntactic form. <code>μX. b + (a + X)</code> and <code>μY. a + (b + Y)</code> are the same infinite tree, and telling them apart properly means minimising a regular tree. The printer collapses the common case — anything that is literally one unfolding of a <code>μ</code> inside it — and leaves the rest, so a type may read wordier than necessary but never wrongly.</p>
+<h3 id="abbreviations"><a class="anchor" href="#abbreviations" aria-label="Link to this section">#</a>Abbreviations</h3>
+<p><code>μX. 1 + X</code> is correct and unreadable. A file may name the types it is about:</p>
+<div class="code"><pre><code>type nat    = mu X. 1 + X
+type list a = mu X. 1 + (a x X)</code></pre></div>
+<div class="code"><pre><code>double : nat &lt;-&gt; nat                    -- was  mu X. 1 + X &lt;-&gt; mu Y. 1 + Y
+rev    : list a &lt;-&gt; list a              -- was  mu X. 1 + a x X &lt;-&gt; mu Y. 1 + a x Y
+ctrl   : (a &lt;-&gt; a) -&gt; (qubit x a &lt;-&gt; qubit x a)</code></pre></div>
+<p>This is a <strong>display layer and nothing else</strong>: no new primitives, no new semantics, and every program typechecks identically whether or not a single abbreviation is declared — which is asserted in the tests.</p>
+<p>Matching has to be up to equirecursive equality, since the same infinite tree has many presentations, so it reuses the unifier — but <em>one-way</em>. An abbreviation may describe the type it is offered and may never constrain it; otherwise <code>type nat = mu X. 1 + X</code> would match every type variable and everything would print as <code>nat</code>. Declarations are tried in source order, first match winning, so put the specific ones first.</p>
+<p><code>x</code> is the product operator in a type, so it cannot name a variable. The printer therefore never generates it either — which incidentally fixed a latent ambiguity, since <code>cipher.42</code> has a definition with 27 type variables and used to print <code>(x + x) x (a + b)</code>.</p>
+<h2 id="usage"><a class="anchor" href="#usage" aria-label="Link to this section">#</a>Usage</h2>
+<div class="code"><pre><code>42      FILE MAIN VALUE [--backward]   apply a definition
+42 law  FILE MAIN VALUE                check the defining law
+42 show FILE [MAIN]                    print each def and its dagger
+42 type FILE [MAIN]                    infer  A &lt;-&gt; B  for each def
+
+42q     FILE MAIN STATE [--backward]   the same for Q42, over C
+42q sample  FILE MAIN STATE            ...and measure the result
+42q emit    FILE [MAIN]                write it out as OpenQASM 3
+42q unitary|matrix|law|type|show FILE [MAIN]</code></pre></div>
+<p><code>42</code> and <code>42q</code> are shell wrappers for <code>python3 -m rel42</code> and <code>python3 -m q42</code>, which keep working unchanged. Each assumes <code>run</code> when the first word is not a subcommand, makes the <code>.42</code> extension optional, and finds files beside itself, so</p>
+<div class="code"><pre><code>42 prelude append "([1,2], [3])"</code></pre></div>
+<p>means <code>python3 -m rel42 run prelude.42 append "([1,2], [3])"</code>.</p>
+<p>They live in the repository root. Put it on your <code>PATH</code> to use them by name:</p>
+<div class="code"><pre><code>export PATH="/path/to/42:$PATH"     # in ~/.zshrc, ~/.bashrc, …</code></pre></div>
+<p>Or run them in place as <code>./42</code> and <code>./42q</code>, which needs no setup. (<code>42q</code> is spelled that way round because a file cannot share a name with the <code>q42/</code> package directory beside it.)</p>
+<p><code>law</code> is the one that matters for the theory — it computes <code>P(x)</code>, then for each result <code>y</code> checks that <code>x ∈ inv(P)(y)</code>:</p>
+<div class="code"><pre><code>$ 42 law prelude append "([1,2], [3])"
+append([1, 2], [3]) has 1 result(s)
+  [ok ] [1, 2, 3]: inv has 4 preimage(s), input in it
+law holds</code></pre></div>
+<p>Flags: <code>--raw</code> disables nat/list sugar, <code>--limit</code> bounds call depth, <code>--orbit</code> bounds how large a <code>Star</code> closure may grow before being declared infinite, and <code>--untyped</code> skips the type check that <code>run</code> and <code>law</code> otherwise apply.</p>
+<p>Tests: <code>python3 tests/test_rel42.py</code> (121), <code>python3 tests/test_types.py</code> (123), <code>python3 tests/test_q42.py</code> (93), <code>python3 tests/test_docs.py</code> (31) and <code>python3 tests/test_emit.py</code> (27) — 395 in all. Stdlib only, no dependencies, and <code>test_docs.py</code> checks the documentation itself, including these counts.</p>
+<h2 id="q42--the-same-language-over-ℂ"><a class="anchor" href="#q42--the-same-language-over-ℂ" aria-label="Link to this section">#</a>Q42 — the same language over ℂ</h2>
+<p>Rel is matrices over the Boolean semiring. Swap the semiring for ℂ and you get finite-dimensional Hilbert spaces and unitary maps, which is quantum computing. That is <code>q42/</code>, and <a href="Q42.md"><code>Q42.md</code></a> is its design.</p>
+<div class="code"><pre><code>$ 42q gates ghz "|000&gt;"
+ghz |000&gt;
+  = 0.707107|000&gt;  +  0.707107|111&gt;
+
+$ 42q unitary gates
+-- 24/26 unitary, 2 with no single matrix</code></pre></div>
+<p><strong><a href="QMANUAL.md"><code>QMANUAL.md</code></a> is its user manual</strong> — the physics developed from scratch for a computer scientist, and the parts Q42 does not model named as such.</p>
+<p>It is a sibling, not a fork: <code>Value</code>, <code>Term</code>, <code>dagger</code>, the parser and the type-inference engine are all rel42's, unchanged — <code>q42.dagger is rel42.dagger</code>. Only the primitive table and the evaluator differ. Two departures are worth knowing, and both are forced rather than chosen:</p>
+<ul><li><strong><code>|</code> and <code>^</code> are gone</strong>, because they are exactly the two constructors whose meaning needs addition to be <em>idempotent</em>: <code>f | f</code> would denote <code>2f</code>, and <code>Star</code> is a least fixed point wanting <code>1 + 1 = 1</code>. Superposition comes from the new generator <code>v</code>, not from choice.</li><li><strong><code>copy</code>, <code>join</code>, <code>inl</code>, <code>inr</code> and <code>zero</code> are gone</strong>, because none is unitary. <code>copy</code> is the interesting one: it is a perfectly good isometry that copies basis states, so it is a measurement basis rather than an illegal cloner — it is excluded only for not being surjective.</li></ul>
+<p>What is added is two generators, <code>omega</code> and <code>v</code>, an 8th root of unity and a square root of <code>swapsum</code>. That is enough for universal quantum computation (Carette, Heunen, Kaarsgaard &amp; Sabry, POPL 2024), and <code>dagger</code> needs no change at all — it stops being the converse and becomes the adjoint, and because every Q42 term is unitary, <code>t ; t!</code> is now <code>id</code> on the nose rather than a set containing where you started.</p>
+<h2 id="honest-limitations"><a class="anchor" href="#honest-limitations" aria-label="Link to this section">#</a>Honest limitations</h2>
+<ul><li><strong>A relation can be computable in one direction and not the other.</strong> <code>downfrom = pred^</code> saturates at zero; its dagger <code>succ^</code> is the infinite set of all larger numbers. The interpreter reports non-saturation rather than hanging, but it cannot <em>decide</em> which case it is in — it gives up on a budget.</li><li><strong><code>Star</code> is computed by naive saturation</strong>, so it only terminates when the orbit is finite.</li><li><strong>The checker gates the CLI, not the library.</strong> <code>run</code> and <code>law</code> reject an ill-typed definition, and reject an argument outside the domain, with <code>--untyped</code> to override. <code>core.run</code> is deliberately left untyped: in Rel the empty relation is a real morphism, so a shape mismatch genuinely <em>denotes</em> nothing, and the library should keep saying so. Only the CLI adds the judgement that you probably did not mean it.</li><li><strong>Inferred types are not canonical.</strong> Equirecursive types have no unique syntactic form, and producing one means minimising a regular tree. <code>show_type</code> collapses one-step unfoldings and no more, so <code>append</code>'s second argument <em>reads</em> <code>b + (μY. a × (b + Y))</code> where a minimised form would be shorter. Correct, not tidy. It costs nothing beyond legibility: the value printer asks unification rather than matching syntax, so it recognises that type as a list regardless.</li><li><strong>Recursion is monomorphic.</strong> A definition is typed at one type inside its own group, Milner-style. Polymorphic recursion is undecidable in general and nothing in the libraries wants it, but a program that did would be rejected.</li><li><strong>Backward runs can be exponential.</strong> Nothing here prunes the search.</li></ul>
+<h2 id="layout"><a class="anchor" href="#layout" aria-label="Link to this section">#</a>Layout</h2>
+<div class="code"><pre><code>42, 42q           shorthand for `python3 -m rel42` / `python3 -m q42`
+rel42/core.py     values, terms, the dagger, primitives, the evaluator
+rel42/syntax.py   lexer, parser, pretty-printer (type-directed when given a type)
+rel42/types.py    types, equirecursive unification, inference
+rel42/__main__.py CLI
+MANUAL.md         user manual -- start here
+QMANUAL.md        user manual for Q42, the version over C
+tour.42           the manual's ground, in runnable form
+arith.42          arithmetic: + and * written, / and - inverted
+rational.42       exact rationals; why `reduce` cannot exist
+strings.42        text: bytes as bit-tuples; every list program works on it
+cipher.42         a Feistel cipher in CBC mode; `decrypt = cbc!` is the whole decryptor
+tm.42             a Turing machine as `init ; step^ ; final` (MANUAL section 13)
+theorem.42        the constructions THEOREM.md's proof is assembled from
+qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
+prelude.42        worked examples
+tests/            395 tests, including the defining law checked exhaustively,
+                  every output claimed in tour.42, that all 166 library
+                  definitions typecheck, and that results land in the codomain
+                  the checker predicted
+q42/emit.py       a term to gates on numbered qubits, and to OpenQASM 3
+q42/              Q42 -- the same language over C instead of the Booleans.
+                  Shares Value, Term, dagger, the parser and the type engine
+                  with rel42; forks the primitive table and the evaluator.
+                  `42q unitary gates`.  gates.42 is the gate set; fib.42,
+                  deutsch.42, grover.42, gsum.42 and teleport.42 are worked
+                  examples;
+                  classical.42 is the one that runs under either interpreter.
+Q42.md            the design, and why each departure from 42 is forced
+RELATED.md        where 42 sits in the literature, and what in it is new
+THEOREM.md        the proof that 42 denotes exactly the r.e. relations
+DRAFT.md          the 15-page conference draft, basis for the journal version
+DRAFT-Q42.md      the Q42 draft for RC 2027
+paper/            the same draft as Springer LNCS LaTeX, with refs.bib
+sources/          README only: the papers RELATED.md quotes are third-party PDFs
+                  and are not redistributed here.  Drop them in to enable the
+                  quotation test, which skips itself when they are absent
+spike/            throwaway experiments, superseded by q42/ but kept as the
+                  evidence Q42.md was written from
+tools/render.py   renders the manuals into docs/*.html
+tools/unquote.py  turns a generated circuit value into Q42 source text
+tools/qasm_sim.py an independent simulator over gate lists, sharing no code
+                  with the evaluator, so the emitter can be round-tripped
+                  against something that could not agree by construction
+tools/checkmanual.py  re-runs every result MANUAL.md claims
+docs/             the site, served by GitHub Pages: a landing page and the five
+                  documents rendered for reading in a browser
+docs/plain/       the two papers retold for a reader with no mathematics, using a
+                  warehouse instead of algebra; hand-written HTML, not generated,
+                  with four stepped demonstrations.  Hand-edited, so render.py
+                  neither writes nor overwrites them</code></pre></div></main>
+</div>
+<script>
+const links = [...document.querySelectorAll('.rail a')];
+const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const seen = new Set();
+const spy = new IntersectionObserver(entries => {
+  for (const e of entries) e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id);
+  const order = [...byId.keys()].filter(id => seen.has(id));
+  links.forEach(a => a.classList.remove('here'));
+  const active = byId.get(order[0]);
+  if (active) active.classList.add('here');
+}, { rootMargin: '0px 0px -70% 0px' });
+document.querySelectorAll('h2[id], h3[id]').forEach(h => spy.observe(h));
+</script>
+</body>
+</html>

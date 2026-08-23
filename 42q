@@ -1,0 +1,49 @@
+#!/bin/sh
+# 42q -- shorthand for `python3 -m q42`, the same language over C.
+#
+#   ./42q gates bell "|00>"
+#   ./42q matrix gates h
+#   ./42q unitary gates
+#
+# As with `./42`: `run` is assumed when the first word is not a subcommand, the
+# `.42` extension is optional, and the gate libraries in `q42/` are found by bare
+# name.  Named `42q` rather than `q42` only because a file cannot share a name
+# with the `q42/` package directory beside it.
+
+set -eu
+
+module=q42
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+if [ $# -eq 0 ]; then
+    PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m "$module" --help
+fi
+
+case $1 in
+    run | sample | law | show | type | unitary | matrix | emit)
+        cmd=$1
+        shift
+        ;;
+    -h | --help)
+        PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m "$module" --help
+        ;;
+    *)
+        cmd=run
+        ;;
+esac
+
+if [ $# -gt 0 ]; then
+    arg=$1
+    for candidate in \
+        "$arg" "$arg.42" \
+        "$here/$arg" "$here/$arg.42" \
+        "$here/q42/$arg" "$here/q42/$arg.42"; do
+        if [ -f "$candidate" ]; then
+            shift
+            set -- "$candidate" "$@"
+            break
+        fi
+    done
+fi
+
+PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m "$module" "$cmd" "$@"

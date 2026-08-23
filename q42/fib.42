@@ -1,0 +1,114 @@
+-- fib.42 -- Fibonacci as a unitary, on two 2-bit registers.
+--
+-- WHY IT CANNOT BE DONE THE OBVIOUS WAY.  PisoLang's flagship example is
+-- `fib : nat <-> nat * nat` over `type nat = Z | S of nat`.  Q42 cannot have
+-- that, and the obstruction is not a missing feature:
+--
+--   * `nat = mu X. 1 + X` is infinite-dimensional, and Q42 has only
+--     finite-dimensional Hilbert spaces.  `basis_of` refuses it.
+--   * `succ` IS `inr`, which Q42 drops.  On nat, `succ` is injective but not
+--     surjective -- zero has no predecessor -- so it is an isometry and not a
+--     unitary.  It is the unilateral shift, the textbook example of an isometry
+--     whose adjoint is not its inverse.
+--
+-- So Q42 has no successor, hence no nats, hence no unbounded arithmetic.
+--
+-- WHAT WORKS INSTEAD is what real quantum hardware does: fix a register width
+-- and work mod 2^n.  Then the Fibonacci step
+--
+--     (a, b)  |->  (b, a + b  mod 2^n)
+--
+-- is a *permutation* of the 2^n x 2^n basis states -- the matrix [[0,1],[1,1]]
+-- has determinant -1, a unit mod 2^n -- hence unitary, hence a Q42 term.
+--
+-- LAYOUT.  Four qubits, right-nested as Q42's ket notation expects:
+--
+--     |x0 x1 y0 y1>  =  (x0, (x1, (y0, y1)))
+--
+-- with each register least-significant bit first, so x = x0 + 2*x1.  The two
+-- registers hold consecutive Fibonacci numbers.
+
+
+-- ---------------------------------------------------------------------------
+-- Plumbing.  `ctrl m = mat ; (id + m) ; mat!` is 42's if-then-else (MANUAL
+-- section 12.5): split on the leading bit, apply `m` on the R branch, put it
+-- back.  With it, each wiring below says what it does.
+--
+-- `on2` and `on3` select which qubit of the tail a gate acts on, so that a
+-- control can reach past its neighbour.
+-- ---------------------------------------------------------------------------
+
+-- A qubit is a two-case choice carrying no data.  Declaring the name is a
+-- printing convenience only; the checker is unaffected.
+type qubit = 1 + 1
+
+def x       = swapsum
+def mat     = dist ; (unitprod + unitprod)
+def ctrl m  = mat ; (id + m) ; mat!
+
+def on2 m   = id * m                    -- act on the tail, not the head
+def on3 m   = id * (id * m)
+
+-- CNOT from x0 to y0:  control q0, target q2 -- so skip q1.
+def cx02    = ctrl (on2 (x * id))
+
+-- Toffoli from x0 and y0 to y1:  "if x0, then CNOT(y0 -> y1)".
+def cc03    = ctrl (on2 (ctrl x))
+
+-- CNOT from x1 to y1:  control q1, target q3.
+def cx13    = on2 (ctrl (on2 x))
+
+
+-- ---------------------------------------------------------------------------
+-- Addition mod 4, in place:  (x, y) |-> (x, y + x).
+--
+-- y += x  is  "if x0 then y += 1"  followed by  "if x1 then y += 2".
+--   y += 1  on two bits is  CNOT(y0 -> y1) ; X(y0)   -- y1 flips iff y0 was set
+--   y += 2  on two bits is  X(y1)                    -- 2 is 0b10
+-- Controlling each on a bit of x gives the three gates below.  The Toffoli must
+-- come first: y1 depends on the OLD y0.
+-- ---------------------------------------------------------------------------
+
+def add4 = cc03 ; cx02 ; cx13
+
+
+-- ---------------------------------------------------------------------------
+-- Swap the two registers.  Three primitives, no gates at all: reassociate so
+-- the halves are adjacent, swap them, reassociate back.
+-- ---------------------------------------------------------------------------
+
+def swapregs = assocprod ; swapprod ; assocprod!
+
+
+-- ---------------------------------------------------------------------------
+-- One Fibonacci step:  (a, b) |-> (b, a + b).
+--
+-- Swap first, then add into the second register:
+--     (a, b)  --swapregs-->  (b, a)  --add4-->  (b, a + b)
+-- ---------------------------------------------------------------------------
+
+def fib = swapregs ; add4
+
+-- Two and three steps, for convenience.
+def fib2 = fib ; fib
+def fib3 = fib ; fib ; fib
+
+
+-- ---------------------------------------------------------------------------
+-- The part that is actually quantum.
+--
+-- Everything above is a permutation, so it is reversible classical computing
+-- and 42 could express it too.  What Q42 adds is that the *seed* may be a
+-- superposition: put one bit of it through a Hadamard and the register then
+-- holds two Fibonacci orbits at once, in superposition, and every later step
+-- advances both.
+-- ---------------------------------------------------------------------------
+
+def s     = id + (omega ; omega)
+def hcore = x ; s ; v ; s ; x
+def h     = unitprod! ; (omega * hcore) ; unitprod
+
+-- Hadamard on y0, the low bit of the second register.
+def hy0   = on3 (h * id)
+
+def qfib  = hy0 ; fib

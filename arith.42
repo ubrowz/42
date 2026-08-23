@@ -1,0 +1,126 @@
+-- arith.42 -- arithmetic in 42.
+--
+-- The theme: an operation that throws its inputs away cannot be written, but
+-- the same operation that *keeps enough to reconstruct them* always can.  So
+-- the question is never "is this computable" but "what is the smallest thing
+-- I have to carry along".
+
+
+-- ---------------------------------------------------------------------------
+-- Addition.  (m, n) |-> m + n
+--
+-- This one is allowed to discard, because m and n are still recoverable *as a
+-- set*: running it backwards enumerates every pair that sums to the total.
+-- ---------------------------------------------------------------------------
+
+-- The two recursive types every definition here is about.  These are printing
+-- abbreviations only: nothing in the checker changes, and the same program
+-- typechecks identically without them.
+type nat = mu X. 1 + X
+
+def add = dist ; (unitprod + (add ; inr)) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- Multiplication.  (m, n) |-> (n, m * n)
+--
+-- Note the shape: it hands back the multiplier alongside the product.  It has
+-- to.  Plain `(m, n) |-> m * n` is not writable, because the base case
+-- 0 * n = 0 would have to discard n outright, and nothing in the language can
+-- do that.  Keeping n costs one component and makes everything below work.
+--
+--   base:  (0, n)   |-> (n, 0)
+--   step:  (m+1, n) |-> let (n, p) = mul(m, n) in (n, p + n)
+-- ---------------------------------------------------------------------------
+
+def mul = dist ; ( (swapprod ; (id * inl))
+                 + (mul ; (copy * id) ; assocprod! ; (id * add))
+                 ) ; join
+
+-- CAVEAT, and it is a real one.  Keeping the multiplier makes `mul` injective
+-- for every n except zero: mul(m, 0) = (0, 0) whatever m was.  So mul!(0, 0)
+-- has infinitely many answers and does not terminate.  That is arithmetic
+-- being honest, not a bug -- every number divides zero.  Guard against n = 0
+-- before running `mul` backwards; `nonzero` below is how.
+
+def nonzero = inr! ; inr        -- filter: keeps n unchanged if n > 0, else nothing
+
+
+-- ---------------------------------------------------------------------------
+-- Less-than, as a filter.  (a, b) |-> (a, b) if a < b, else nothing.
+--
+-- Two idioms worth stealing.  `dist ; (f + g) ; dist!` is the case-analysis
+-- skeleton for a program that must return its input unchanged -- `dist!`
+-- rebuilds what `dist` took apart, where `join` would have discarded the
+-- label.  And `inr! ; inr` means "check this is nonzero, then put it back
+-- exactly as it was".
+-- ---------------------------------------------------------------------------
+
+def lt = dist ; ( (id * (inr! ; inr))
+                + ((id * inr!) ; lt ; (id * inr))
+                ) ; dist!
+
+
+-- ---------------------------------------------------------------------------
+-- Division.
+--
+-- `mul` keeps its multiplier, so it is injective, so running it backwards is
+-- exact division:  divexact(n, p) is the m with m * n = p, and is empty when
+-- n does not divide p.  No division algorithm was written.
+-- ---------------------------------------------------------------------------
+
+def divexact = mul!
+
+
+-- Division with remainder.  Write the *easy* direction -- reassembling a
+-- dividend from quotient, remainder and divisor -- and let 42 invert it.
+--
+--   ((q, r), b)  |->  (q * b + r,  b)      provided r < b
+--
+-- The `lt` filter is exactly what makes this injective: without "r < b",
+-- (q=0, r=5) and (q=2, r=1) would both rebuild 5 from divisor 2, and the
+-- inverse would be ambiguous.
+
+def undivmod = assocprod!            -- ((q, r), b)  ->  (q, (r, b))
+             ; (id * lt)             -- keep only r < b
+             ; (id * swapprod)       --              ->  (q, (b, r))
+             ; assocprod             --              ->  ((q, b), r)
+             ; (mul * id)            --              ->  ((b, q*b), r)
+             ; assocprod!            --              ->  (b, (q*b, r))
+             ; (id * add)            --              ->  (b, q*b + r)
+             ; swapprod              --              ->  (q*b + r, b)
+             ; (id * nonzero)        -- redundant forwards, essential backwards
+
+-- That last line looks pointless: `lt` has already forced b > 0, so checking
+-- again forwards can never reject anything.  It is there for the *backward*
+-- direction, and the reason is worth understanding, because it is the one
+-- piece of reasoning that does not carry over from ordinary programming.
+--
+-- Reversing a pipeline reverses the order of its stages.  So a filter written
+-- early, which prunes beautifully going forwards, ends up running *last* going
+-- backwards -- long after the expensive work it was supposed to prevent.
+--
+-- Here, `lt` guarantees b > 0, but reversed it fires at the very end, by which
+-- time `mul!` has already been asked to divide by zero and has wandered off
+-- through every number in existence.  Repeating the constraint at the far end
+-- of the pipeline puts it *first* under reversal, so divmod(7, 0) fails
+-- immediately instead of diverging.
+--
+-- Rule of thumb: a constraint you rely on in both directions must be stated at
+-- both ends.
+
+def divmod = undivmod!
+
+
+-- ---------------------------------------------------------------------------
+-- Subtraction.  The same trick as multiplication: keep the operand.
+--
+--   addk(c, b) = (c + b, b)      is injective, so
+--   sub(a, b)  = (a - b, b)      is just addk run backwards.
+--
+-- Natural subtraction is partial, and that falls out for free: sub(3, 5) is
+-- empty because no natural c satisfies c + 5 = 3.
+-- ---------------------------------------------------------------------------
+
+def addk = (id * copy) ; assocprod ; (add * id)
+def sub  = addk!

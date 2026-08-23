@@ -1,0 +1,120 @@
+-- tm.42 -- a Turing machine, written as a single 42 program.
+--
+-- The machine increments a binary number.  It is here because it is the
+-- smallest complete answer to "can 42 compute anything a computer can", and
+-- because the shape it is written in is the shape *every* Turing machine takes
+-- in 42:
+--
+--     init ; step^ ; final
+--
+-- `step` is one transition, `^` runs it as many times as it takes, and `final`
+-- is a filter that only lets halted machines through.  Nothing else is needed:
+-- no loop construct, no halting test, no recursion.  See MANUAL section 13.
+
+
+-- ---------------------------------------------------------------------------
+-- The shapes.
+--
+--   sym  = 1 + 1                    L () is the bit 0, R () is the bit 1
+--   bits = mu X. 1 + (sym x X)      a list of bits, least significant first
+--   tape = bits x (sym x bits)      (everything left of the head, reversed;
+--                                    the cell under the head; everything right)
+--   conf = tape + (tape + tape)     the three control states, as labels
+--
+-- Only the first two are declared, because a `type` line is an abbreviation for
+-- printing and cannot mention another one.
+-- ---------------------------------------------------------------------------
+
+type sym  = 1 + 1
+type bits = mu X. 1 + ((1 + 1) x X)
+
+
+-- ---------------------------------------------------------------------------
+-- The control state is a *label*, not a component of a pair.
+--
+-- A machine with three states and a tape could be `state x tape`.  Making it
+-- `tape + (tape + tape)` instead is what keeps `step` down to one line: to act
+-- differently in each state you write `f + g + h`, which is section 5's `+`,
+-- and no plumbing is needed to reach the state and put it back.
+-- ---------------------------------------------------------------------------
+
+def carry  = inl            -- still carrying a 1 leftward
+def rewind = inl ; inr      -- carry done; walk the head back to the start
+def halt   = inr ; inr      -- finished
+
+
+-- ---------------------------------------------------------------------------
+-- Working with the tape.
+-- ---------------------------------------------------------------------------
+
+-- Partial identities: these let a value through only if it has the right shape,
+-- and are the point-free way to write "if the list is empty".
+def isnil  = inl! ; inl
+def iscons = inr! ; inr
+
+def push0  = unitprod! ; (inl * id) ; inr       -- put a 0 on the front
+
+-- Move the head one cell right: the old cell joins the left list, and the first
+-- cell of the right list becomes the new head.  `left` is not written out --
+-- moving left is moving right backwards, which is section 5's `!`.
+def right  = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
+def left   = right!
+
+-- Bring the head symbol to the front and split on it, so that the two branches
+-- are "the head was 0" and "the head was 1".  Backwards, the same program
+-- *writes* the head, which is why `write0` and `write1` are one line each.
+def focus    = assocprod ; (swapprod * id) ; assocprod!
+def readhead = focus ; dist ; (unitprod + unitprod)
+def write0   = inl ; readhead!
+def write1   = inr ; readhead!
+
+-- The tape is a finite list, so running off the right end has to add a cell.
+def pad      = id * (id * (isnil ; push0))
+def stepover = ((id * (id * iscons)) ; right) | (pad ; right)
+
+
+-- ---------------------------------------------------------------------------
+-- The transition relation, one line per state.
+--
+--   carry :  head is 1  ->  write 0, move right, keep carrying
+--            head is 0  ->  write 1, start rewinding
+--   rewind:  more tape to the left  ->  move left
+--            at the left end        ->  halt
+--   halt  :  no transition at all, which is `zero`
+-- ---------------------------------------------------------------------------
+
+def carrystep  = readhead ; ((write1 ; rewind) + (write0 ; stepover ; carry)) ; join
+def rewindstep = ((iscons * id) ; left ; rewind) | ((isnil * id) ; halt)
+
+def step = (carrystep + (rewindstep + zero)) ; (id + join) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- The machine.  `load` puts a bit list on a tape with the head at the least
+-- significant end; `halt!` is the filter that keeps only halted machines.
+-- ---------------------------------------------------------------------------
+
+def load   = inr! ; unitprod! ; (inl * id)
+def unload = load!
+
+def run = carry ; step^ ; halt!         -- tape to tape
+def inc = load ; run ; unload           -- bit list to bit list
+
+
+-- ---------------------------------------------------------------------------
+-- Reading a bit list as a number, so the examples can be checked by eye.
+-- `add` and `double` are section 11's, repeated here because each file stands
+-- on its own.
+-- ---------------------------------------------------------------------------
+
+def add    = dist ; (unitprod + (add ; inr)) ; join
+def double = copy ; add
+
+def value  = (inl + ((id * (value ; double)) ; dist
+                     ; (unitprod + (unitprod ; inr)) ; join)) ; join
+
+-- Increment, reported as a number, and increment run backwards.  Zero is the
+-- one-bit list `[L ()]`: `load` needs a cell to put the head on, so the empty
+-- list is not a tape.
+def incval = inc ; value
+def dec    = inc!

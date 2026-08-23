@@ -1,0 +1,89 @@
+-- strings.42 -- text in 42.
+--
+-- There is no string type.  A character is a byte, a byte is eight bits, a bit
+-- is a boolean, and a string is a list of bytes:
+--
+--   bit    = 1 + 1                     L () = 0,  R () = 1
+--   byte   = bit x (bit x ... )        eight of them, MSB first, nested right
+--   string = mu X. 1 + (byte x X)      exactly the list type
+--
+-- The consequence worth noticing: because a string *is* a list, every list
+-- program in this language already works on text.  Nothing below had to be
+-- rewritten for strings, and `concat` and `split` are not implementations at
+-- all -- they are two names for one definition read in opposite directions.
+
+
+-- ---------------------------------------------------------------------------
+-- Borrowed wholesale from prelude.42 / tour.42.  Not one character of these
+-- mentions text.
+-- ---------------------------------------------------------------------------
+
+def single = unitprod! ; swapprod ; (id * inl) ; inr
+def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
+def rev    = (inl + ((id * rev) ; swapprod ; (id * single) ; append)) ; join
+
+
+-- ---------------------------------------------------------------------------
+-- Text operations.  The first two are free.
+--
+--   concat("foo", "bar")  =  "foobar"
+--   split("foobar")       =  every way to cut it in two
+--   reverse("stressed")   =  "desserts"
+--   palin("racecar")      =  "racecar"      palin("apple") = nothing
+-- ---------------------------------------------------------------------------
+
+def concat  = append
+def split   = append!
+def reverse = rev
+def palin   = copy ; (id * rev) ; copy!
+
+
+-- ---------------------------------------------------------------------------
+-- Case conversion, which is where the binary encoding earns its keep.
+--
+-- In ASCII, upper and lower case differ in exactly one bit -- the one worth
+-- 32.  So changing case is not arithmetic at all: it is reaching into the
+-- byte and flipping a single boolean.  `swapsum` is the flip; the `id`s
+-- either side of it are just navigation.
+--
+--   byte = (b7, (b6, (b5, (b4, (b3, (b2, (b1, b0)))))))
+--           skip  skip  flip   ------- leave alone -------
+--
+-- Being one `swapsum`, it is its own inverse: swapcase run backwards is
+-- swapcase.
+-- ---------------------------------------------------------------------------
+
+def flipcase = id * (id * (swapsum * id))
+
+
+-- Flipping bit 5 of *every* byte is wrong: it would turn a space into a NUL
+-- and a comma into a form feed.  We want to flip it only for letters, which
+-- means a conditional -- and 42 does not have one.
+--
+-- `|` is not if-then-else.  It runs both branches and pools their answers, so
+-- `f | g` normally gives two results.  But if the two branches are guarded by
+-- filters that can never both succeed, exactly one of them ever produces
+-- anything, and the union becomes a perfectly ordinary deterministic choice.
+--
+--   THIS IS HOW YOU WRITE IF-THEN-ELSE IN 42:
+--       (guard ; then) | (complement-of-guard ; else)
+--   and it is your job, not the language's, to make the guards disjoint.
+--
+-- Here the guard is on the top two bits.  ASCII letters all lie in 64..127,
+-- that is b7 = 0 and b6 = 1, so:
+
+def bit0 = inl! ; inl           -- keeps a bit unchanged if it is 0, else nothing
+def bit1 = inr! ; inr           -- keeps a bit unchanged if it is 1, else nothing
+
+def hi     = bit0 * (bit1 * id)                    -- b7=0, b6=1  (64..127)
+def notHi  = (bit1 * id) | (bit0 * (bit0 * id))    -- everything else
+
+def swapbyte = (hi ; flipcase) | notHi
+
+def swapcase = (inl + ((swapbyte * swapcase) ; inr)) ; join
+
+-- Caveat, stated precisely rather than waved at: this swaps case correctly for
+-- A-Z and a-z, leaves digits, spaces and punctuation alone, and still maps the
+-- sixteen bytes  @[\]^_`{|}~  and DEL onto each other, because they share the
+-- letters' top two bits.  Getting those right needs a range check on the low
+-- five bits, which is real work for very little return.

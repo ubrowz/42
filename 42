@@ -1,0 +1,52 @@
+#!/bin/sh
+# 42 -- shorthand for `python3 -m rel42`.
+#
+#   ./42 prelude append "([1,2], [3])"
+#   ./42 type arith
+#   ./42 law tour rev "[1,2,3]"
+#
+# Three conveniences and nothing else:
+#
+#   * `run` is assumed when the first word is not a subcommand;
+#   * the `.42` extension is optional;
+#   * files are looked for beside this script as well as in the working
+#     directory, so it works from anywhere.
+#
+# `python3 -m rel42 ...` keeps working exactly as before; this only saves typing.
+
+set -eu
+
+module=rel42
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+if [ $# -eq 0 ]; then
+    PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m "$module" --help
+fi
+
+case $1 in
+    run | law | show | type)
+        cmd=$1
+        shift
+        ;;
+    -h | --help)
+        PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m "$module" --help
+        ;;
+    *)
+        cmd=run
+        ;;
+esac
+
+# Resolve the file argument.  If nothing matches, leave it alone and let the
+# Python layer give its own "no such file" message.
+if [ $# -gt 0 ]; then
+    arg=$1
+    for candidate in "$arg" "$arg.42" "$here/$arg" "$here/$arg.42"; do
+        if [ -f "$candidate" ]; then
+            shift
+            set -- "$candidate" "$@"
+            break
+        fi
+    done
+fi
+
+PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m "$module" "$cmd" "$@"

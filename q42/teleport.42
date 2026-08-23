@@ -1,0 +1,56 @@
+-- teleport.42 -- quantum teleportation, and the reason Q42 does not need
+-- mid-circuit measurement.
+--
+-- Teleportation is the textbook example of an algorithm that "requires"
+-- measuring half way through: Alice measures her two qubits, sends Bob two
+-- classical bits, and Bob applies X and/or Z depending on what they say.
+--
+-- It does not require it.  The PRINCIPLE OF DEFERRED MEASUREMENT (Nielsen &
+-- Chuang section 4.4) says that any circuit with mid-circuit measurement and
+-- classically-controlled gates can be rewritten with every measurement moved to
+-- the end, replacing each classical control by a *quantum* control.  Q42 has
+-- quantum control -- that is `ctrl` -- so the rewritten circuit is an ordinary
+-- Q42 term, unitary like everything else.
+--
+--   42q unitary teleport tele -q 3        -- tele ; tele! = id, on 8 dimensions
+--   42q sample  teleport checkh "|000>" --bits 2
+--
+-- Register: (q0, (q1, q2)).  q0 holds the state to send; q1 and q2 become an
+-- entangled pair, and q2 is Bob's.
+
+type qubit  = 1 + 1
+
+def x       = swapsum
+def s       = id + (omega ; omega)
+def t       = id + omega
+def z       = id + (omega ; omega ; omega ; omega)
+def hcore   = x ; s ; v ; s ; x
+def h       = unitprod! ; (omega * hcore) ; unitprod
+def mat     = dist ; (unitprod + unitprod)
+def ctrl m  = mat ; (id + m) ; mat!
+def cx      = ctrl x
+
+
+-- ---------------------------------------------------------------------------
+-- The protocol.  `bob` is where the deferral shows: instead of "if Alice's bit
+-- is 1, apply X", it is a CNOT and a CZ -- the same conditionals, controlled by
+-- the qubits themselves rather than by bits read out of them.
+-- ---------------------------------------------------------------------------
+
+def bell    = (id * (h * id)) ; (id * cx)        -- entangle q1 with q2
+def alice   = (ctrl (x * id)) ; (h * id)         -- CNOT q0->q1, then H on q0
+def bob     = (id * cx) ; (ctrl (id * z))        -- CNOT q1->q2, CZ q0->q2
+
+def tele    = bell ; alice ; bob
+
+
+-- ---------------------------------------------------------------------------
+-- Checking it.  Sending |0> or |1> proves little, so prepare a real state on q0
+-- with some gate, teleport it, and apply that gate's inverse to q2.  If the
+-- state truly arrived -- amplitudes, phase and all -- q2 must come back to |0>
+-- with certainty.
+-- ---------------------------------------------------------------------------
+
+def prep    = h ; t                              -- a superposition WITH a phase
+def check   = (prep * (id * id)) ; tele ; (id * (id * prep!))
+def checkh  = (h * (id * id)) ; tele ; (id * (id * h!))

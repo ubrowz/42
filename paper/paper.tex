@@ -1,0 +1,885 @@
+% Reversibility without Injectivity
+% Springer LNCS -- contributed paper, 15 pages of body, references uncounted.
+%
+% Build:  pdflatex paper && bibtex paper && pdflatex paper && pdflatex paper
+%
+% llncs.cls (v2.26) and splncs04.bst are alongside this file, from CTAN.
+% `envcountsame` puts every result on one counter, which is what the text assumes.
+
+\documentclass[runningheads,envcountsame]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+
+% amsmath warns "Unable to redefine math accent \vec" under llncs.  It is
+% benign: llncs deliberately defines \vec as bold rather than as an arrow
+% accent, and amsmath cannot override that.  Nothing here uses \vec -- the
+% n-tuple of empty relations is written out -- so the class's definition stands.
+
+% LNCS \textwidth is 122mm.  At \footnotesize, cmtt gives 4pt per character,
+% so roughly 86 characters fit; no line below exceeds 80.  `xleftmargin' is
+% deliberately absent -- it costs width the listings do not have to spare.
+\lstset{basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,
+        showstringspaces=false,frame=none,aboveskip=0.6em,belowskip=0.6em}
+
+% Denotation brackets without depending on stmaryrd.
+\newcommand{\den}[1]{\ensuremath{[\![#1]\!]}}
+\newcommand{\iso}{\leftrightarrow}
+\newcommand{\conv}{^{\circ}}
+\newcommand{\Rel}{\textbf{Rel}}
+\newcommand{\PInj}{\textbf{PInj}}
+% An inference rule, laid out without mathpartir.
+\newcommand{\rul}[2]{\ensuremath{\dfrac{\;#1\;}{\;#2\;}}}
+% closure operator, written `^' in the concrete syntax
+\newcommand{\clo}{\ensuremath{^{\wedge}}}
+
+\begin{document}
+
+\title{Reversibility without Injectivity}
+\subtitle{A Point-Free Reversible Language Interpreted in \textbf{Rel}}
+\titlerunning{Reversibility without Injectivity}
+
+% [AUTHORS] The 1993 language this one descends from is credited in its thesis to
+% Joep Rous and Paul Jansen, and the paper listed there as forthcoming was to be
+% joint.  Whether this paper is single- or joint-authored is not settled here.
+\author{Joep Rous\inst{1}}
+\authorrunning{J. Rous}
+\institute{Affiliation \email{ubrowz@gmail.com}}
+
+\maketitle
+
+\begin{abstract}
+Reversible functional languages require the clauses of a program to be
+non-overlapping, so that backward execution is deterministic. Inv assumes the
+condition and leaves checking it as future work, Theseus makes it the single rule
+a programmer must maintain, RFUN relaxes it into a first-match ordering, PisoLang
+decides it by unification, and Chardonnet et al.\ formalise it as an orthogonality
+premise in the typing rule. We ask what happens if it is simply not imposed.
+
+The answer is 42, a point-free language interpreted in the category \Rel{} of sets
+and relations, whose defining law is $x \in P(y) \iff y \in \mathrm{inv}(P)(x)$.
+Giving up injectivity makes the metatheory \emph{smaller}: inversion becomes a
+total, involutive operation with no side conditions, no well-formedness checks and
+no proof obligations, computed by an eight-line structural recursion and
+eliminated at parse time. We present the language and its equirecursive type
+system, which is inferred with no annotations and in which the occurs check is a
+diagnosis rather than a failure; we prove type soundness in a form that is
+necessarily two-sided because inversion is total; and we characterise
+expressiveness: the relations denotable in 42 are exactly the recursively
+enumerable ones, with Turing completeness as the single-valued case.
+
+\keywords{Reversible computation \and Relational semantics \and Point-free
+programming \and Dagger categories \and Expressiveness}
+\end{abstract}
+
+\section{Introduction}
+
+Every functional reversible language in the literature carries the same
+obligation. If a program is a set of clauses and it must run backwards
+deterministically, then no two clauses may produce results that overlap --- and
+the languages differ mainly in how they discharge it.
+
+\textbf{Inv}~\cite{inv} assumes it. Mu, Hu and Takeichi require that in $f \cup g$
+``not only the domains, but the ranges of $f$ and $g$'' be disjoint, and add that
+``the disjointness may be checked by a type system, but we have not explored this
+possibility''. The condition costs them a primitive: an inequality test
+\texttt{neq} exists in the language because it is ``sometimes necessary for
+ensuring the disjointness of the two branches of a union''.
+
+\textbf{Theseus}~\cite{theseus} makes it the single rule a programmer must
+maintain, on both sides of every clause:
+
+\begin{quote}\small
+Non-overlapping and exhaustive coverage in pattern clauses. The collections of
+patterns in the left-hand side (LHS) of each clause must be a complete
+non-overlapping covering of the input type. Similarly, the collections of patterns
+in the right-hand side (RHS) of each clause must also be a complete
+non-overlapping covering of the return type.
+\end{quote}
+
+\textbf{RFUN}~\cite{rfun} identifies the same problem --- ``case branches may be
+non-orthogonal: the result might conceivable have come from several branches'',
+which it calls ``the functional variant of the problem of the general
+irreversibility of if-then-else constructs'' --- and answers it not by forbidding
+overlap but by ordering it, under a first-match policy in which a result ``must
+never match a branch that textually precedes it''.
+
+\textbf{PisoLang}~\cite{pisolang} decides orthogonality by unification, as two
+premises of its case-typing rule. \textbf{Chardonnet, Lemonnier and
+Valiron}~\cite{chardonnet} formalise it as a structural relation $v_1 \perp v_2$
+appearing twice in the typing rule for an iso, keeping non-overlap while dropping
+exhaustivity ``in order to allow non-terminating behaviour''. In the imperative
+branch, \textbf{Janus}~\cite{janus,lutz} obliges the programmer to discharge it.
+Its conditional carries a second predicate: ``the predicate after \texttt{if} is
+the test, and that after \texttt{fi} is the assertion'', and ``the assertion makes
+the conditional reversible'' --- at the price, stated as plainly, that ``if the
+assertion does not have the required value, execution of the loop is undefined''.
+
+Six languages, six answers, and one question none of them asks: \emph{what if the
+condition is simply not imposed?}
+
+\subsection{What happens if you decline}
+
+Declining it means leaving the category \PInj{} of partial injections for the
+category \Rel{} of sets and relations. The backward direction becomes many-valued,
+and the defining law of the language acquires an $\in$:
+\[
+    x \in P(y) \quad\iff\quad y \in \mathrm{inv}(P)(x)
+\]
+Read carefully, this says that running forwards and then backwards returns a set
+\emph{containing} where you started, rather than returning where you started. That
+is the price, it is paid in exactly one place, and we state it at the outset
+because the rest of the paper is an argument that it is worth paying.
+
+What it buys is that inversion becomes \textbf{total}. There is no side condition,
+no well-formedness check, no proof obligation and no undecidable question anywhere
+in the definition of the inverse of a program. Concretely, the entire inversion
+algorithm of the implementation is
+
+\begin{lstlisting}
+def dagger(t: Term) -> Term:
+    match t:
+        case Prim(n, i):  return Prim(n, not i)
+        case Ref(n, i):   return Ref(n, not i)
+        case Seq(s, u):   return Seq(dagger(u), dagger(s))   # contravariant
+        case Union(s, u): return Union(dagger(s), dagger(u))
+        case Sum(s, u):   return Sum(dagger(s), dagger(u))
+        case Prod(s, u):  return Prod(dagger(s), dagger(u))
+        case Star(s):     return Star(dagger(s))
+\end{lstlisting}
+
+\noindent and \texttt{dagger(dagger(t)) = t} holds syntactically, on the nose.
+Because it is total, the surface syntax can eliminate the inversion operator
+\texttt{!} at parse time, so that it never appears in the abstract syntax at all:
+\[
+    \texttt{parse("(copy ; join)!")} \;=\; \texttt{parse("join! ; copy!")}
+\]
+
+This property has been named in the literature at least three times, which is
+itself worth recording. Theseus calls an operator \emph{syntactically reversible}
+when its inverse reading coincides with its inverse meaning. Yokoyama and Gl\"uck
+call an inversion \emph{local} ``iff for any given program unit the inversion can
+always produce an inverse unit'', and prove Janus has it. And the 1993 design of
+Section~\ref{sec:prov} states it as an equation,
+$(\odot(R_1,\dots,R_n))^{-1} = \odot(R_n^{-1},\dots,R_1^{-1})$. All three give
+sequential composition as the worked example, and all three arrive at the
+contravariant law --- Janus as $(s_1\,s_2)\breve{\;} \sim \breve{s_2}\,\breve{s_1}$.
+
+Where they differ is what it costs to hold the property everywhere. \emph{Janus
+holds it}, and pays with the assertion: a predicate the programmer must supply for
+every conditional, undefining the program when it is wrong. \emph{Theseus does not
+hold it} --- its own conditional fails, and so does its boolean test, leaving open
+whether restricting tests to a symmetric subclass costs expressiveness. The 1993
+design does not hold it either, for the same reason.
+
+\emph{This paper's language holds it with neither price}: nothing for the
+programmer to discharge, and no construct excluded. The mechanism is that there is
+no conditional to fail it and no test operator to weaken --- branching is the sum
+functor, and filtering is a composite of the diagonal (Section~\ref{sec:gadgets}).
+
+\subsection{Contributions}
+
+\begin{enumerate}
+\item \textbf{A point-free reversible language over \Rel{} in which every
+  combinator is syntactically reversible} (Sections~\ref{sec:lang},
+  \ref{sec:buys}). We show that this is precisely what dropping the disjointness
+  condition buys, and that the resulting metatheory is smaller than that of the
+  injective languages rather than larger.
+\item \textbf{An equirecursive type system, inferred with no annotations}
+  (Section~\ref{sec:types}), in which a cyclic substitution is admitted exactly
+  when the recursive type it describes is inhabited --- the occurs check as a
+  diagnosis rather than a failure. We prove type soundness, and show that the
+  statement must be two-sided, because at the inversion rule the goal concerns the
+  domain of the premise.
+\item \textbf{A characterisation of expressiveness} (Section~\ref{sec:expr}): the
+  relations denotable in 42 are exactly the recursively enumerable ones. Turing
+  completeness is the single-valued case; the upper bound is the more informative
+  half, and it holds because every combinator is a positive operation and nothing
+  in the language forms a complement.
+\end{enumerate}
+
+\subsection{Provenance}\label{sec:prov}
+
+The design is not new. It is the second instantiation of a language called $4_2$,
+specified in a 1993 Master's thesis at the University of Amsterdam~\cite{jansen}
+and never published, which arose not from reversible computing but from machine
+translation --- bidirectional grammars for the Rosetta project at Philips. That
+thesis already states the defining law above as a numbered equation, already
+defines syntactic reversibility as the displayed equation of Section~1.1, and
+already finds its own conditional violating it. What it does not have is the
+point-free core: $4_2$ is imperative, with variables and assignment-shaped
+transformers, and the semiring primitive set of Section~\ref{sec:lang} is the
+second instantiation's contribution.
+
+The thesis was not written in ignorance of the field it now sits in: its
+bibliography cites Landauer~\cite{landauer} and Bennett~\cite{bennett} directly,
+alongside the program-inversion literature and Plotkin's powerdomain
+construction~\cite{plotkin} for the set-valued reading of a program. What it did
+not have was a reversible-languages community to publish into; Janus existed but
+was invisible until 2007. We record the lineage for honesty about priority, not
+as evidence; nothing in this paper rests on it.
+
+\section{The Language}\label{sec:lang}
+
+\subsection{Syntax}
+
+Types are the trees over $0$, $1$, $+$ and $\times$, with variables and a
+recursion binder,
+\[
+    T ::= 0 \mid 1 \mid T + T \mid T \times T \mid X \mid \mu X.\,T
+\]
+and are \textbf{equirecursive}: $\mu X.\,F$ and $F[\mu X.F/X]$ are the same type,
+not merely isomorphic. Values are finite trees over the same four constructors ---
+$()$, $L\,v$, $R\,v$, $(v_1,v_2)$ --- and $V(T)$ denotes the values of type $T$. We
+write $\mathbb{V}$ for the union of all of them, since the evaluator is untyped
+and works on $\mathbb{V}$.
+
+A program is a set of definitions over thirteen primitives and six combinators:
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\texttt{t ; u} & sequential composition, in diagrammatic order \\
+\texttt{t + u} & the sum functor \\
+\texttt{t * u} & the product functor \\
+\texttt{t | u} & union \\
+\texttt{t\textasciicircum{}} & reflexive-transitive closure \\
+\texttt{t!} & inversion \\
+\end{tabular}
+\end{center}
+\noindent(We give the combinators as a table rather than a grammar, because the
+union operator and BNF alternation are the same character.) The thirteen primitives (Fig.~\ref{fig:prims}) are the isomorphisms
+witnessing the commutative-semiring structure of $(0,1,+,\times)$ --- that is, a
+rig groupoid presentation --- together with the two morphisms that make the
+setting \Rel{} rather than a groupoid.
+
+\begin{figure}[t]
+% \footnotesize, not \small: at \small the four columns compute to 343.5pt
+% against a 346.4pt text width, which is too close to the edge to trust.
+\centering\footnotesize
+\begin{tabular}{@{}ll@{\qquad}ll@{}}
+\hline
+primitive & scheme & primitive & scheme \\
+\hline
+\texttt{id}        & \texttt{a <-> a}                    & \texttt{dist}   & \texttt{(a + b) x c <-> a x c + b x c} \\
+\texttt{zero}      & \texttt{a <-> b}                    & \texttt{inl}    & \texttt{a <-> a + b} \\
+\texttt{swapsum}   & \texttt{a + b <-> b + a}            & \texttt{inr}    & \texttt{a <-> b + a} \\
+\texttt{assocsum}  & \texttt{a + (b + c) <-> a + b + c}  & \texttt{copy}   & \texttt{a <-> a x a} \\
+\texttt{unitsum}   & \texttt{0 + a <-> a}                & \texttt{join}   & \texttt{a + a <-> a} \\
+\texttt{swapprod}  & \texttt{a x b <-> b x a}            &                 & \\
+\texttt{assocprod} & \texttt{a x (b x c) <-> a x b x c}  &                 & \\
+\texttt{unitprod}  & \texttt{1 x a <-> a}                &                 & \\
+\hline
+\end{tabular}
+\caption{The primitive schemes. This is the implementation's own table, and is
+checked against it by the artifact's test suite.}
+\label{fig:prims}
+\end{figure}
+
+\texttt{copy} and \texttt{join} are the diagonal and the codiagonal. Neither is an
+isomorphism, and their presence is the whole of the difference between this
+language and the groupoid fragment; Section~\ref{sec:related} returns to the fact
+that $\Pi$ names exactly these two as identities that do \emph{not} hold, and
+recovers them only as effects.
+
+\subsection{Typing}
+
+\begin{figure}[t]
+\centering
+\[
+\begin{array}{c@{\qquad}c}
+\rul{\vdash t : A \iso B \quad \vdash u : B \iso C}
+    {\vdash t \mathbin{;} u : A \iso C} \;\textsc{seq}
+&
+\rul{\vdash t : A \iso B \quad \vdash u : C \iso D}
+    {\vdash t + u : A + C \iso B + D} \;\textsc{sum}
+\\[3.2ex]
+\rul{\vdash t : A \iso B \quad \vdash u : C \iso D}
+    {\vdash t * u : A \times C \iso B \times D} \;\textsc{prod}
+&
+\rul{\vdash t : A \iso B \quad \vdash u : A \iso B}
+    {\vdash t \mid u : A \iso B} \;\textsc{union}
+\\[3.2ex]
+\rul{\vdash t : A \iso A}{\vdash t\clo : A \iso A} \;\textsc{star}
+&
+\rul{\vdash t : A \iso B}{\vdash t! : B \iso A} \;\textsc{dagger}
+\end{array}
+\]
+\caption{Typing rules, over the primitives of Fig.~\ref{fig:prims} taken as axioms
+at every ground instantiation.}
+\label{fig:typing}
+\end{figure}
+
+Two remarks on Fig.~\ref{fig:typing}. There are no \texttt{fold} and
+\texttt{unfold} rules, and their absence \emph{is} the equirecursive choice:
+$\mu X.F$ and its unfolding are the same type, so nothing has to be written to pass
+between them. And the \textsc{dagger} rule is the type-level shadow of the defining
+law --- it exchanges the two sides and does nothing else, which is why it is
+implemented as a swap of the inferred scheme.
+
+\subsection{Semantics}
+
+The evaluator is untyped: $\den{t} \subseteq \mathbb{V} \times \mathbb{V}$, and a
+shape mismatch denotes the empty relation rather than raising an error. Being
+outside the domain of a relation is not a failure; it is having no image.
+
+\begin{figure}[t]
+\begin{lstlisting}
+[[id]]        = { (v, v) }                    [[zero]]   = {}
+[[swapsum]]   = { (L v, R v) } u { (R v, L v) }
+[[assocsum]]  = { (L a, L (L a)) } u { (R (L b), L (R b)) } u { (R (R c), R c) }
+[[unitsum]]   = { (R v, v) }
+[[swapprod]]  = { ((a, b), (b, a)) }
+[[assocprod]] = { ((a, (b, c)), ((a, b), c)) }
+[[unitprod]]  = { (((), v), v) }
+[[dist]]      = { ((L a, c), L (a, c)) } u { ((R b, c), R (b, c)) }
+[[inl]]       = { (v, L v) }                  [[inr]]    = { (v, R v) }
+[[copy]]      = { (v, (v, v)) }
+[[join]]      = { (L v, v) } u { (R v, v) }
+
+[[t ; u]] = { (a, c) : exists b. (a, b) in [[t]] and (b, c) in [[u]] }
+[[t + u]] = { (L a, L b) : (a, b) in [[t]] } u { (R c, R d) : (c, d) in [[u]] }
+[[t * u]] = { ((a, c), (b, d)) : (a, b) in [[t]] and (c, d) in [[u]] }
+[[t | u]] = [[t]] u [[u]]     [[t^]] = U_{n >= 0} [[t]]^n     [[t!]] = [[t]]^o
+\end{lstlisting}
+\caption{Denotations. $v$, $a$, $b$, $c$ range over $\mathbb{V}$; \texttt{u} is
+union and \texttt{\^{}o} is converse.}
+\label{fig:sem}
+\end{figure}
+
+$\den{\texttt{inl}}$ and $\den{\texttt{inr}}$ are total functions forwards and
+partial backwards, which is where partiality enters. $\den{\texttt{join!}}$ is the
+only primitive whose image can have two elements: \emph{every set larger than a
+singleton anywhere in the language traces back to it}, which is worth knowing,
+because it means ambiguity in 42 has exactly one origin.
+
+A program is a finite, possibly mutually recursive system of definitions inducing
+$\Phi : \Rel^n \to \Rel^n$. Every operation above is monotone and Scott-continuous
+--- including converse, which is a lattice isomorphism --- so the program denotes
+$\mathrm{lfp}\,\Phi = \bigcup_k \Phi^k(\emptyset,\dots,\emptyset)$.
+
+Parameterised definitions (\texttt{def ctrl m = mat ; (id + m) ; mat!}) are
+second-order: a parameter denotes a relation, never another combinator. They are
+eliminated by substitution before evaluation, and we assume throughout that
+programs contain none. Section~\ref{sec:related} notes that Theseus and RFUN make
+the same choice and describe it in the same terms.
+
+\subsection{This is not Kleene algebra with tests}
+
+The operators $;$, $\mid$ and $\clo$ are the regular ones, and the resemblance
+is not accidental: the 1993 design cites Pratt~\cite{pratt} and Harel~\cite{harel}
+for exactly this fragment. The differences are two, and they are what the paper is
+about.
+
+First, Kleene algebra with tests is \emph{single-sorted} --- one carrier, with
+tests a Boolean subalgebra of it --- whereas terms here are typed $A \iso B$
+between \emph{different} objects, and $+$ and $*$ are \emph{functors} on that
+typing, not operations on a single carrier. Second, the base is not an arbitrary
+alphabet but a fixed, forced generating set: the semiring isomorphisms. The setting
+is therefore \emph{regular control over rig-groupoid data}, and the content is in
+the interaction: \texttt{dist} is what lets $;$, $\mid$ and $\clo$ see inside a
+sum, and \texttt{copy}/\texttt{join} are what let them leave the groupoid.
+
+One consequence recurs in Section~\ref{sec:expr}: over \emph{finite} types, $;$,
+$\mid$ and $\clo$ give exactly finite-state power. All unboundedness comes from
+the $\mu$-types, never from the control structure.
+
+\section{What Dropping the Condition Buys}\label{sec:buys}
+
+\subsection{The obligation, and what it costs those who accept it}
+
+Section~1 listed six discharges of one condition. What is less often noted is what
+each costs. \textbf{Inv} spends a primitive: \texttt{neq} is in the language to
+establish disjointness. \textbf{Theseus} must reject programs a programmer would
+expect to write; its Section~3.1 gives four invalid expressions, of which
+\texttt{drop\_var} merely fails to use a bound variable on the other side and
+\texttt{dup\_var} uses one twice, both forbidden by the rule that each variable
+``must appear exactly once on the other side and with the same type''.
+\textbf{PisoLang} must decide pattern orthogonality by unification and carve out a
+controlled non-linear use of variables to recover duplication.
+\textbf{Chardonnet et al.} carry orthogonality as two premises in a typing rule.
+\textbf{RFUN} must fix an order on clauses and make the semantics depend on it.
+\textbf{Janus} pushes the obligation onto the programmer, whose program is
+undefined if the assertion is wrong.
+
+Janus repays a closer look, because on one point it agrees with us against the
+functional languages. It does \emph{not} require its operations to be injective:
+``The evaluation of expressions is not backward deterministic because function
+$[\![\odot]\!]$ is not injective, and thus there exists no inverse. As we shall
+see, this does not harm the backward and forward determinism of Janus
+statements.'' Injectivity is demanded of statements, not of arithmetic, and a
+syntactic restriction on assignment buys it. So Janus and this paper agree that
+non-injective operations are admissible, and differ only in where the cost is
+paid: Janus in a restriction plus an assertion per conditional, 42 in the $\in$.
+
+\subsection{What declining it buys}
+
+Four things, and the first is the one that matters.
+
+\textbf{Inversion is total.} \texttt{dagger} is defined on every term, by the
+eight-line structural recursion of Section~1.1. There is no case in which it is
+undefined, no condition it must check, and no property of the argument it must
+establish first; $\texttt{dagger} \circ \texttt{dagger} = \mathrm{id}$ holds
+syntactically.
+
+\textbf{\texttt{!} need not exist in the abstract syntax.} Because inversion is
+total, the parser can push it to the leaves and discard it, so no evaluator,
+printer, optimiser or type rule ever encounters an inverted composite.
+
+\textbf{There is no progress theorem to weaken.} In a language of partial
+isomorphisms a stuck term is an embarrassment: PisoLang records that
+\texttt{(case True <-> ()) False} is well-typed and stuck, so progress fails. Here
+that term denotes $\emptyset$, a perfectly good morphism of \Rel{}, and no theorem
+is lost because none was claimed.
+
+\textbf{Ambiguity has one source.} Every non-singleton image traces to
+\texttt{join!}. A language that forbids ambiguity must exclude it everywhere; one
+that permits it can localise it.
+
+\subsection{What it costs}
+
+The $\in$. Forward-then-backward returns a set containing where you started:
+\begin{center}\small
+\texttt{add(2,3) = 5} \qquad
+\texttt{add!(5) = \{(0,5), (1,4), (2,3), (3,2), (4,1), (5,0)\}}
+\end{center}
+Both directions run the \emph{same definition}; the backward one is its dagger,
+computed mechanically. Whether this is acceptable is a question about what one
+wants a reversible language for --- and we note that composition can restore
+determinism that a factor lacks. \texttt{double = copy ; add} has a single-valued
+dagger, because \texttt{copy!} keeps only pairs whose components agree, so
+\texttt{double! 6 = \{3\}} and \texttt{double! 7 = \{\}}.
+
+\subsection{Why the trade is favourable in principle}
+
+There is a reason the metatheory gets smaller rather than larger, and it is
+semantic. The class of relations 42 denotes will be shown in
+Section~\ref{sec:expr} to be the recursively enumerable relations, and that class
+is \textbf{closed under converse} --- swap the pairs in the enumeration. The class
+an injective language denotes, computable partial injections, is closed under
+inverse too, but the closure has to be \emph{earned}: an injective language must
+ensure that every construct it admits preserves injectivity, which is exactly the
+disjointness obligation. A language over \Rel{} gets the closure for free, because
+the ambient category is already a dagger category. \emph{The totality of \texttt{!}
+in the syntax is a shadow of the fact that \Rel{} has a dagger and \PInj{}'s
+inverse must be constructed.}
+
+\section{Types}\label{sec:types}
+
+Types are inferred and never written. Nothing in the surface syntax mentions a
+type, and there is no \texttt{fold}/\texttt{unfold}.
+
+\subsection{Inference}
+
+Algorithm W with constraints and unification. Because every definition is a closed
+term, there is no environment of monomorphic assumptions to avoid capturing, and
+none of the usual generalisation machinery --- levels, ranks, the value restriction
+--- is needed. Mutually recursive groups are solved as a unit against monomorphic
+assumptions and generalised once, Milner-style.
+
+A $\mu$ is never something a programmer reaches for. It is what the checker infers
+when unification closes a loop: \texttt{def double = copy ; add} is inferred at
+$\mu X.\,1 + X \iso \mu Y.\,1 + Y$. Here \texttt{nat} is declared nowhere;
+\texttt{copy} forces \texttt{add}'s two summands to agree, and that \emph{is}
+\texttt{nat <-> nat}.
+
+\subsection{A cycle is the recursive type}
+
+Where a finite-tree checker runs an occurs check and gives up, this one binds the
+variable to a term containing itself and carries on. Unification then works up to
+unfolding, \emph{coinductively}: assume the two sides equal, and check that the
+assumption survives one layer. The set of assumptions is finite because the regular
+trees a cyclic substitution can describe have finitely many distinct subterms, and
+that is what makes the procedure terminate.
+
+\subsection{But a cycle is read before it is trusted}
+
+Not every cycle is a type. $b = a + b$ is $\mu X.\,a + X$, a list, which has finite
+values; $a = a \times a$ is $\mu X.\,X \times X$, which has none --- and
+\texttt{copy\textasciicircum{}} is how one writes it. The test is one unfolding with the variable
+taken empty: \emph{$\mu X.\,F(X)$ has a finite value exactly when $F(0)$ does.} If
+$F(0)$ is empty then so is $F(F(0))$, and so on. The occurs check therefore becomes
+a \emph{diagnosis}: a cycle is admitted when the recursive type it describes is
+inhabited and rejected when it is not, and the rejection names the equation that
+could not be satisfied. We know of no other language in this family that infers its
+recursive types at all; all of them are declared.
+
+\subsection{Soundness, and why it must be two-sided}
+
+\begin{proposition}[Soundness]\label{prop:sound}
+Let $\vdash t : A \iso B$ with $A$, $B$ ground. Then for every
+$(v,w) \in \den{t}$,
+\[
+    v \in V(A) \;\text{ or }\; w \in V(B)
+    \quad\text{implies}\quad
+    v \in V(A) \;\text{ and }\; w \in V(B).
+\]
+\end{proposition}
+
+The expected form --- \emph{$v \in V(A)$ implies $w \in V(B)$} --- \textbf{cannot be
+proved by induction here}. At the \textsc{dagger} rule the goal for $t!$ concerns
+the codomain of $t!$, which is the \emph{domain} of $t$, and the induction
+hypothesis says nothing about domains. The statement must therefore carry both
+directions at once. Stated as above it is \textbf{self-dual}: the claim for
+$t : A \iso B$ and the claim for $t! : B \iso A$ are literally the same sentence,
+so the dagger case is discharged by observing that $\den{t!} = \den{t}\conv$ and
+that the condition is symmetric. This is the defining law appearing in the
+metatheory: \emph{a language whose inversion is total cannot have a one-sided type
+soundness theorem, and does not need one.}
+
+\begin{proof}
+Induction on the derivation. The thirteen primitive cases are immediate from
+Fig.~\ref{fig:sem}, and three are representative. For $\texttt{join} : A' + A' \iso
+A'$ a pair is $(L\,a, a)$ or $(R\,a, a)$, and $L\,a \in V(A'+A') \iff a \in V(A')$
+--- the biconditional the statement wants. For $\texttt{inl} : A \iso A + B'$ a pair
+is $(v, L\,v)$ and $L\,v \in V(A+B') \iff v \in V(A)$. For
+$\texttt{unitsum} : 0 + A \iso A$ a pair is $(R\,v, v)$, and $V(0+A)$ has no $L$
+component at all because $V(0) = \emptyset$ --- which is exactly why the evaluator
+returns the empty set on an $L$. \texttt{zero} is vacuous.
+
+For \textsc{seq}, let $(a,c) \in \den{t\mathbin{;}u}$, so $(a,x) \in \den{t}$ and
+$(x,c) \in \den{u}$. If $a \in V(A)$ the hypothesis for $t$ gives $x \in V(B)$ and
+then that for $u$ gives $c \in V(C)$; if instead $c \in V(C)$, the hypotheses are
+used in the other order. Both readings are available precisely because the
+statement is two-sided. \textsc{sum} and \textsc{prod} reduce to the hypotheses
+componentwise, and \textsc{prod} needs the two-sided form even with no dagger in
+sight, since knowing only $(b,d) \in V(B \times D)$ requires reading each
+hypothesis backwards. \textsc{union} applies either hypothesis. For \textsc{star},
+$A = B$; $n = 0$ is the identity and each further step is the hypothesis for $t$ in
+whichever direction the given end supplies. \textsc{dagger} is as above. For a
+recursive group, $\den{f_i} = \bigcup_k \Phi^k(\emptyset,\dots,\emptyset)_i$; each approximant
+satisfies the property, and the property is preserved by unions of chains, being a
+condition on individual pairs. \qed
+\end{proof}
+
+\begin{corollary}\label{cor:cod}
+If $\vdash t : A \iso B$ and $v \in V(A)$ then every result of running $t$ forwards
+on $v$ lies in $V(B)$; and if $w \in V(B)$, every result of running it backwards
+lies in $V(A)$.
+\end{corollary}
+
+Note what this does \emph{not} say. Nothing here promises a result exists:
+$\den{\texttt{pred}}$ at $0$ is empty, which is a legitimate morphism, so there is
+no progress property to state and none is lost.
+
+\section{Expressiveness}\label{sec:expr}
+
+\begin{theorem}\label{thm:main}
+Let $A$, $B$ be closed types and $R \subseteq V(A) \times V(B)$. There is a closed
+42 program denoting $R$ \textbf{iff} $R$ is recursively enumerable.
+\end{theorem}
+
+Two remarks on why this and not ``42 is Turing complete'', which is the
+$\supseteq$ half alone. First, the $\subseteq$ half is the more informative one: it
+says 42 denotes \emph{exactly} $\Sigma^0_1$, so no program decides the complement
+of the halting problem and no extension of the primitive table can change that
+without adding a form of negation. Second, the statement has the right shape for a
+relational language. The reference result is Axelsen and Gl\"uck's~\cite{axelsen},
+that reversible Turing machines compute exactly the injective computable functions;
+Chardonnet et al.\ prove the corresponding statement for a Theseus-descended
+language, concluding that it ``fully characterises all of the computable morphisms
+in PInj''. Read together, their theorem and Theorem~\ref{thm:main} are the same
+statement in two different categories --- \emph{every computable morphism of the
+ambient category is denotable} --- with \PInj{} there and \Rel{} here.
+\textbf{What 42 changes is not the theorem; it is the category.}
+
+\subsection{Soundness}
+
+\begin{proposition}\label{prop:re}
+For every program and every closed term $t : A \iso B$ over it, $\den{t}$ is
+recursively enumerable, and an index is computable from the text.
+\end{proposition}
+
+\begin{proof}[sketch]
+Three steps. The primitives denote decidable relations on a decidable set of finite
+trees. The six operations preserve r.e.\ uniformly: composition by dovetailing,
+union by interleaving, $+$ and $*$ by applying the tag or the pairing, converse by
+swapping each enumerated pair, and $\den{t\clo}$ because $\den{t}^n$ is
+uniformly r.e.\ in $n$. Recursion adds nothing: by continuity
+$\mathrm{lfp}\,\Phi = \bigcup_k \Phi^k(\emptyset,\dots,\emptyset)$, an index for each
+approximant is computable from $k$, and dovetailing gives the limit. \qed
+\end{proof}
+
+\begin{corollary}
+No 42 program denotes a relation that is not $\Sigma^0_1$.
+\end{corollary}
+
+\textbf{Where the bound comes from} is worth naming, because it is not where one
+might expect. Not from reversibility, and not from any restriction on recursion ---
+42 has general recursion. It comes from the shape of the syntax: every combinator
+is a \emph{positive} operation, and \textbf{nothing in the language forms a
+complement}. A hypothetical combinator ``$t$ fails here'' would denote the
+complement of a domain and break Proposition~\ref{prop:re} at once. The practical
+consequence is that the primitive table may be enlarged with any decidable relation
+and the theorem survives.
+
+It is a small pleasure that the 1993 design excluded complement too, for a related
+but distinct reason: that the complement of a finite result set in an infinite
+universe is not finitely presentable. Convergent instinct, different argument.
+
+\subsection{Four definable gadgets}\label{sec:gadgets}
+
+\begin{lemma}[Discard]\label{lem:drop}
+For every closed $C$ there is a term $\mathit{drop}_C : C \iso 1$ with
+$\den{\mathit{drop}_C} = V(C) \times \{()\}$.
+\end{lemma}
+
+by $\mathit{drop}_0 = \texttt{zero}$, $\mathit{drop}_1 = \texttt{id}$,
+$\mathit{drop}_{A+B} = (\mathit{drop}_A + \mathit{drop}_B)\mathbin{;}\texttt{join}$,
+$\mathit{drop}_{A\times B} = (\mathit{drop}_A * \mathit{drop}_B)\mathbin{;}\texttt{unitprod}$,
+and a recursive definition following $F$ for $\mu X.F$; totality on the last is an
+induction on the size of the finite tree.
+
+This deserves a comment. \texttt{discard} is the operation the language is designed
+to avoid --- the rule is that nothing may be thrown away --- and there is no such
+primitive. It is definable anyway, and there is no contradiction: the rule is that
+if a step loses information then the backward direction must be allowed to return
+several candidates, and $\mathit{drop}!$ returns all of them. \emph{42 forbids
+forgetting reversibly, not forgetting.} By contrast Theseus lists precisely this
+program, \texttt{drop\_var}, among its invalid expressions.
+
+\begin{lemma}[Universal relation]\label{lem:univ}
+$\mathit{univ} = \mathit{drop}_A \mathbin{;} \mathit{drop}_B!$ denotes
+$V(A) \times V(B)$.
+\end{lemma}
+
+\begin{lemma}[Filter]\label{lem:filt}
+For any $\mathit{test} : C \iso 1$ with domain $U$, the term
+$\texttt{copy} \mathbin{;} (\mathit{test} * \texttt{id}) \mathbin{;} \texttt{unitprod}$
+denotes the partial identity on $U$.
+\end{lemma}
+
+This is how a semi-decision becomes a program, and it is also the answer to
+Theseus's open question of Section~1.1: the filter is not a construct but a
+composite, it is its own dagger for \emph{any} test, and no restriction to a
+symmetric subclass is needed.
+
+\begin{lemma}[Serialisation]\label{lem:ser}
+For every closed $C$ there is $\mathit{ser}_C : C \iso \mathit{bits}$ denoting the
+graph of an injective computable $e_C : V(C) \to \{0,1\}^*$ whose image is
+prefix-free and decidable.
+\end{lemma}
+
+by $\mathit{ser}_1 = \texttt{inl}$,
+$\mathit{ser}_{A+B} = ((\mathit{ser}_A\mathbin{;}\mathit{cons}_0) + (\mathit{ser}_B\mathbin{;}\mathit{cons}_1))\mathbin{;}\texttt{join}$,
+$\mathit{ser}_{A\times B} = (\mathit{ser}_A * \mathit{ser}_B)\mathbin{;}\mathit{append}$,
+and recursion for $\mu$. Prefix-freeness is the same induction: two prefixes of one
+string are comparable, so concatenation of prefix-free codes is prefix-free.
+
+The product clause is worth pausing on because it looks unsound and is not.
+$\mathit{append}$ run backwards yields \emph{every} way to split a list --- six, for
+the five-bit string encoding $(1,2)$ --- and yet $\mathit{ser}_{nat \times nat}$ run
+backwards yields exactly one, because prefix-freeness leaves only the split that
+decodes. Composition restoring determinism that a factor lacks is here doing real
+work in a proof.
+
+\subsection{Simulation}
+
+\begin{lemma}[Halting]\label{lem:halt}
+For every deterministic Turing machine $M$ there is a term
+$\mathit{halts}_M : \mathit{bits} \iso 1$ with
+$\den{\mathit{halts}_M} = \{(x,()) : M \text{ halts on } x\}$.
+\end{lemma}
+
+We assume $M$ normalised to a binary alphabet, a one-way infinite tape it never
+falls off, and a single halting state; all three are standard~\cite{hopcroft} and
+preserve the halting set.
+
+\paragraph{The encoding.} A tape is
+$\mathit{bits} \times ((1+1) \times \mathit{bits})$ --- left reversed, head, right
+--- and a configuration is
+$\mathit{conf} = \mathit{tape} + (\mathit{tape} + (\cdots + \mathit{tape}))$ with
+one summand per state. The control state is a \textbf{label, not a component of a
+pair}: to act differently in each state one then writes $f + g + h$, which is the
+sum functor doing exactly what it is for, and no plumbing is needed to reach the
+state and put it back. This one decision is what keeps the transition relation to a
+line.
+
+Head movement pushes the head cell onto the left list and pops the right, and
+reading the head brings it to the front and splits on it:
+
+\begin{lstlisting}
+right    = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
+readhead = focus ; dist ; (unitprod + unitprod)
+\end{lstlisting}
+
+\noindent\textbf{\texttt{left} is not written out --- it is \texttt{right!}}, and
+writing the head is \texttt{readhead} run backwards. For
+$\delta(q,s) = (q',s',m)$:
+
+\begin{lstlisting}
+beta_{q,s} = write_{s'} ; move_m ; tag_{q'}
+delta_q    = readhead ; (beta_{q,0} + beta_{q,1}) ; join     delta_{q_h} = zero
+step       = (delta_{q_1} + (delta_{q_2} + ...)) ; collapse_h
+halts_M    = load ; tag_{q_1} ; step^ ; tag_{q_h}! ; drop_tape
+\end{lstlisting}
+
+\paragraph{Correctness} is four lemmas. $\den{\mathit{step}}$ is a partial function;
+it simulates $\delta$ on representations; the halting state is a dead end because
+$\delta_{q_h} = \texttt{zero}$; and therefore $\den{\mathit{step}\clo}$ is
+exactly the run, from which $\mathit{tag}_{q_h}!$ selects the halted configuration,
+of which minimality of the halting time gives at most one.
+
+The one case worth keeping in full is where the finite/infinite mismatch is paid
+for. A Turing tape is infinite and a value is a finite tree, so the encoding is
+\textbf{many-to-one}: trailing blanks are represented by their absence. When the
+head moves right off the end of the finite list, a padding branch invents a blank
+--- and this is correct precisely because an empty right-list forces the next cell
+to be blank. Note what the simulation lemma does \emph{not} claim: it says nothing
+about the successor representation being canonical. Feed it a representation with
+three trailing blanks and it returns one with three trailing blanks, and since the
+statement is about the \emph{reading}, the padding simply rides along. The mismatch
+costs one branch of one definition and one case of one proof.
+
+An instance of this construction --- a three-state machine incrementing a binary
+number --- is in the artifact and runs.
+
+\subsection{Completeness}
+
+\begin{theorem}\label{thm:complete}
+For closed $A$, $B$ and r.e.\ $R \subseteq V(A) \times V(B)$, some closed 42
+program denotes $R$.
+\end{theorem}
+
+\begin{proof}
+Put $C = A \times B$, so $R \subseteq V(C)$. By Lemma~\ref{lem:ser},
+$S = e_C(R) \subseteq \{0,1\}^*$ is r.e., since $e_C$ is a computable injection with
+decidable image. Take $M$ halting exactly on $S$; by Lemma~\ref{lem:halt},
+$\mathit{test} = \mathit{ser}_C \mathbin{;} \mathit{halts}_M$ has domain $R$. By
+Lemma~\ref{lem:filt},
+$\mathit{filt} = \texttt{copy} \mathbin{;} (\mathit{test} * \texttt{id}) \mathbin{;} \texttt{unitprod}$
+is the partial identity on $R$. With $\mathit{univ}$ from Lemma~\ref{lem:univ}, put
+\[
+    t \;=\; \texttt{copy} \mathbin{;} (\texttt{id} * \mathit{univ}) \mathbin{;}
+            \mathit{filt} \mathbin{;} (\mathit{drop}_A * \texttt{id}) \mathbin{;}
+            \texttt{unitprod}
+\]
+and trace $x \in V(A)$: \texttt{copy} gives $(x,x)$; $(\texttt{id} * \mathit{univ})$
+gives $(x,y)$ for \emph{every} $y \in V(B)$; $\mathit{filt}$ keeps those with
+$(x,y) \in R$; $(\mathit{drop}_A * \texttt{id})$ gives $((),y)$; \texttt{unitprod}
+gives $y$. So $\den{t} = R$. \qed
+\end{proof}
+
+The shape of that argument is the point: \textbf{guess the output, then check it.}
+The guess is $\mathit{drop}_A \mathbin{;} \mathit{drop}_B!$ and the check is
+\texttt{copy} --- both already in the language, neither invented for the proof. An
+injective language cannot write the guess at all.
+
+\begin{corollary}[Turing completeness]
+Every partial computable $f : V(A) \rightharpoonup V(B)$ is denoted by some program,
+its graph being r.e.; and by Proposition~\ref{prop:re} no program denotes anything
+worse.
+\end{corollary}
+
+\section{Related Work}\label{sec:related}
+
+\paragraph{The axis.} One dial --- how many answers running backwards may give ---
+orders the field.
+
+\begin{center}\small
+\begin{tabular}{@{}llp{5.8cm}@{}}
+\hline
+setting & $|P(y)|$ & languages \\
+\hline
+Groupoid, total bijections & exactly 1 & $\Pi$ \\
+\PInj{}, partial injections & $\le 1$ & Janus, Theseus, RFUN, Inv,
+                                        Chardonnet et al., PisoLang \\
+\Rel{}, relations & arbitrary & \textbf{this paper} \\
+\hline
+\end{tabular}
+\end{center}
+
+Almost the whole field is the middle row: reversible languages are, with near
+unanimity, \emph{injective} languages, differing in surface syntax and in how
+injectivity is enforced rather than in what they denote.
+
+\paragraph{Inv} is the nearest relative and deserves generosity. Mu, Hu and
+Takeichi's point-free relational setting is this one; their converse law is this
+law; and their observation that undoing a duplication requires an equality test ---
+``\texttt{dup} takes a pair and lets it go through only if the two components are
+equal'' --- is the observation this paper makes about \texttt{copy!}, twenty years
+earlier. What differs is that Inv restricts to injective functions and 42 does not.
+
+\paragraph{The $\Pi$ branch.} $\Pi$'s terms~\cite{pi} are the isomorphisms
+witnessing that ``the structure $(b,+,0,*,1)$ is a commutative semiring'', which is
+Fig.~\ref{fig:prims} minus two rows. The two rows are the interesting ones. Having
+listed the isomorphisms, \emph{Information Effects} names two identities that are
+\emph{not} among them --- $b \times b \not\iso b$ and
+$b_1 + (b_2 \times b_3) \not\iso (b_1+b_2) \times (b_1+b_3)$ --- and 42's
+\texttt{copy} and \texttt{join} are witnesses for the first and its dual. $\Pi$
+does recover both, but only in an arrow metalanguage, as \emph{information effects}
+built from \texttt{create} and \texttt{erase}; \texttt{join} there ``converts the
+input $b+b$ to $(1+1) \times b$ and then erases the first component''. So:
+\textbf{what $\Pi$ must treat as an effect, requiring a type-and-effect system and
+a metalanguage, this language has as a primitive} --- because in \Rel{} those two
+morphisms are morphisms. Two further differences: $\Pi$ is isorecursive and pays
+\texttt{fold}/\texttt{unfold}, where equirecursive types pay nothing; and $\Pi$'s
+$\mathit{distrib0} : 0 * b \iso 0$ is absent here, $0 \times a$ being uninhabited
+and so extensionally \texttt{zero}.
+
+\paragraph{Second-order parameters.} Theseus's parametrised maps are ``a macro or a
+meta-language construction'' --- ``Theseus does not have high-order maps in the
+formal sense'' --- and RFUN's functional parameters are ``not enough to make
+functions first class citizens''. This paper's parameters are the same choice, made
+independently and for the same reason. PisoLang and Chardonnet et al.\ nest arrows
+freely, the latter listing higher-order among its contributions.
+
+\paragraph{Janus} is the imperative ancestor and the only prior language we know of
+that holds local invertibility for every construct. It buys it with the assertion;
+we buy it by admitting many-valued backward results. The two prices are the
+alternatives this paper is really comparing, and Janus's is the more familiar one:
+a proof obligation, discharged per program, whose failure mode is an undefined
+execution rather than a rejected one.
+
+\paragraph{Program inversion} is the classical ancestor: Dijkstra's
+\texttt{EWD671}~\cite{ewd671}, Gries's \emph{Science of Programming}~\cite{gries},
+Gries and van de Snepscheut on inverting an inorder traversal~\cite{griessnep}, and
+Chen and Udding~\cite{chen}. Where that tradition inverts a \emph{given} program by
+hand, 42 makes the inverse fall out of the syntax.
+
+\section{Conclusion}
+
+We have presented a reversible language that declines the injectivity its
+neighbours buy, and argued that the trade is favourable: inversion becomes total,
+\texttt{!} leaves the abstract syntax, no progress theorem is at risk, ambiguity
+has a single source, and the price is one $\in$. We have given an equirecursive
+type system inferred without annotation, proved it sound in the two-sided form that
+a total inversion forces, and characterised the denotable relations as exactly the
+recursively enumerable ones --- the same theorem the injective languages prove, read
+in a larger category.
+
+\paragraph{Limitations}, stated here rather than left to reviewers. Nothing is
+mechanised; no proof assistant has seen these proofs. Three standard Turing machine
+normalisations are cited, not reproved. Closure is computed by naive saturation, so
+it terminates only on finite orbits: a relation can be computable in one direction
+and not the other, and \texttt{pred\textasciicircum{}} saturates where \texttt{succ\textasciicircum{}} does not.
+Backward runs can be exponential; nothing prunes the search. Recursion is
+monomorphic, Milner-style. Inferred types are not canonical, equirecursive types
+having no unique syntactic form. And parameterised definitions are eliminated by
+substitution, so a \emph{recursive} combinator cannot be run even when it
+typechecks: \texttt{def map f = id + (f * map f)} is well-typed at
+$(a \iso b) \to (\mathit{list}\,a \iso \mathit{list}\,b)$ and its dagger is computed
+correctly, but it has no finite expansion. Interpreting application rather than
+expanding it away would close this, and nothing in the type system stands in the
+way.
+
+\paragraph{Future work.} The last limitation is the most inviting. Beyond it: the
+denotable class is $\Sigma^0_1$ precisely because nothing forms a complement, which
+suggests a principled account of what a complement-forming extension would cost.
+
+\paragraph{Q42.} \Rel{} is matrices over the Boolean semiring. Replacing
+$\mathbb{B}$ by $\mathbb{C}$ turns the same terms into finite-dimensional
+unitaries, and the implementation shares the values, terms, parser, type engine and
+inversion function itself with the classical one. Two constructors must go, union
+and closure, being exactly those whose meaning needs addition to be
+idempotent~\cite{sqrtpi}. That is a separate paper.
+
+\paragraph{Artifact.} An implementation with no dependencies, 363 tests, every
+claim in the manual re-run by a checker, and the two figures of
+Section~\ref{sec:lang} verified against the implementation by the test suite.
+
+\bibliographystyle{splncs04}
+\bibliography{refs}
+
+\end{document}

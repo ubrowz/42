@@ -1,0 +1,11 @@
+-- rejected.42 -- a file that is MEANT to be refused.
+--
+-- It exists so that the error message in QMANUAL.md section 5.2 can be
+-- reproduced.  `copy` is a 42 primitive that Q42 does not have, and loading
+-- this file says why:
+--
+--   42q rejected bad "|0>"
+--
+-- If it ever loads successfully, something has gone wrong.
+
+def bad = copy

@@ -1,0 +1,161 @@
+-- tour.42 -- a guided tour of 42, in seven steps.
+--
+-- Read this top to bottom.  Every definition is runnable:
+--
+--     python3 -m rel42 run  tour.42 <name> <value> [--backward]
+--     python3 -m rel42 show tour.42 <name>
+--
+-- The one thing to internalise: there is no "forward" version of a program.
+-- There is one definition, and two directions to read it.
+
+
+-- ===========================================================================
+-- 1.  Bijections -- exactly one answer, both ways.
+-- ===========================================================================
+--
+--   run tour.42 not "L ()"            ->  R ()
+--   run tour.42 not "R ()" -b         ->  0      -- i.e. L (); see README on
+--                                                -- why 0, [] and L () print alike
+--
+-- Booleans are 1 + 1, so `not` is literally "swap the two summands".
+
+type nat    = mu X. 1 + X
+type list a = mu X. 1 + (a x X)
+
+def not  = swapsum
+def swap = swapprod
+
+-- Composition of bijections is a bijection.  (a, (b, c)) |-> (c, (a, b)):
+--
+--   assocprod : (a, (b, c)) |-> ((a, b), c)
+--   swapprod  : ((a, b), c) |-> (c, (a, b))
+
+def rot3 = assocprod ; swapprod
+
+
+-- ===========================================================================
+-- 2.  Making structure out of nothing.
+-- ===========================================================================
+--
+-- To build a value you often need a `()` you do not have.  `unitprod` throws
+-- one away (1 x a -> a), so `unitprod!` conjures one up.  That is reversible
+-- because `()` carries no information: there was only ever one thing it could
+-- have been.
+--
+-- `single` wraps a value into a one-element list.  Trace it on x:
+--
+--   x                unitprod!   -->  ((), x)
+--   ((), x)          swapprod    -->  (x, ())
+--   (x, ())          id * inl    -->  (x, L ())      -- L () is nil
+--   (x, nil)         inr         -->  R (x, nil)     -- which is [x]
+--
+--   run tour.42 single 7          ->  [7]
+--   run tour.42 single "[7]" -b   ->  7
+
+def single = unitprod! ; swapprod ; (id * inl) ; inr
+
+
+-- ===========================================================================
+-- 3.  Partial injections -- at most one answer.
+-- ===========================================================================
+--
+-- A nat is  mu X. 1 + X:  zero is `L ()`, and n+1 is `R n`.  So the successor
+-- function *is* the right injection, and predecessor is its dagger.
+--
+--   run tour.42 pred 3   ->  2
+--   run tour.42 pred 0   ->  {}     -- empty, not an error: 0 has no preimage
+
+def succ = inr
+def pred = inr!
+
+
+-- ===========================================================================
+-- 4.  Union -- genuine choice.
+-- ===========================================================================
+--
+-- `|` is union of relations.  `near` relates n to both its neighbours, so it
+-- has two answers on most inputs and one on zero (where `pred` contributes
+-- nothing).  Union is self-dual: dagger distributes over it without flipping.
+--
+--   run tour.42 near 5   ->  4, 6
+--   run tour.42 near 0   ->  1
+
+def near = pred | succ
+
+
+-- ===========================================================================
+-- 5.  The recursion idiom.  This is the pattern to learn.
+-- ===========================================================================
+--
+-- To case-analyse a value of a sum type, you need three moves:
+--
+--     dist    -- (only for binary functions) push the pair inside the sum
+--     f + g   -- handle the two branches independently
+--     join    -- collapse the two results back into one
+--
+-- For a *unary* function there is no pair, so you skip `dist`:
+--
+--     (base + step) ; join
+--
+-- For a *binary* function whose first argument is the one being analysed,
+-- `dist` turns (1 + X) x Y into (1 x Y) + (X x Y) so each branch keeps its
+-- second argument:
+--
+--     dist ; (base + step) ; join
+--
+-- Here is append.  Trace the step branch on (cons(h, t), ys):
+--
+--   (R (h, t), ys)       dist         -->  R ((h, t), ys)
+--   ((h, t), ys)         assocprod!   -->  (h, (t, ys))
+--   (h, (t, ys))         id * append  -->  (h, t ++ ys)
+--   (h, t ++ ys)         inr          -->  cons(h, t ++ ys)
+
+def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
+
+-- And here is reverse, unary, so no `dist`.  The base branch receives `()`
+-- and must produce nil -- which is exactly `inl`.  Trace the step on (h, t):
+--
+--   (h, t)               id * rev     -->  (h, rev t)
+--   (h, rev t)           swapprod     -->  (rev t, h)
+--   (rev t, h)           id * single  -->  (rev t, [h])
+--   (rev t, [h])         append       -->  rev t ++ [h]
+
+def rev = (inl + ((id * rev) ; swapprod ; (id * single) ; append)) ; join
+
+
+-- ===========================================================================
+-- 6.  Naming an inverse.
+-- ===========================================================================
+--
+-- `append!` is already a program, so you can just give it a name.  Forwards,
+-- `split` enumerates every way to cut a list in two -- and nobody wrote it.
+--
+--   run tour.42 split "[1,2,3]"   ->  four splittings
+--
+-- This is the payoff of the whole design: `split` is not a second
+-- implementation that must be kept in sync with `append`.  It *is* `append`.
+
+def split = append!
+
+
+-- ===========================================================================
+-- 7.  Tests are coreflexives -- and you build them out of `copy`.
+-- ===========================================================================
+--
+-- A test is a relation that either returns its input unchanged or returns
+-- nothing.  You do not need a special construct for it.  `copy` duplicates,
+-- the middle does some work, and `copy!` succeeds only if the two halves
+-- still agree:
+--
+--   l          copy        -->  (l, l)
+--   (l, l)     id * rev    -->  (l, rev l)
+--   (l, rev l) copy!       -->  {l} if l == rev l, else {}
+--
+--   run tour.42 palin "[1,2,1]"   ->  [1, 2, 1]
+--   run tour.42 palin "[1,2,3]"   ->  {}
+--
+-- Note it is its own dagger, up to `rev` being its own dagger.  A test does
+-- not care which way you run it -- which is why "filter" and "condition" are
+-- the same construct here, not two.
+
+def palin = copy ; (id * rev) ; copy!

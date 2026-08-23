@@ -1,0 +1,81 @@
+-- grover.42 -- Grover's search, and the clearest small picture of what an
+-- algorithm actually does with the arrows.
+--
+-- THE PROBLEM.  One of N possibilities is the one you want, and nothing
+-- distinguishes it except a sealed test that says yes to it and no to the rest.
+-- Classically there is nothing to do but try them, N/2 tries on average.
+-- Grover's algorithm finds it in about sqrt(N).
+--
+-- WHAT MAKES IT WORK is not that all N are tried at once.  That much is free
+-- and worth nothing: look at a uniform spread and you see one possibility at
+-- random, which is guessing.  The work is done by cancellation, and the two
+-- halves of the loop divide it:
+--
+--   the oracle    turns the arrow of the marked possibility to point backwards.
+--                 THIS IS INVISIBLE.  Every outcome still has the same chance
+--                 as before; only a direction changed.
+--   the diffusion reflects every arrow about their average, which converts that
+--                 invisible difference into a visible one.
+--
+-- Run `stage1`, `stage2` and `grover11` in turn on |00> to watch exactly that:
+-- four equal arrows, then four equal arrows with one turned round, then all of
+-- it on |11>.
+--
+-- TWO QUBITS IS EXACT.  With N = 4 one turn of the crank gives the answer with
+-- certainty, which is the smallest interesting case in quantum computing.
+-- THREE IS NOT: eight possibilities want two turns, and land at 94.5%.  Note
+-- what that means for a language with no loop -- the number of turns is fixed by
+-- the width of the register, so it is known before the program runs, and the
+-- crank is written out rather than iterated.  See DRAFT-Q42.md section 4.2.
+
+type qubit = 1 + 1
+
+def x      = swapsum
+def s      = id + (omega ; omega)
+def z      = id + (omega ; omega ; omega ; omega)
+def hcore  = x ; s ; v ; s ; x
+def h      = unitprod! ; (omega * hcore) ; unitprod
+def mat    = dist ; (unitprod + unitprod)
+def ctrl m = mat ; (id + m) ; mat!
+
+
+-- ---------------------------------------------------------------------------
+-- Two qubits.  `cz` flips the sign of |11> and leaves the rest alone, so it is
+-- already the oracle for that one; conjugating with `x` moves the mark.
+-- ---------------------------------------------------------------------------
+
+def h2      = h * h
+def cz      = ctrl z
+
+def mark00  = (x * x)  ; cz ; (x * x)
+def mark01  = (x * id) ; cz ; (x * id)
+def mark10  = (id * x) ; cz ; (id * x)
+def mark11  = cz
+
+-- Reflect about the average: spread, flip the sign of |00>, unspread.  This is
+-- the Hadamard sandwich -- the reflection is trivial to state in one basis and
+-- is what you want in the other, and `h2` is what carries you between them.
+def diffuse = h2 ; mark00 ; h2
+
+def grover00 = h2 ; mark00 ; diffuse
+def grover01 = h2 ; mark01 ; diffuse
+def grover10 = h2 ; mark10 ; diffuse
+def grover11 = h2 ; mark11 ; diffuse
+
+-- The three stages, for watching.
+def stage1 = h2                     -- 0.5|00> + 0.5|01> + 0.5|10> + 0.5|11>
+def stage2 = h2 ; mark11            -- the same four chances, one arrow reversed
+
+
+-- ---------------------------------------------------------------------------
+-- Three qubits, where one turn is no longer enough.
+-- ---------------------------------------------------------------------------
+
+def h3       = h * (h * h)
+def ccz      = ctrl cz
+def mark000  = (x * (x * x)) ; ccz ; (x * (x * x))
+def diffuse3 = h3 ; mark000 ; h3
+def step3    = ccz ; diffuse3
+
+def once3    = h3 ; step3           -- 78.1% on |111>
+def grover3  = h3 ; step3 ; step3   -- 94.5% on |111>

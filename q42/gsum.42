@@ -1,0 +1,73 @@
+-- gsum.42 -- Grover over an oracle that ADDS, and the sharpest small comparison
+-- this project has with another quantum language.
+--
+-- THE PROBLEM.  Two 2-bit registers, written |x0 x1 y0 y1> least significant bit
+-- first, so x = x0 + 2*x1.  Find the pairs with x + y = 3 (mod 4).  There are
+-- four of sixteen, and at that density ONE turn of the crank is exact:
+--
+--   42q gsum gsum "|0000>"
+--     = -0.5|0011> + -0.5|0110> + -0.5|1001> + -0.5|1100>
+--
+-- which is 0+3, 2+1, 1+2 and 3+0, and nothing else has any amplitude at all.
+--
+-- WHY THIS ORACLE AND NOT A MARKED STATE.  `grover.42` marks a state directly,
+-- which is honest for showing the mechanism and dishonest as an oracle: it has
+-- the answer written into it.  This one *computes*.  It adds the registers, asks
+-- whether the sum is 3, and then puts the sum back -- and an adder run backwards
+-- is a subtractor, so the uncomputation is a genuinely different circuit rather
+-- than a repeat of the same one.
+--
+-- WHAT THAT COSTS HERE.  Three characters.  `add4!` is not a declaration, not a
+-- synthesised specialisation and not a language construct; it is the structural
+-- recursion of the classical paper applied to a term, and `add4 ; is3 ; add4!`
+-- is three ordinary terms composed.  Q#, which supports this pattern well, needs
+-- an operation to declare `is Adj + Ctl`, needs the compiler to synthesise the
+-- adjoint, cannot offer it at all for an operation that measures, and gives the
+-- pattern its own `within { } apply { }` syntax.  See DRAFT-Q42.md section 8.
+--
+-- AND THE ADDER IS CLASSICAL.  Nothing in `add4` mentions `omega` or `v`, so the
+-- arithmetic lives in the classical fragment and `adder`-only files run under
+-- BOTH interpreters -- you can check that the inverse really is subtraction as
+-- ordinary reversible arithmetic before ever using it as a quantum oracle.
+
+type qubit = 1 + 1
+
+def x      = swapsum
+def s      = id + (omega ; omega)
+def z      = id + (omega ; omega ; omega ; omega)
+def hcore  = x ; s ; v ; s ; x
+def h      = unitprod! ; (omega * hcore) ; unitprod
+def mat    = dist ; (unitprod + unitprod)
+def ctrl m = mat ; (id + m) ; mat!
+def on2 m  = id * m
+
+
+-- ---------------------------------------------------------------------------
+-- The arithmetic, lifted from fib.42:  (x, y) |-> (x, y + x)  mod 4.
+-- ---------------------------------------------------------------------------
+
+def cx02 = ctrl (on2 (x * id))
+def cc03 = ctrl (on2 (ctrl x))
+def cx13 = on2 (ctrl (on2 x))
+def add4 = cc03 ; cx02 ; cx13
+
+
+-- ---------------------------------------------------------------------------
+-- The oracle: compute the sum, flip the phase if it is 3, put the sum back.
+-- ---------------------------------------------------------------------------
+
+def is3    = id * (id * (ctrl z))
+def oracle = add4 ; is3 ; add4!
+
+
+-- ---------------------------------------------------------------------------
+-- Diffusion over four qubits, and one turn of the crank.
+-- ---------------------------------------------------------------------------
+
+def h4    = h * (h * (h * h))
+def x4    = x * (x * (x * x))
+def cccz  = ctrl (ctrl (ctrl z))
+def flip0 = x4 ; cccz ; x4
+def diff4 = h4 ; flip0 ; h4
+
+def gsum  = h4 ; oracle ; diff4

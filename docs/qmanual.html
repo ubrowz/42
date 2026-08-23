@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Q42 Manual</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The same language over the complex numbers, which makes it a quantum one. The physics is developed from scratch, and the parts Q42 does not model are named as such.">
+<style>
+:root {
+  --paper:      #fcfcfd;
+  --raised:     #f4f6f8;
+  --ink:        #16191f;
+  --muted:      #5c6470;
+  --faint:      #8b93a1;
+  --rule:       #e2e5ea;
+  --accent:     #0b6e6e;
+  --accent-dim: #0b6e6e1a;
+  --shadow:     0 1px 2px #16191f0d;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino,
+           "Book Antiqua", Georgia, serif;
+  --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+           "Cascadia Mono", "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+    --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+    --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+  --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+  --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shell ---- */
+.shell { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); gap: 3.5rem;
+         max-width: 74rem; margin: 0 auto; padding: 0 2rem; align-items: start; }
+@media (max-width: 60rem) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 1.25rem; }
+}
+
+/* ---- masthead ---- */
+.mast { display: flex; flex-direction: column; gap: .5rem;
+        padding: 2.75rem 0 1.5rem; border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1; }
+.mark { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--accent); }
+.mark b { font-weight: 500; }
+.mast h1 { margin: 0; font-size: 2.1rem; line-height: 1.15; letter-spacing: -.015em;
+           text-wrap: balance; font-weight: 600; }
+.mast p { margin: 0; color: var(--muted); max-width: 46ch; }
+.switch { display: flex; gap: .4rem; margin-top: .85rem; flex-wrap: wrap; }
+.switch a { font-family: var(--mono); font-size: .78rem; letter-spacing: .02em;
+            text-decoration: none; color: var(--muted); border: 1px solid var(--rule);
+            border-radius: 2px; padding: .3rem .65rem; background: var(--paper); }
+.switch a:hover { color: var(--accent); border-color: var(--accent); }
+.switch a[aria-current="page"] { color: var(--paper); background: var(--ink);
+                                 border-color: var(--ink); }
+
+/* ---- table of contents ---- */
+.rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem);
+        overflow-y: auto; padding: 2rem 0 3rem; font-family: var(--mono);
+        font-size: .8rem; line-height: 1.5; }
+.rail h2 { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+           color: var(--faint); margin: 0 0 .9rem; font-family: var(--mono);
+           font-weight: 500; }
+.rail ol { list-style: none; margin: 0; padding: 0;
+           display: flex; flex-direction: column; gap: .12rem; }
+.rail a { display: block; text-decoration: none; color: var(--muted);
+          padding: .2rem .55rem; border-left: 2px solid transparent;
+          border-radius: 0 2px 2px 0; }
+.rail a:hover { color: var(--ink); background: var(--raised); }
+.rail a.sub { padding-left: 1.5rem; color: var(--faint); font-size: .76rem; }
+.rail a.here { color: var(--accent); border-left-color: var(--accent);
+               background: var(--accent-dim); }
+@media (max-width: 60rem) {
+  .rail { position: static; max-height: none; border-bottom: 1px solid var(--rule);
+          padding: 1.25rem 0; }
+  .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  .rail a.sub { display: none; }
+}
+
+/* ---- prose ---- */
+main { padding: 2rem 0 6rem; min-width: 0; max-width: 68ch; }
+main > :first-child { margin-top: 0; }
+h1, h2, h3, h4 { line-height: 1.22; letter-spacing: -.012em; text-wrap: balance;
+                 font-weight: 600; position: relative; }
+h1 { font-size: 1.9rem; margin: 3rem 0 1rem; }
+h2 { font-size: 1.5rem; margin: 3.25rem 0 1rem; padding-bottom: .4rem;
+     border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 2.25rem 0 .75rem; }
+h4 { font-size: 1rem; margin: 1.75rem 0 .6rem; color: var(--muted); }
+p { margin: 0 0 1.05rem; }
+a { color: var(--accent); text-underline-offset: .18em;
+    text-decoration-thickness: .06em; }
+strong { font-weight: 650; }
+ul, ol { margin: 0 0 1.05rem; padding-left: 1.35rem;
+         display: flex; flex-direction: column; gap: .38rem; }
+li { padding-left: .15rem; }
+li::marker { color: var(--faint); }
+hr { border: 0; height: 1px; background: var(--rule); margin: 2.75rem 0; }
+
+.anchor { position: absolute; left: -1.1rem; width: 1.1rem; text-align: left;
+          color: var(--faint); text-decoration: none; opacity: 0;
+          font-family: var(--mono); font-weight: 400; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus { opacity: 1; }
+@media (max-width: 60rem) { .anchor { display: none; } }
+
+blockquote { margin: 1.4rem 0; padding: .1rem 0 .1rem 1.15rem;
+             border-left: 2px solid var(--accent); color: var(--muted); }
+blockquote p { margin: 0; }
+
+/* ---- code ---- */
+code { font-family: var(--mono); font-size: .855em; }
+p code, li code, td code, th code, blockquote code, h2 code, h3 code, h4 code {
+  background: var(--raised); border: 1px solid var(--rule);
+  border-radius: 3px; padding: .07em .32em; white-space: nowrap;
+}
+.code { margin: 0 0 1.3rem; background: var(--raised);
+        border: 1px solid var(--rule); border-radius: 4px;
+        overflow-x: auto; box-shadow: var(--shadow); }
+.code pre { margin: 0; padding: .95rem 1.15rem; }
+.code code { background: none; border: 0; padding: 0; white-space: pre;
+             font-size: .83rem; line-height: 1.58; }
+
+/* ---- tables ---- */
+.scroller { overflow-x: auto; margin: 0 0 1.4rem; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem;
+        font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule);
+         vertical-align: top; }
+th { font-family: var(--mono); font-size: .74rem; letter-spacing: .06em;
+     text-transform: uppercase; color: var(--faint); font-weight: 500;
+     border-bottom-color: var(--ink); }
+tbody tr:last-child td { border-bottom: 0; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px;
+                 border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="mast">
+    <div class="mark"><b>42</b> &nbsp;x &isin; P(y) &nbsp;&harr;&nbsp; y &isin; inv(P)(x)</div>
+    <h1>Q42 &mdash; User Manual</h1>
+    <p>The same language over the complex numbers, which makes it a quantum one. The physics is developed from scratch, and the parts Q42 does not model are named as such.</p>
+    <nav class="switch"><a href="index.html">home</a><a href="manual.html">42 manual</a><a href="qmanual.html" aria-current="page">Q42 manual</a><a href="readme.html">design notes</a><a href="related.html">related work</a><a href="theorem.html">the theorem</a><a href="https://github.com/ubrowz/42">source</a></nav>
+  </header>
+  <nav class="rail" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol><li><a class="" href="#1-one-change-and-everything-follows">1. One change, and everything follows</a></li><li><a class="sub" href="#11-a-program-is-a-grid">1.1 A program is a grid</a></li><li><a class="sub" href="#12-running-backwards-is-reading-the-other-way">1.2 Running backwards is reading the other way</a></li><li><a class="sub" href="#13-composing-is-combining-grids">1.3 Composing is combining grids</a></li><li><a class="sub" href="#14-q42-puts-numbers-in-the-cells">1.4 Q42 puts numbers in the cells</a></li><li><a class="sub" href="#15-the-whole-difference-in-one-table">1.5 The whole difference, in one table</a></li><li><a class="" href="#2-why-reversibility-is-forced">2. Why reversibility is forced</a></li><li><a class="sub" href="#erasing-a-bit-costs-energy">Erasing a bit costs energy</a></li><li><a class="sub" href="#quantum-mechanics-has-no-choice-at-all">Quantum mechanics has no choice at all</a></li><li><a class="sub" href="#uncomputation">Uncomputation</a></li><li><a class="" href="#3-the-physics-you-need">3. The physics you need</a></li><li><a class="sub" href="#31-a-state-is-a-vector-of-amplitudes">3.1 A state is a vector of amplitudes</a></li><li><a class="sub" href="#32-amplitudes-are-not-probabilities">3.2 Amplitudes are not probabilities</a></li><li><a class="sub" href="#33-a-gate-is-a-unitary-matrix">3.3 A gate is a unitary matrix</a></li><li><a class="sub" href="#34-superposition">3.4 Superposition</a></li><li><a class="sub" href="#35-interference--the-one-that-matters">3.5 Interference — the one that matters</a></li><li><a class="sub" href="#36-entanglement">3.6 Entanglement</a></li><li><a class="sub" href="#37-what-q42-does-not-model">3.7 What Q42 does not model</a></li><li><a class="" href="#4-why-42-already-fitted">4. Why 42 already fitted</a></li><li><a class="sub" href="#41-inv-and--are-the-same-operation">4.1 inv and † are the same operation</a></li><li><a class="sub" href="#42-42s-primitives-were-the-right-ones-already">4.2 42&#x27;s primitives were the right ones already</a></li><li><a class="" href="#5-what-q42-drops">5. What Q42 drops</a></li><li><a class="sub" href="#51--and--need-1--1--1">5.1 | and ^ need 1 + 1 = 1</a></li><li><a class="sub" href="#52-copy-is-not-the-no-cloning-theorem">5.2 copy is not the no-cloning theorem</a></li><li><a class="sub" href="#53-where-the-restriction-actually-bites">5.3 Where the restriction actually bites</a></li><li><a class="" href="#6-what-q42-adds">6. What Q42 adds</a></li><li><a class="sub" href="#61-the-generators">6.1 The generators</a></li><li><a class="sub" href="#62-phases-are-the-sum-functor">6.2 Phases are the sum functor</a></li><li><a class="sub" href="#63-hadamard-and-up-to-phase">6.3 Hadamard, and &quot;up to phase&quot;</a></li><li><a class="sub" href="#64-control-is-dist-which-you-have-already-met">6.4 Control is dist, which you have already met</a></li><li><a class="" href="#7-writing-programs">7. Writing programs</a></li><li><a class="sub" href="#71-a-qubit-is-1--1">7.1 A qubit is 1 + 1</a></li><li><a class="sub" href="#72-registers-and-kets">7.2 Registers and kets</a></li><li><a class="sub" href="#73-the-commands">7.3 The commands</a></li><li><a class="sub" href="#74-superpositions-in-and-why-that-needed-new-machinery">7.4 Superpositions in, and why that needed new machinery</a></li><li><a class="sub" href="#75-measuring-the-result">7.5 Measuring the result</a></li><li><a class="" href="#8-worked-examples">8. Worked examples</a></li><li><a class="sub" href="#81-fibonacci-why-the-obvious-version-cannot-exist">8.1 Fibonacci: why the obvious version cannot exist</a></li><li><a class="sub" href="#82-what-works-fix-the-width">8.2 What works: fix the width</a></li><li><a class="sub" href="#83-the-quantum-part">8.3 The quantum part</a></li><li><a class="sub" href="#84-deutschs-algorithm-and-what-q42-shows-you">8.4 Deutsch&#x27;s algorithm, and what Q42 shows you</a></li><li><a class="sub" href="#85-teleportation-without-measuring-in-the-middle">8.5 Teleportation, without measuring in the middle</a></li><li><a class="" href="#9-what-q42-is-and-is-not-for">9. What Q42 is, and is not, for</a></li><li><a class="sub" href="#91-what-it-is-for">9.1 What it is for</a></li><li><a class="sub" href="#92-where-the-language-stops">9.2 Where the language stops</a></li><li><a class="sub" href="#93-the-comparison-that-is-not-the-right-one">9.3 The comparison that is not the right one</a></li><li><a class="sub" href="#94-could-a-q42-program-run-on-real-hardware">9.4 Could a Q42 program run on real hardware?</a></li><li><a class="" href="#10-reference">10. Reference</a></li><li><a class="sub" href="#primitives">Primitives</a></li><li><a class="sub" href="#gates-in-q42gates42">Gates in q42/gates.42</a></li><li><a class="sub" href="#commands">Commands</a></li><li><a class="sub" href="#source-files">Source files</a></li><li><a class="sub" href="#further-reading">Further reading</a></li></ol>
+  </nav>
+  <main><p>For a reader with a computer science background who has read <a href="MANUAL.md"><code>MANUAL.md</code></a>. No prior knowledge of quantum mechanics is assumed; the physics is developed here from scratch, but only as far as Q42 actually needs it, and the parts Q42 does <em>not</em> model are named as such.</p>
+<hr aria-hidden="true">
+<hr aria-hidden="true">
+<h2 id="1-one-change-and-everything-follows"><a class="anchor" href="#1-one-change-and-everything-follows" aria-label="Link to this section">#</a>1. One change, and everything follows</h2>
+<ul><li><a href="#11-a-program-is-a-grid">1.1 A program is a grid</a></li><li><a href="#12-running-backwards-is-reading-the-other-way">1.2 Running backwards is reading the other way</a></li><li><a href="#13-composing-is-combining-grids">1.3 Composing is combining grids</a></li><li><a href="#14-q42-puts-numbers-in-the-cells">1.4 Q42 puts numbers in the cells</a></li><li><a href="#15-the-whole-difference-in-one-table">1.5 The whole difference, in one table</a></li></ul>
+<p>42 computes with <strong>sets</strong>: a program relates inputs to outputs, and running it backwards gives the set of everything an answer could have come from.</p>
+<p>Q42 computes with <strong>complex numbers</strong>: each input–output pairing carries a number, and those numbers can cancel.</p>
+<p>That is the entire difference. The rest of this section makes it concrete, because the way to see it is to draw a 42 program as a grid and then change what sits in the cells.</p>
+<h3 id="11-a-program-is-a-grid"><a class="anchor" href="#11-a-program-is-a-grid" aria-label="Link to this section">#</a>1.1 A program is a grid</h3>
+<p>Take a shape with finitely many values — the two-value shape <code>1 + 1</code>, whose values are <code>L ()</code> and <code>R ()</code> (<code>MANUAL.md</code> §3.1). A program from that shape to itself either can or cannot turn each input into each output, so you can write the whole program down as a grid: one row per input, one column per output, and a mark where the program can get from one to the other.</p>
+<p>Here is <code>not</code>, which is <code>swapsum</code>:</p>
+<div class="code"><pre><code>        to  L ()  R ()
+  from
+  L ()        .     *
+  R ()        *     .</code></pre></div>
+<p>Read a <strong>row</strong> as "what this input can produce". <code>L ()</code> produces only <code>R ()</code>, which is what negation does.</p>
+<p>A program need not have exactly one mark per row. <code>inl!</code> removes an <code>L</code> label and rejects anything else, so its row for <code>R ()</code> is empty — that is 42's <code>{}</code>, drawn:</p>
+<div class="code"><pre><code>        to    ()
+  from
+  L ()        *
+  R ()        .</code></pre></div>
+<p>And <code>join!</code> — which forgets nothing going backwards and so must offer both labels — has <em>two</em> marks in one row. That is a set of two answers, drawn:</p>
+<div class="code"><pre><code>        to  L ()  R ()
+  from
+    ()        *     *</code></pre></div>
+<p>Nothing new has been said yet. This is the same "a program returns a set" from <code>MANUAL.md</code> §7, written as a picture instead of as a list.</p>
+<h3 id="12-running-backwards-is-reading-the-other-way"><a class="anchor" href="#12-running-backwards-is-reading-the-other-way" aria-label="Link to this section">#</a>1.2 Running backwards is reading the other way</h3>
+<p>Now the useful part. To run a program backwards you ask, of an output, which inputs could have produced it — and that is reading the grid down a <strong>column</strong> instead of along a row.</p>
+<p>So <code>!</code> <strong>is the grid, flipped about its diagonal.</strong> Compare <code>join!</code> above with <code>join</code>:</p>
+<div class="code"><pre><code>                                        to    ()
+        to  L ()  R ()           from
+  from                    !  =   L ()        *
+    ()        *     *            R ()        *</code></pre></div>
+<p>Same marks, rows and columns exchanged. This is why <code>MANUAL.md</code> never needed a second algorithm for the backward direction, and why <code>f!!</code> is <code>f</code>: flipping twice puts everything back.</p>
+<h3 id="13-composing-is-combining-grids"><a class="anchor" href="#13-composing-is-combining-grids" aria-label="Link to this section">#</a>1.3 Composing is combining grids</h3>
+<p><code>f ; g</code> means "do <code>f</code>, then <code>g</code>". So <code>f ; g</code> can get from <code>x</code> to <code>z</code> exactly when there is some middle value <code>y</code> with <code>f</code> reaching <code>y</code> and <code>g</code> reaching <code>z</code> from it. In grid terms: to fill in cell <code>(x, z)</code>, walk along row <code>x</code> of <code>f</code> and down column <code>z</code> of <code>g</code>, and look for a position where <strong>both</strong> have a mark.</p>
+<p>That rule — <em>for each middle value, take AND; across all middle values, take OR</em> — is what mathematicians call <strong>matrix multiplication</strong>, with <code>and</code> in place of <code>×</code> and <code>or</code> in place of <code>+</code>. So 42's grids are matrices whose entries are <code>0</code> and <code>1</code>, and <code>;</code> is matrix multiplication over those. That is the whole of what "42 is matrices over the booleans" means, and you have just derived it.</p>
+<h3 id="14-q42-puts-numbers-in-the-cells"><a class="anchor" href="#14-q42-puts-numbers-in-the-cells" aria-label="Link to this section">#</a>1.4 Q42 puts numbers in the cells</h3>
+<p>Q42 changes one thing: a cell holds a <strong>complex number</strong> instead of a mark. Call it an <strong>amplitude</strong>; §3.2 says what it means physically.</p>
+<p>Here is <code>h</code>, the Hadamard gate, whose grid Q42 will print for you:</p>
+<div class="code"><pre><code>$ 42q matrix gates h
+h : qubit &lt;-&gt; qubit
+     |0&gt;  [  0.707107   0.707107 ]
+     |1&gt;  [  0.707107  -0.707107 ]</code></pre></div>
+<p>Same 2×2 grid as <code>not</code>, but with numbers, and — this is the point — <strong>one of them is negative.</strong></p>
+<p>One wrinkle before going on. The grids in §1.1 put inputs in rows, which reads naturally as "from, to". <code>42q matrix</code> prints them the other way up: its <strong>rows are outputs and its columns are inputs</strong>. That is the universal convention in physics, because a gate is written as acting on a column of amplitudes, <code>U|ψ&gt;</code>. The two pictures hold the same information — one is the other transposed — and it does not show on <code>h</code>, whose grid happens to be symmetric. It does show on, say, <code>x ; s</code>, where the lone <code>i</code> sits in row <code>|1&gt;</code>, column <code>|0&gt;</code>: the gate takes input <code>|0&gt;</code> to output <code>i|1&gt;</code>.</p>
+<p>Composition works exactly as in §1.3, with the OR and AND becoming ordinary <code>+</code> and <code>×</code>, since that is what they were standing in for. So compose <code>h</code> with itself and fill in the <code>|1&gt;</code> cell of the first row: walk along <code>h</code>'s row for <code>|0&gt;</code> and down <code>h</code>'s column for <code>|1&gt;</code>, multiplying and adding.</p>
+<div class="code"><pre><code>    via |0&gt; :  +0.7071 x +0.7071  =  +0.5000
+    via |1&gt; :  +0.7071 x -0.7071  =  -0.5000
+    total   :                        0.0000</code></pre></div>
+<p>The two routes <strong>cancel</strong>. With marks that could not have happened: <code>* or *</code> is <code>*</code>, and more ways of reaching an answer only ever makes it more reachable. With numbers, one route can undo another.</p>
+<div class="code"><pre><code>$ 42q gates hh "|0&gt;"
+hh |0&gt;
+  = |0&gt;</code></pre></div>
+<p>Two Hadamards leave <code>|0&gt;</code> exactly where it started. This is called <strong>interference</strong>, it is the source of every quantum algorithm's advantage over a classical one, and §3.5 returns to it. For now it is enough that it is arithmetic you can check by hand.</p>
+<h3 id="15-the-whole-difference-in-one-table"><a class="anchor" href="#15-the-whole-difference-in-one-table" aria-label="Link to this section">#</a>1.5 The whole difference, in one table</h3>
+<p>With §§1.1–1.4 in hand, the summary is readable:</p>
+<div class="scroller"><table><thead><tr><th></th><th>42</th><th>Q42</th></tr></thead><tbody><tr><td>a cell holds</td><td>a mark: reachable or not</td><td>a complex number</td></tr><tr><td>a row says</td><td>the <strong>set</strong> of answers</td><td>the answers, each with an amplitude</td></tr><tr><td><code>;</code> combines grids by</td><td>AND down the middle, then OR</td><td><code>×</code> down the middle, then <code>+</code></td></tr><tr><td><code>!</code> is</td><td>the grid flipped (§1.2)</td><td>flipped, and each entry conjugated</td></tr><tr><td><code>+</code> and <code>*</code></td><td>build a bigger grid out of two</td><td>the same, unchanged</td></tr><tr><td>more routes to an answer</td><td>only ever helps</td><td>can cancel out</td></tr></tbody></table></div>
+<p>The last row is the only one that is a real difference, and every other difference follows from it. Numbers have negatives; marks do not.</p>
+<p>Two names for the record, since the literature uses them. A system with an addition and a multiplication but no need for subtraction is a <strong>semiring</strong>; <code>{0,1}</code> with <code>or</code>/<code>and</code> is one, and ℂ is another, so "Q42 is 42 over a different semiring" is a one-line way to say all of the above. And flipping-and-conjugating a matrix is called taking its <strong>adjoint</strong>, written <code>M†</code> — so <code>!</code> denotes the converse of a relation in 42 and the adjoint of a matrix in Q42, which §4.1 shows is the same operation twice.</p>
+<h2 id="2-why-reversibility-is-forced"><a class="anchor" href="#2-why-reversibility-is-forced" aria-label="Link to this section">#</a>2. Why reversibility is forced</h2>
+<p>Before the physics, the engineering reason a computer scientist should care.</p>
+<h3 id="erasing-a-bit-costs-energy"><a class="anchor" href="#erasing-a-bit-costs-energy" aria-label="Link to this section">#</a>Erasing a bit costs energy</h3>
+<p><strong>Landauer's principle</strong> (1961): erasing one bit of information in a computer at temperature <code>T</code> must dissipate at least <code>kT ln 2</code> joules as heat, where <code>k</code> is Boltzmann's constant. At room temperature that is about <code>2.9 × 10⁻²¹</code> joules — utterly negligible per bit today, and a hard floor that no cleverness removes.</p>
+<p>The point is <em>why</em> there is a floor. Information that is destroyed has to go somewhere; it becomes entropy in the environment. A computation that never destroys information has no such floor, and Bennett showed in 1973 that any computation can be rearranged into one that doesn't. That is the origin of reversible computing as a field, and of 42.</p>
+<h3 id="quantum-mechanics-has-no-choice-at-all"><a class="anchor" href="#quantum-mechanics-has-no-choice-at-all" aria-label="Link to this section">#</a>Quantum mechanics has no choice at all</h3>
+<p>For quantum computers this stops being an efficiency argument and becomes a constraint. The evolution of an isolated quantum system is described by a <strong>unitary</strong> matrix (§3), and every unitary has an inverse. There is no such thing as an irreversible quantum gate, in the way that there is no such thing as a triangle with four sides. It is not a design decision anyone made.</p>
+<p>So the familiar irreversible operations are simply unavailable:</p>
+<div class="code"><pre><code>c = a AND b</code></pre></div>
+<p>destroys information — knowing <code>c = 0</code> tells you almost nothing about <code>a</code> and <code>b</code> — so there is no two-input AND gate. What exists instead is the <strong>Toffoli</strong> gate, which keeps its inputs and writes the answer into a third wire:</p>
+<div class="code"><pre><code>(a, b, c)  |-&gt;  (a, b, c XOR (a AND b))</code></pre></div>
+<p>Set <code>c = 0</code> and the third component becomes <code>a AND b</code>, with <code>a</code> and <code>b</code> still there. This is exactly the padding trick from <code>MANUAL.md</code> §11.3, where <code>mul</code> keeps its multiplier in order to stay invertible. The same pressure produces the same answer in both places.</p>
+<h3 id="uncomputation"><a class="anchor" href="#uncomputation" aria-label="Link to this section">#</a>Uncomputation</h3>
+<p>Padding has a cost: the kept-around values pile up. If you compute an intermediate <code>x</code>, use it, and no longer want it, you cannot simply drop it — that would be erasing information. You must <strong>uncompute</strong> it by running its producer backwards.</p>
+<p>The pattern is <code>P ; Q ; P!</code> — do the work, use it, undo the work. In Q42 that is an ordinary term, because <code>!</code> is part of the language, and because every Q42 term is invertible <code>P!</code> really is <code>P</code>'s inverse. Languages like Silq spend considerable machinery on <em>inferring</em> where to insert this; here you write it, and it is three characters.</p>
+<hr aria-hidden="true">
+<h2 id="3-the-physics-you-need"><a class="anchor" href="#3-the-physics-you-need" aria-label="Link to this section">#</a>3. The physics you need</h2>
+<ul><li><a href="#31-a-state-is-a-vector-of-amplitudes">3.1 A state is a vector of amplitudes</a></li><li><a href="#32-amplitudes-are-not-probabilities">3.2 Amplitudes are not probabilities</a></li><li><a href="#33-a-gate-is-a-unitary-matrix">3.3 A gate is a unitary matrix</a></li><li><a href="#34-superposition">3.4 Superposition</a></li><li><a href="#35-interference--the-one-that-matters">3.5 Interference — the one that matters</a></li><li><a href="#36-entanglement">3.6 Entanglement</a></li><li><a href="#37-what-q42-does-not-model">3.7 What Q42 does not model</a></li></ul>
+<p>Enough to read Q42 programs, and no more. Everything here is finite-dimensional linear algebra; nothing requires an understanding of physics.</p>
+<h3 id="31-a-state-is-a-vector-of-amplitudes"><a class="anchor" href="#31-a-state-is-a-vector-of-amplitudes" aria-label="Link to this section">#</a>3.1 A state is a vector of amplitudes</h3>
+<p>A classical bit is <code>0</code> or <code>1</code>. A <strong>qubit</strong> is a pair of complex numbers, one attached to each of those two possibilities:</p>
+<div class="code"><pre><code>|psi&gt;  =  c0 |0&gt;  +  c1 |1&gt;          c0, c1 in C</code></pre></div>
+<p><code>|0&gt;</code> and <code>|1&gt;</code> are just names for the two basis vectors — the notation <code>|x&gt;</code> is called a <em>ket</em> and is nothing more than a way of writing "the basis vector labelled <code>x</code>". The <code>cᵢ</code> are <strong>amplitudes</strong>.</p>
+<p>For <code>n</code> qubits there are <code>2ⁿ</code> basis states, <code>|000…&gt;</code> through <code>|111…&gt;</code>, and a state is <code>2ⁿ</code> amplitudes. That exponential is the whole reason simulating quantum computers is expensive, and the whole reason building them might be worth it.</p>
+<h3 id="32-amplitudes-are-not-probabilities"><a class="anchor" href="#32-amplitudes-are-not-probabilities" aria-label="Link to this section">#</a>3.2 Amplitudes are not probabilities</h3>
+<p>The probability of seeing outcome <code>x</code> if you look is <code>|cₓ|²</code> — the squared magnitude. This is the <strong>Born rule</strong>, and it is where the physics enters; the rest is linear algebra.</p>
+<p>Two consequences a computer scientist should internalise:</p>
+<ul><li>Probabilities must sum to <code>1</code>, so <code>Σ |cᵢ|² = 1</code>. A state is a <strong>unit vector</strong>.</li><li>Amplitudes can be <strong>negative</strong>, or complex. Probabilities cannot. This is the entire difference between a quantum computer and a randomised classical one, and everything interesting comes from it.</li></ul>
+<h3 id="33-a-gate-is-a-unitary-matrix"><a class="anchor" href="#33-a-gate-is-a-unitary-matrix" aria-label="Link to this section">#</a>3.3 A gate is a unitary matrix</h3>
+<p>A gate on <code>n</code> qubits is a <code>2ⁿ × 2ⁿ</code> complex matrix <code>U</code> satisfying</p>
+<div class="code"><pre><code>U† U  =  U U†  =  I</code></pre></div>
+<p>where <code>U†</code> ("U dagger") is the <strong>adjoint</strong>: transpose the matrix and conjugate every entry. Such a matrix is called <strong>unitary</strong>.</p>
+<p>Two things follow, and they are why the condition is the one physics imposes:</p>
+<ul><li><strong><code>U† </code> is <code>U</code>'s inverse.</strong> Reversibility, for free, for every gate.</li><li><strong><code>U</code> preserves length.</strong> Since states are unit vectors and probabilities are squared magnitudes, a map that changed length would produce probabilities not summing to <code>1</code>. Unitarity is exactly the condition "still a valid state afterwards".</li></ul>
+<p>Q42 spells <code>U†</code> as <code>U!</code>, which is the same <code>!</code> that <code>MANUAL.md</code> uses for running a program backwards. It is not an analogy: in 42 the operation is the converse of a relation, in Q42 the adjoint of a matrix, and they are the same structural operation in two different settings (§4).</p>
+<p>Q42 never checks unitarity, because it never has to — every primitive is unitary and every way of combining them preserves unitarity (§6). You can audit the claim:</p>
+<div class="code"><pre><code>$ 42q unitary gates
+  [ok ] h ; h! = id on 2 dimension(s)
+  [ok ] ccx ; ccx! = id on 8 dimension(s)
+  ...
+-- 24/26 unitary, 2 with no single matrix</code></pre></div>
+<h3 id="34-superposition"><a class="anchor" href="#34-superposition" aria-label="Link to this section">#</a>3.4 Superposition</h3>
+<p>A state with more than one nonzero amplitude is in <strong>superposition</strong>. The Hadamard gate makes one from a definite input:</p>
+<div class="code"><pre><code>$ 42q gates h "|0&gt;"
+h |0&gt;
+  = 0.707107|0&gt;  +  0.707107|1&gt;</code></pre></div>
+<p><code>0.707107</code> is <code>1/√2</code>, so both outcomes have probability <code>(1/√2)² = 1/2</code>.</p>
+<p>It is tempting, and wrong, to read this as "the qubit is secretly 0 or 1 and we don't know which". The next section is why.</p>
+<h3 id="35-interference--the-one-that-matters"><a class="anchor" href="#35-interference--the-one-that-matters" aria-label="Link to this section">#</a>3.5 Interference — the one that matters</h3>
+<p>Apply <code>h</code> a second time. Classically, randomising a coin twice leaves it random. Here:</p>
+<div class="code"><pre><code>$ 42q gates hh "|0&gt;"
+hh |0&gt;
+  = |0&gt;</code></pre></div>
+<p>The randomness is <em>gone</em>. Follow the arithmetic. <code>H|0&gt;</code> is <code>0.7071|0&gt; + 0.7071|1&gt;</code>; now apply <code>H</code> to each part and collect the results:</p>
+<div class="code"><pre><code>    from |0&gt; -&gt; |0&gt; :  +0.7071 x +0.7071  =  +0.5
+    from |1&gt; -&gt; |0&gt; :  +0.7071 x +0.7071  =  +0.5      sum: +1.0
+    from |0&gt; -&gt; |1&gt; :  +0.7071 x +0.7071  =  +0.5
+    from |1&gt; -&gt; |1&gt; :  +0.7071 x -0.7071  =  -0.5      sum:  0.0</code></pre></div>
+<p>Two routes lead to <code>|1&gt;</code> and they arrive with <strong>opposite signs</strong>, so they cancel. This is <strong>destructive interference</strong>, and it has no classical counterpart: probabilities are non-negative and adding more routes to an outcome can only make it likelier. Amplitudes are not so constrained.</p>
+<p>Every quantum algorithm that beats its classical rival does it this way — arrange for the wrong answers' amplitudes to cancel and the right answer's to reinforce. Grover's search and Shor's factoring are both this, elaborately.</p>
+<p><strong>This is precisely what 42 cannot express.</strong> Over the booleans the two routes to <code>|1&gt;</code> would be <code>1 ∨ 1 = 1</code>: still possible. There is no <code>−1</code> to cancel with. 42 tells you which outcomes are <em>reachable</em>; it cannot tell you that two ways of reaching one annihilate.</p>
+<h3 id="36-entanglement"><a class="anchor" href="#36-entanglement" aria-label="Link to this section">#</a>3.6 Entanglement</h3>
+<p>Two qubits have four basis states, and a state of the pair is four amplitudes. Sometimes those factor into "this qubit is in state <code>ψ</code>, that one in state <code>φ</code>", and sometimes they do not. When they do not, the qubits are <strong>entangled</strong> and neither has a state of its own.</p>
+<div class="code"><pre><code>$ 42q gates bell "|00&gt;"
+bell |00&gt;
+  = 0.707107|00&gt;  +  0.707107|11&gt;</code></pre></div>
+<p>Both qubits are certainly equal and neither is certainly anything. The test is mechanical: write the amplitudes as a 2×2 matrix indexed by the two qubits, and the state is a product exactly when the determinant is zero. Here</p>
+<div class="code"><pre><code>c00 c11 - c01 c10  =  0.7071 x 0.7071 - 0 x 0  =  0.5</code></pre></div>
+<p>which is not zero, so it does not factor.</p>
+<p>Entanglement is why Q42 needs one piece of machinery 42 did not (§7.4): a state of a compound system is not in general a pair of states.</p>
+<h3 id="37-what-q42-does-not-model"><a class="anchor" href="#37-what-q42-does-not-model" aria-label="Link to this section">#</a>3.7 What Q42 does not model</h3>
+<p>Stated plainly, because a manual that quietly omits these would be misleading.</p>
+<ul><li><strong>Measurement, except at the end.</strong> Q42 computes the unitary. You may measure the <em>result</em> (§7.5) — that is the Born rule applied to a finished state — but nothing collapses mid-program, so there is no measuring, branching on the outcome, and carrying on. §9.2 is precise about the difference.</li><li><strong>Normalisation.</strong> Q42 does not enforce <code>Σ|cᵢ|² = 1</code>. It does not need to: a ket you type in is a unit vector, and unitary maps preserve length, so a well-formed program cannot leave that set.</li><li><strong>Noise, decoherence, error correction.</strong> Nothing here is modelled.</li><li><strong>Global phase.</strong> Multiplying an entire state by a unit complex number is physically undetectable. Q42 tracks it faithfully anyway, which is why some gate identities hold only "up to phase" (§6.3).</li></ul>
+<hr aria-hidden="true">
+<h2 id="4-why-42-already-fitted"><a class="anchor" href="#4-why-42-already-fitted" aria-label="Link to this section">#</a>4. Why 42 already fitted</h2>
+<ul><li><a href="#41-inv-and--are-the-same-operation">4.1 <code>inv</code> and <code>†</code> are the same operation</a></li><li><a href="#42-42s-primitives-were-the-right-ones-already">4.2 42's primitives were the right ones already</a></li></ul>
+<p>Q42 differs from 42 in very little, and the reason is structural rather than accidental.</p>
+<h3 id="41-inv-and--are-the-same-operation"><a class="anchor" href="#41-inv-and--are-the-same-operation" aria-label="Link to this section">#</a>4.1 <code>inv</code> and <code>†</code> are the same operation</h3>
+<p>Both settings are <strong>dagger categories</strong> — a structure with composition, an identity, and an inversion operation <code>†</code> satisfying</p>
+<div class="code"><pre><code>(f ; g)†  =  g† ; f†                 inversion reverses composites
+f††       =  f                       it is an involution
+id†       =  id                      it fixes identities</code></pre></div>
+<p>Relations satisfy these with <code>†</code> = converse. Complex matrices satisfy them with <code>†</code> = conjugate transpose. This is the founding observation of <em>categorical quantum mechanics</em> (Abramsky &amp; Coecke, 2004), and it means <code>rel42/core.py</code>'s <code>dagger</code> function is already the right function; only the primitive table it consults has to change.</p>
+<p>Compare, from <code>README.md</code> and this manual respectively:</p>
+<div class="code"><pre><code>42 :   x in P(y)      &lt;=&gt;   y in inv(P)(x)
+Q42:   &lt;x| P |y&gt;       =    conj( &lt;y| P! |x&gt; )</code></pre></div>
+<p>The same law, with membership replaced by amplitude equality. <code>&lt;x| P |y&gt;</code> is the matrix entry of <code>P</code> in row <code>x</code>, column <code>y</code>. You can check it:</p>
+<div class="code"><pre><code>$ 42q law gates h "|0&gt;"
+h |0&gt; has 2 component(s)
+  [ok ] |0&gt;: &lt;y|P|x&gt; = 0.707107, &lt;x|P!|y&gt; = 0.707107
+  [ok ] |1&gt;: &lt;y|P|x&gt; = 0.707107, &lt;x|P!|y&gt; = 0.707107
+law holds</code></pre></div>
+<h3 id="42-42s-primitives-were-the-right-ones-already"><a class="anchor" href="#42-42s-primitives-were-the-right-ones-already" aria-label="Link to this section">#</a>4.2 42's primitives were the right ones already</h3>
+<p>42's primitives are the isomorphisms witnessing that <code>0, 1, +, ×</code> form a commutative semiring — <code>a + b ↔ b + a</code>, <code>1 × a ↔ a</code>, <code>(a + b) × c ↔ a×c + b×c</code> and so on. That collection has a name: it is a presentation of a <strong>rig groupoid</strong>, and it is essentially the language <strong>Π</strong> of James &amp; Sabry, arrived at independently in 42.</p>
+<p>This matters because of a result of Carette, Heunen, Kaarsgaard &amp; Sabry (POPL 2024): a rig groupoid extended with <strong>two maps and three equations</strong> is computationally universal for quantum computing. Those two maps are §6. Q42 is that construction, given 42's syntax.</p>
+<p>So the whole of the difference is: the semiring changes, the primitives that are not unitary go, and two unitary ones arrive. The evaluator, the type system and <code>dagger</code> are 42's, unchanged.</p>
+<hr aria-hidden="true">
+<h2 id="5-what-q42-drops"><a class="anchor" href="#5-what-q42-drops" aria-label="Link to this section">#</a>5. What Q42 drops</h2>
+<ul><li><a href="#51--and--need-1--1--1">5.1 <code>|</code> and <code>^</code> need <code>1 + 1 = 1</code></a></li><li><a href="#52-copy-is-not-the-no-cloning-theorem">5.2 <code>copy</code> is not the no-cloning theorem</a></li><li><a href="#53-where-the-restriction-actually-bites">5.3 Where the restriction actually bites</a></li></ul>
+<p>Five primitives and two combining forms. Each is dropped for a reason you can check, not by taste.</p>
+<h3 id="51--and--need-1--1--1"><a class="anchor" href="#51--and--need-1--1--1" aria-label="Link to this section">#</a>5.1 <code>|</code> and <code>^</code> need <code>1 + 1 = 1</code></h3>
+<p>This one is exact. Over the booleans <code>x ∨ x = x</code> — adding is <strong>idempotent</strong>. Over ℂ, <code>1 + 1 = 2</code>.</p>
+<p><code>f | g</code> means "either", which as a matrix is <code>⟦f⟧ + ⟦g⟧</code>. Over the booleans <code>f | f</code> is <code>f</code>; over ℂ it would be <code>2f</code>, which is not the same relation and not even unitary. And <code>f^</code> is a least fixed point computed by saturation — repeat until nothing new appears — which is only meaningful when repetition stabilises.</p>
+<p>Write <code>def bad = id | id</code> in a Q42 file and it is refused before it runs, with the reason: <em>"over C it would denote the sum of two matrices, so <code>f | f</code> would be <code>2f</code>. Superposition comes from <code>v</code>, not from choice."</em> (<code>v</code> is one of the two primitives Q42 adds; section 6.)</p>
+<p>There is a trap worth naming. <code>|</code> <em>looks</em> like where superposition should come from, since over ℂ it is literally adding two vectors. It is not. Superposition comes from applying a gate (<code>v</code> or <code>h</code>) to a definite state. Keeping <code>|</code> would buy nothing but the ability to write non-unitary sums.</p>
+<h3 id="52-copy-is-not-the-no-cloning-theorem"><a class="anchor" href="#52-copy-is-not-the-no-cloning-theorem" aria-label="Link to this section">#</a>5.2 <code>copy</code> is not the no-cloning theorem</h3>
+<p><code>copy : a ↔ a × a</code> is dropped, and the reason is more interesting than "quantum states can't be copied".</p>
+<p>The <strong>no-cloning theorem</strong> says there is no unitary <code>U</code> with <code>U(|ψ&gt; ⊗ |0&gt;) = |ψ&gt; ⊗ |ψ&gt;</code> for <em>every</em> <code>ψ</code>. 42's <code>copy</code> does not attempt that. It maps each <em>basis</em> state <code>|x&gt;</code> to <code>|x,x&gt;</code>, and extends linearly — so it sends <code>|0&gt;+|1&gt;</code> to <code>|00&gt;+|11&gt;</code>, which is the Bell state, not <code>(|0&gt;+|1&gt;)⊗(|0&gt;+|1&gt;)</code>. That is a perfectly legitimate quantum operation. In categorical quantum mechanics this map, with its adjoint, is a <strong>classical structure</strong>, and Coecke and Pavlović showed those correspond exactly to a choice of measurement basis.</p>
+<p>So why is it out? Because it is not <strong>square</strong>. It maps a space of dimension <code>n</code> into one of dimension <code>n²</code>, and a unitary must map a space to itself. A length-preserving map into a <em>larger</em> space is called an <strong>isometry</strong>; every unitary is an isometry, but not conversely.</p>
+<p><code>q42/rejected.42</code> contains nothing but <code>def bad = copy</code>, so that you can see the refusal for yourself:</p>
+<div class="code"><pre><code>$ 42q rejected bad "|0&gt;"
+error: `bad` uses `copy`, a 42 primitive that Q42 does not have: the diagonal is
+an isometry but not a surjection, hence not unitary. It copies basis states
+only, so it is a measurement basis rather than an illegal cloner -- but it still
+has no adjoint that inverts it</code></pre></div>
+<p><code>inl</code>, <code>inr</code> and <code>zero</code> go for the same dimensional reason: <code>inl : a ↔ a + b</code> embeds <code>ℂⁿ</code> in <code>ℂⁿ⁺ᵐ</code>, and <code>zero</code> is the zero matrix, which inverts nothing. <code>join : a + a ↔ a</code> maps down rather than up, and is the mirror image of the same problem — and it was 42's only source of many-valued answers, so with it goes all nondeterminism.</p>
+<h3 id="53-where-the-restriction-actually-bites"><a class="anchor" href="#53-where-the-restriction-actually-bites" aria-label="Link to this section">#</a>5.3 Where the restriction actually bites</h3>
+<p>A useful sanity check, because "not unitary" sounds more restrictive than it is. <strong>In finite dimensions, an isometry from a space to itself is automatically unitary.</strong> So the restriction has exactly two ways to catch you:</p>
+<ol><li><strong>The spaces differ in size</strong> — <code>copy</code>, <code>inl</code>, <code>inr</code>. Nothing can be done; these are genuinely not gates.</li><li><strong>The space is infinite-dimensional.</strong> This is the subtler one and it is why Q42 has no arithmetic on unbounded numbers; §8 is the worked case.</li></ol>
+<hr aria-hidden="true">
+<h2 id="6-what-q42-adds"><a class="anchor" href="#6-what-q42-adds" aria-label="Link to this section">#</a>6. What Q42 adds</h2>
+<ul><li><a href="#61-the-generators">6.1 The generators</a></li><li><a href="#62-phases-are-the-sum-functor">6.2 Phases are the sum functor</a></li><li><a href="#63-hadamard-and-up-to-phase">6.3 Hadamard, and "up to phase"</a></li><li><a href="#64-control-is-dist-which-you-have-already-met">6.4 Control is <code>dist</code>, which you have already met</a></li></ul>
+<p>Two primitives. Everything else in <code>q42/gates.42</code> is derived from them and from 42's existing plumbing.</p>
+<h3 id="61-the-generators"><a class="anchor" href="#61-the-generators" aria-label="Link to this section">#</a>6.1 The generators</h3>
+<div class="code"><pre><code>omega : 1 &lt;-&gt; 1            a scalar; an 8th root of 1
+v     : 1+1 &lt;-&gt; 1+1        a square root of `swapsum`</code></pre></div>
+<p><code>omega</code> acts on the unit type — it is a number, not a gate, and multiplies whatever it is combined with. <code>v</code> acts on one qubit and squares to negation: apply it twice and you have flipped the bit, so it is "half a NOT", which has no classical meaning at all.</p>
+<p>They satisfy three equations, where <code>S = id + (omega ; omega)</code>:</p>
+<div class="code"><pre><code>(E1)  omega^8   =  id
+(E2)  v ; v     =  swapsum
+(E3)  v ; S ; v =  omega^2 . (S ; v ; S)</code></pre></div>
+<p>(E1) and (E2) only say the two square roots exist. <strong>(E3) is the one that does the work.</strong> Without it, <code>omega = id</code> would satisfy everything and the language would collapse to classical reversible computing. (E3) says that two ways of decomposing a rotation — around one axis then another, or the other way about — agree. That is the <em>Euler decomposition</em> of the Hadamard gate, and pinning it down is what forces <code>omega</code> to be a genuine eighth root of unity rather than 1.</p>
+<p>In the standard model <code>omega = e^{iπ/4}</code> and <code>v</code> is a specific square root of the NOT matrix. You never write a complex number in a Q42 program; you write <code>omega</code> and <code>v</code>.</p>
+<h3 id="62-phases-are-the-sum-functor"><a class="anchor" href="#62-phases-are-the-sum-functor" aria-label="Link to this section">#</a>6.2 Phases are the sum functor</h3>
+<p>A phase gate multiplies <code>|1&gt;</code> by a constant and leaves <code>|0&gt;</code> alone. In 42's notation that is exactly <code>id + &lt;something&gt;</code> — the sum functor, acting on the right branch only:</p>
+<div class="code"><pre><code>def t = id + omega                              -- diag(1, e^{i pi/4})
+def s = id + (omega ; omega)                    -- diag(1, i)
+def z = id + (omega ; omega ; omega ; omega)    -- diag(1, -1)</code></pre></div>
+<div class="code"><pre><code>$ 42q matrix gates s
+s : qubit &lt;-&gt; qubit
+     |0&gt;  [  1   0 ]
+     |1&gt;  [  0  1i ]</code></pre></div>
+<p>Nothing was added to the language to express this. <code>+</code> already meant "switch on the label", and a phase gate is a switch that does nothing on one branch.</p>
+<h3 id="63-hadamard-and-up-to-phase"><a class="anchor" href="#63-hadamard-and-up-to-phase" aria-label="Link to this section">#</a>6.3 Hadamard, and "up to phase"</h3>
+<div class="code"><pre><code>def h = &lt;scale by omega&gt; (x ; s ; v ; s ; x)</code></pre></div>
+<p>which is the Euler decomposition of §6.1 written out. Note that <code>x ; s ; v ; s ; x</code> is a palindrome, so for once it reads the same in either direction.</p>
+<p>The <code>omega</code> in front is a <strong>global phase</strong>. Physically it is undetectable — no measurement can distinguish <code>|ψ&gt;</code> from <code>e^{iθ}|ψ&gt;</code> — so many gate identities in the literature hold only "up to phase". Q42 tracks it exactly anyway, which is why <code>h</code> comes out as the textbook matrix on the nose rather than nearly:</p>
+<div class="code"><pre><code>$ 42q matrix gates h
+h : qubit &lt;-&gt; qubit
+     |0&gt;  [  0.707107   0.707107 ]
+     |1&gt;  [  0.707107  -0.707107 ]</code></pre></div>
+<h3 id="64-control-is-dist-which-you-have-already-met"><a class="anchor" href="#64-control-is-dist-which-you-have-already-met" aria-label="Link to this section">#</a>6.4 Control is <code>dist</code>, which you have already met</h3>
+<p>A <strong>controlled</strong> gate applies its target gate only when the control qubit is <code>|1&gt;</code>. That is a conditional, and 42 does conditionals with <code>dist</code> (<code>MANUAL.md</code> §12.5). So:</p>
+<div class="code"><pre><code>def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  &lt;-&gt;  A + A
+def ctrl m = mat ; (id + m) ; mat!</code></pre></div>
+<p>split on the control bit, apply <code>m</code> on the <code>R</code> branch only, put it back. Every controlled gate is one line:</p>
+<div class="code"><pre><code>def cx    = ctrl x                              -- CNOT
+def ccx   = ctrl cx                             -- Toffoli
+def cswap = ctrl swap                           -- Fredkin</code></pre></div>
+<p>The inferred type says what control requires and nothing more:</p>
+<div class="code"><pre><code>ctrl : (a &lt;-&gt; a) -&gt; (qubit x a &lt;-&gt; qubit x a)</code></pre></div>
+<p>the target must be an <em>endo</em>-relation — same type in and out — because both branches of <code>id + m</code> have to meet the <code>A + A</code> that <code>mat</code> produces.</p>
+<p>And its adjoint needs no definition. <code>ctrl! m</code> is <code>ctrl m!</code>, which in physics is <code>(Ctrl U)† = Ctrl U†</code>: the adjoint of a controlled gate is the controlled adjoint. That falls out of how <code>!</code> treats a parameter and is not arranged.</p>
+<hr aria-hidden="true">
+<h2 id="7-writing-programs"><a class="anchor" href="#7-writing-programs" aria-label="Link to this section">#</a>7. Writing programs</h2>
+<ul><li><a href="#71-a-qubit-is-1--1">7.1 A qubit is <code>1 + 1</code></a></li><li><a href="#72-registers-and-kets">7.2 Registers and kets</a></li><li><a href="#73-the-commands">7.3 The commands</a></li><li><a href="#74-superpositions-in-and-why-that-needed-new-machinery">7.4 Superpositions in, and why that needed new machinery</a></li><li><a href="#75-measuring-the-result">7.5 Measuring the result</a></li></ul>
+<h3 id="71-a-qubit-is-1--1"><a class="anchor" href="#71-a-qubit-is-1--1" aria-label="Link to this section">#</a>7.1 A qubit is <code>1 + 1</code></h3>
+<p>There is no qubit type. As in 42, a two-case choice carrying no data is <code>1 + 1</code>, and the two cases are <code>L ()</code> and <code>R ()</code>. Q42 calls them <code>|0&gt;</code> and <code>|1&gt;</code> when printing, and a file may name the type:</p>
+<div class="code"><pre><code>type qubit = 1 + 1</code></pre></div>
+<p>which is a printing abbreviation and changes nothing (<code>MANUAL.md</code> §3.7).</p>
+<h3 id="72-registers-and-kets"><a class="anchor" href="#72-registers-and-kets" aria-label="Link to this section">#</a>7.2 Registers and kets</h3>
+<p>Several qubits are a nested pair, to the right:</p>
+<div class="code"><pre><code>|abc&gt;   is   (a, (b, c))</code></pre></div>
+<p>You write states as kets on the command line — <code>"|0110&gt;"</code>, or just <code>"0110"</code>. Only <em>basis</em> states can be written down, and that is deliberate: you make superpositions by applying a gate, which is the entire point.</p>
+<h3 id="73-the-commands"><a class="anchor" href="#73-the-commands" aria-label="Link to this section">#</a>7.3 The commands</h3>
+<div class="code"><pre><code>42q FILE GATE STATE [-b]     apply a gate to a state
+42q sample  FILE GATE STATE  apply it, then measure -- see section 7.5
+42q law     FILE GATE STATE  check that `!` really is the adjoint
+42q unitary FILE [GATE]      check `t ; t! = id` over the whole basis
+42q matrix  FILE [GATE]      print the matrix
+42q emit    FILE [GATE]      write it out as OpenQASM 3 -- see section 9.4
+42q type    FILE [GATE]      infer the type
+42q show    FILE [GATE]      print a definition and its adjoint</code></pre></div>
+<p><code>matrix</code> and <code>unitary</code> need to know how big the space is, and the <em>type</em> is what tells them. Most gates are more polymorphic than "a gate on n qubits" — <code>x</code> is just <code>swapsum</code>, so its type is <code>a + b &lt;-&gt; b + a</code> — so those two commands take <code>--qubits N</code> to read a type at a given width:</p>
+<div class="code"><pre><code>$ 42q matrix gates cswap --qubits 3
+cswap : qubit x (qubit x qubit) &lt;-&gt; qubit x (qubit x qubit)
+   |000&gt;  [ 1  0  0  0  0  0  0  0 ]
+   ...
+   |101&gt;  [ 0  0  0  0  0  0  1  0 ]
+   |110&gt;  [ 0  0  0  0  0  1  0  0 ]
+   ...</code></pre></div>
+<h3 id="74-superpositions-in-and-why-that-needed-new-machinery"><a class="anchor" href="#74-superpositions-in-and-why-that-needed-new-machinery" aria-label="Link to this section">#</a>7.4 Superpositions in, and why that needed new machinery</h3>
+<p>42 applies a program to one value at a time and unions the results. Q42 cannot quite do that, and the reason is entanglement.</p>
+<p>A <em>basis</em> value like <code>(a, b)</code> is always a product — qubit <code>a</code> and qubit <code>b</code>, separately. So applying <code>f * g</code> to a basis value can be done componentwise, and Q42's evaluator does exactly what 42's does there. Entanglement appears only when you <strong>add</strong> such results together, which happens when the input is already a superposition. So Q42 has one function 42 has no need for, <code>apply_vec</code>, which applies a gate to a whole state rather than to a basis value.</p>
+<p>You see this in <code>bell</code>: applied to <code>|00&gt;</code> it is a single column, but the answer is a state that no pair of single-qubit states could produce.</p>
+<h3 id="75-measuring-the-result"><a class="anchor" href="#75-measuring-the-result" aria-label="Link to this section">#</a>7.5 Measuring the result</h3>
+<p><code>42q FILE GATE STATE</code> shows you the state. <code>42q sample</code> measures it, which is what a real device would do:</p>
+<div class="code"><pre><code>$ 42q sample gates bell "|00&gt;"
+bell |00&gt;
+    outcome   exact  drawn
+    |00&gt;   50.0%     63  ###############
+    |11&gt;   50.0%     37  ###############
+  -- 100 shots, seed 0</code></pre></div>
+<p>Two columns, deliberately. <strong>exact</strong> is the Born probability <code>|amplitude|²</code>, which only a simulator can know. <strong>drawn</strong> is a sample of that many shots, which is all a real machine would give you. Seeing them together is the point: it shows what measurement costs you.</p>
+<p><code>--shots N</code> sets how many draws, and <code>--seed S</code> fixes them so a transcript stays true. Note that the probabilities never need renormalising — a Q42 program starts from a unit vector and every term is unitary, so they already sum to 1.</p>
+<p><strong>Measuring only some qubits.</strong> <code>--bits</code> takes the positions you care about, counting from 0, and reports the distribution over those alone:</p>
+<div class="code"><pre><code>$ 42q sample deutsch dnot "|01&gt;" --bits 0
+    outcome   exact  drawn
+    |1_&gt;  100.0%    100  ##############################</code></pre></div>
+<p>The <code>_</code> marks a qubit that was not measured. That is §8.4's algorithm answering its question: <strong>one query, one qubit, and the answer is certain.</strong></p>
+<p><strong>What this is and is not.</strong> Measurement is <em>terminal</em>: it happens after the program, never inside it. That is not a limitation of the command but a deliberate line, and §9.2 explains what it costs and why.</p>
+<hr aria-hidden="true">
+<h2 id="8-worked-examples"><a class="anchor" href="#8-worked-examples" aria-label="Link to this section">#</a>8. Worked examples</h2>
+<ul><li><a href="#81-fibonacci-why-the-obvious-version-cannot-exist">8.1 Fibonacci: why the obvious version cannot exist</a></li><li><a href="#82-what-works-fix-the-width">8.2 What works: fix the width</a></li><li><a href="#83-the-quantum-part">8.3 The quantum part</a></li><li><a href="#84-deutschs-algorithm-and-what-q42-shows-you">8.4 Deutsch's algorithm, and what Q42 shows you</a></li><li><a href="#85-teleportation-without-measuring-in-the-middle">8.5 Teleportation, without measuring in the middle</a></li></ul>
+<p>A useful exercise, because the obvious approach is impossible and the reason is instructive.</p>
+<h3 id="81-fibonacci-why-the-obvious-version-cannot-exist"><a class="anchor" href="#81-fibonacci-why-the-obvious-version-cannot-exist" aria-label="Link to this section">#</a>8.1 Fibonacci: why the obvious version cannot exist</h3>
+<p>In a reversible functional language you would write Fibonacci over the natural numbers, <code>fib : nat &lt;-&gt; nat * nat</code>. Q42 cannot have that, and not for want of a feature.</p>
+<p><code>nat</code> is <code>mu X. 1 + X</code> — an <em>infinite</em> type. Its space is infinite-dimensional, and Q42 has only finite-dimensional spaces. Ask for a basis and it says so:</p>
+<div class="code"><pre><code>cannot enumerate a recursive type: it is infinite, and Q42 has no
+infinite-dimensional spaces</code></pre></div>
+<p>Underneath that is something sharper. <code>succ</code> is <code>inr</code>. On <code>nat</code>, <code>succ</code> is injective — no two numbers have the same successor — but <strong>not surjective</strong>, because zero is nobody's successor. In finite dimensions that combination is impossible (§5.3); in infinite dimensions it is the standard example of an isometry that is not unitary, called the <strong>unilateral shift</strong>. Its adjoint is not its inverse: shifting up then down gets you back, but down then up loses zero.</p>
+<p>So: Q42 has no successor, hence no naturals, hence no unbounded arithmetic. This is what "unitary" means, not a gap in the implementation.</p>
+<h3 id="82-what-works-fix-the-width"><a class="anchor" href="#82-what-works-fix-the-width" aria-label="Link to this section">#</a>8.2 What works: fix the width</h3>
+<p>Real quantum hardware has registers of fixed size and does arithmetic <strong>mod 2ⁿ</strong>. Do the same and the recurrence</p>
+<div class="code"><pre><code>(a, b)  |-&gt;  (b, a + b  mod 2^n)</code></pre></div>
+<p>becomes a <em>permutation</em> of the <code>2ⁿ × 2ⁿ</code> basis states — the matrix <code>[[0,1],[1,1]]</code> has determinant <code>−1</code>, which is invertible mod <code>2ⁿ</code> — hence unitary, hence expressible. <code>q42/fib.42</code> does it on two 2-bit registers:</p>
+<div class="code"><pre><code>def add4     = cc03 ; cx02 ; cx13              -- (x,y) -&gt; (x, x+y mod 4)
+def swapregs = assocprod ; swapprod ; assocprod!
+def fib      = swapregs ; add4</code></pre></div>
+<p><code>add4</code> is three gates because <code>y += x</code> is "if <code>x₀</code> then <code>y += 1</code>" followed by "if <code>x₁</code> then <code>y += 2</code>", and a two-bit increment is <code>CNOT</code> then <code>X</code>. <code>swapregs</code> is three <em>primitives</em> and no gates at all — reassociate so the halves are adjacent, swap them, reassociate back.</p>
+<p>Iterating gives the Fibonacci numbers mod 4:</p>
+<div class="code"><pre><code>step  0: register = (0, 1)     F_0  = 0
+step  3: register = (2, 3)     F_3  = 2
+step  5: register = (1, 0)     F_5  = 5,  mod 4 = 1
+step 10: register = (3, 1)     F_10 = 55, mod 4 = 3</code></pre></div>
+<p>and since it is unitary, running it backwards recovers the seed <em>exactly</em> — not "a set containing the seed", which is what 42 would give you. Its order is 6, which is the Pisano period of 4.</p>
+<h3 id="83-the-quantum-part"><a class="anchor" href="#83-the-quantum-part" aria-label="Link to this section">#</a>8.3 The quantum part</h3>
+<p>Everything above is a permutation, so it is reversible <em>classical</em> computing and 42 could do it too. What Q42 adds is that the seed may be a superposition:</p>
+<div class="code"><pre><code>def qfib = hy0 ; fib</code></pre></div>
+<p>puts one bit of the seed through a Hadamard first, after which the register holds two Fibonacci orbits at once and every later step advances both. The whole thing still inverts exactly.</p>
+<h3 id="84-deutschs-algorithm-and-what-q42-shows-you"><a class="anchor" href="#84-deutschs-algorithm-and-what-q42-shows-you" aria-label="Link to this section">#</a>8.4 Deutsch's algorithm, and what Q42 shows you</h3>
+<p>Fibonacci is arithmetic. Here is a real quantum algorithm — the smallest one there is, and the first ever found to beat its classical rival.</p>
+<p><strong>The problem.</strong> You are handed a black box computing an unknown one-bit function <code>f</code>, and asked one question: is <code>f</code> <strong>constant</strong> (<code>f(0) = f(1)</code>) or <strong>balanced</strong> (<code>f(0) ≠ f(1)</code>)? Classically you must evaluate <code>f</code> twice — one evaluation tells you nothing about the other. Deutsch's algorithm answers after <strong>one</strong>.</p>
+<p><strong>The oracle.</strong> A black box has to be reversible like everything else, so it takes the standard shape <code>(x, y) ↦ (x, y XOR f(x))</code> — the Toffoli trick from §2, which is also <code>mul</code> keeping its multiplier in <code>MANUAL.md</code> §11.3. There are only four one-bit functions, so <code>q42/deutsch.42</code> writes all four out:</p>
+<div class="code"><pre><code>def orc0   = id                              -- f(x) = 0       constant
+def orc1   = id * x                          -- f(x) = 1       constant
+def orcid  = ctrl x                          -- f(x) = x       balanced
+def orcnot = (x * id) ; ctrl x ; (x * id)     -- f(x) = not x   balanced</code></pre></div>
+<p><strong>The algorithm</strong> is three steps: superpose both inputs, query the oracle once, and interfere the results back together.</p>
+<div class="code"><pre><code>def d0 = (h * h) ; orc0 ; (h * id)</code></pre></div>
+<p>Now run each of the four, and watch the <strong>first</strong> qubit:</p>
+<div class="code"><pre><code>$ 42q deutsch d0 "|01&gt;"
+d0 |01&gt;
+  = 0.707107|00&gt;  +  -0.707107|01&gt;
+
+$ 42q deutsch dnot "|01&gt;"
+dnot |01&gt;
+  = -0.707107|10&gt;  +  0.707107|11&gt;</code></pre></div>
+<p>For <code>d0</code>, every term begins <code>|0</code>. For <code>dnot</code>, every term begins <code>|1</code>. The other two behave the same way as their partner: <strong>the first qubit is <code>|0&gt;</code> for a constant <code>f</code> and <code>|1&gt;</code> for a balanced one, with certainty.</strong> One query, and the answer is not probable but definite.</p>
+<p>And it will say so outright if you measure the first qubit (§7.5):</p>
+<div class="code"><pre><code>$ 42q sample deutsch dnot "|01&gt;" --bits 0
+    outcome   exact  drawn
+    |1_&gt;  100.0%    100  ##############################</code></pre></div>
+<p>But the <em>state</em> is the more instructive output, and worth pausing on. A device hands you one bit and hides the mechanism. Q42 shows you the amplitudes, so you can see the second qubit's <code>+/-0.707107</code> carrying the phase the oracle deposited and the final Hadamard converts into the answer. For understanding <em>why</em> an algorithm works — as opposed to what it returns — that is worth more than a sample. §9.1 returns to this.</p>
+<h3 id="85-teleportation-without-measuring-in-the-middle"><a class="anchor" href="#85-teleportation-without-measuring-in-the-middle" aria-label="Link to this section">#</a>8.5 Teleportation, without measuring in the middle</h3>
+<p>Teleportation is the textbook example of an algorithm that <em>requires</em> measuring half way through. Alice measures her two qubits, sends Bob two classical bits, and Bob applies <code>X</code> and/or <code>Z</code> depending on what they say. Q42 has no mid-circuit measurement (§9.2), so this ought to be impossible.</p>
+<p>It is not, and the reason is a theorem. The <strong>principle of deferred measurement</strong> (Nielsen &amp; Chuang §4.4) says that any circuit with mid-circuit measurements and classically-controlled gates can be rewritten with every measurement moved to the <em>end</em>, each classical control replaced by a <strong>quantum</strong> control. Q42 has quantum control — it is <code>ctrl</code> — so the rewritten circuit is an ordinary Q42 term.</p>
+<p><code>q42/teleport.42</code> is that circuit, and the deferral is visible in one line:</p>
+<div class="code"><pre><code>def bell  = (id * (h * id)) ; (id * cx)      -- entangle q1 with q2
+def alice = (ctrl (x * id)) ; (h * id)       -- CNOT q0-&gt;q1, then H on q0
+def bob   = (id * cx) ; (ctrl (id * z))      -- CNOT q1-&gt;q2, CZ q0-&gt;q2
+def tele  = bell ; alice ; bob</code></pre></div>
+<p><code>bob</code> is where "if Alice's bit is 1, apply X" became a CNOT: the same conditional, controlled by the qubit rather than by a bit read out of it.</p>
+<p>It is unitary like everything else:</p>
+<div class="code"><pre><code>$ 42q unitary teleport tele --qubits 3
+  [ok ] tele ; tele! = id on 8 dimension(s)</code></pre></div>
+<p><strong>Checking that it works.</strong> Sending <code>|0&gt;</code> proves little, so prepare a real state on <code>q0</code> — a superposition <em>with a phase</em> — teleport it, and apply the preparing gate's inverse to <code>q2</code>. If the state genuinely arrived, amplitudes and phase intact, <code>q2</code> must return to <code>|0&gt;</code> with certainty:</p>
+<div class="code"><pre><code>$ 42q sample teleport check "|000&gt;" --bits 2
+    |__0&gt;  100.0%    100  ##############################</code></pre></div>
+<p>It does. And the deferred measurements have not vanished — they are the other two qubits, which end up spread evenly over all four outcomes, exactly the four results Alice would have read:</p>
+<div class="code"><pre><code>$ 42q teleport checkh "|000&gt;"
+  = 0.5|000&gt;  +  0.5|010&gt;  +  0.5|100&gt;  +  0.5|110&gt;</code></pre></div>
+<p>So the canonical mid-circuit algorithm runs here today, unchanged and unitary. That is the strongest single argument in §9.2 for leaving the language alone.</p>
+<hr aria-hidden="true">
+<h2 id="9-what-q42-is-and-is-not-for"><a class="anchor" href="#9-what-q42-is-and-is-not-for" aria-label="Link to this section">#</a>9. What Q42 is, and is not, for</h2>
+<ul><li><a href="#91-what-it-is-for">9.1 What it is for</a></li><li><a href="#92-where-the-language-stops">9.2 Where the language stops</a></li><li><a href="#93-the-comparison-that-is-not-the-right-one">9.3 The comparison that is not the right one</a></li><li><a href="#94-could-a-q42-program-run-on-real-hardware">9.4 Could a Q42 program run on real hardware?</a></li></ul>
+<h3 id="91-what-it-is-for"><a class="anchor" href="#91-what-it-is-for" aria-label="Link to this section">#</a>9.1 What it is for</h3>
+<p>A fair reading of a list of limitations is "then what use is it?", so the useful part first.</p>
+<p><strong>It expresses every quantum circuit.</strong> This is the thing most easily missed. <code>omega</code> and <code>v</code> generate Clifford+T, which is the standard universal gate set — any unitary can be approximated to any precision you like, and Clifford+T circuits are represented exactly. Grover's diffusion operator, Shor's modular arithmetic, the quantum Fourier transform: all writable. <strong>The gap is not expressiveness.</strong> §8.4 writes out Deutsch's algorithm in six lines.</p>
+<p><strong>It checks gate identities mechanically.</strong> <code>√Π</code>'s contribution is an <em>equational theory</em> — a set of rules for proving two circuits equal — and Q42 makes it executable. <code>42q law</code> checks that <code>!</code> really is the adjoint; <code>42q unitary</code> checks <code>t ; t! = id</code> across a whole library; <code>42q matrix</code> prints the matrix so you can compare. The three axioms, <code>H ; H = id</code>, <code>H ; X ; H = Z</code>, <code>S ; S = Z</code>, <code>(Ctrl U)† = Ctrl U†</code> — all of these are things you can <em>run</em>, and each one is a test in <code>tests/test_q42.py</code>.</p>
+<p>**It shows you amplitudes <em>and</em> samples, side by side.** <code>42q sample</code> measures a result as a device would, and prints the exact Born probabilities next to the draw (§7.5). So Deutsch's question gets an answer — <code>|1_&gt; 100.0%</code> — while the state that produced it stays visible: <code>-0.707107|10&gt; + 0.707107|11&gt;</code>, from which you can see <em>why</em> the first qubit is certainly <code>|1&gt;</code>. A real machine can only give you the right-hand column. For learning a circuit, or debugging one, having both is worth more than either.</p>
+<p><strong>Uncomputation is a term, not an inference problem.</strong> <code>P ; Q ; P!</code> — and <code>P!</code> really is <code>P</code>'s inverse, so it is exact. Silq spends substantial machinery <em>inferring</em> where to insert this; here it is three characters, because <code>!</code> is part of the language.</p>
+<p><strong>And it is evidence for a claim about language design.</strong> <code>q42/</code> shares <code>Value</code>, <code>Term</code>, the parser and the whole type checker with <code>rel42/</code>, and <code>q42.dagger is rel42.dagger</code> — the <em>same function object</em>. The claim being demonstrated is that 42's primitives are not a curated set but a forced one, so that reaching quantum computing is a change of number system rather than a new language. Q42 existing, and being this small, is the argument.</p>
+<h3 id="92-where-the-language-stops"><a class="anchor" href="#92-where-the-language-stops" aria-label="Link to this section">#</a>9.2 Where the language stops</h3>
+<p>Q42 is a language for the <strong>unitary layer</strong> of quantum computing, with measurement at its edge. That single sentence is the boundary, and the boundary is chosen rather than unfinished — it is what buys every property in §9.1.</p>
+<p><strong>Inside the line.</strong> Every term denotes a unitary, so <code>!</code> is defined on every term with no side conditions, <code>t ; t! = id</code> holds by construction, and <code>42q unitary</code> can assert it over a whole file. Measurement sits at the end: <code>42q sample</code> applies the Born rule to the state the program produced (§7.5). That is an operation on the <em>output</em>, not a term in the language, which is exactly why it costs the language nothing.</p>
+<p><strong>Outside the line: measuring half way through, branching on the result, and carrying on.</strong> Q42 has no such term and is not going to acquire one. Measurement is not unitary — it is not linear, not invertible and not deterministic — so a <code>measure</code> term would be one for which <code>!</code> has no answer, and every property in the paragraph above would become conditional: unitary <em>except</em> where a measurement appears. The literature reaches the same conclusion and treats measurement as a layer over a unitary core rather than a primitive inside it. The construction is Carette et al., <em>The Quantum Effect</em>, and it is worth seeing how much machinery it takes. Measurement there is not a primitive but a derived term, <code>measure_Z = copy_Z ≫ fst</code>, where <code>fst</code> needs a <code>discard</code> that arrives with a further <em>hiding</em> arrow layered on top; and the resulting model is one of <strong>partial maps</strong>, landing in the category of finite-dimensional Hilbert spaces and linear <em>contractions</em> rather than unitaries. The authors are candid about the cost, noting that their <code>discard</code> postulate "is dangerous, as it does not enforce that it is only applied to total maps".</p>
+<p>That is the formal content of the line drawn here. Adding measurement is not an addition to a unitary language; it is leaving the unitary category. Q42 stays.</p>
+<p><strong>And the line costs no expressiveness.</strong> This is the part that settles it. The <strong>principle of deferred measurement</strong> (Nielsen &amp; Chuang §4.4) is a theorem: any circuit that measures mid-way and applies gates conditioned on the classical outcome can be rewritten with the measurements moved to the end and the control made quantum — which is what <code>ctrl</code> does. So the missing construct is a convenience of execution, not a source of computational power.</p>
+<p><code>q42/teleport.42</code> is that theorem made concrete. Quantum teleportation is the example usually offered as <em>the</em> reason a language needs mid-circuit measurement, and it runs here unchanged, as a single unitary on three qubits:</p>
+<div class="code"><pre><code>$ 42q unitary teleport tele --qubits 3
+  [ok ] tele ; tele! = id on 8 dimension(s)</code></pre></div>
+<p>Alice's two classical bits are never extracted; her four possible outcomes stay in superposition and Bob's corrections are applied with <code>ctrl</code> instead. §8.5 works through it, including the check that a state carrying a genuine phase arrives intact.</p>
+<p>The same holds for <strong>Shor's algorithm</strong>, which is often assumed to need mid-circuit measurement and does not: its quantum part is one unitary followed by one measurement, and the continued-fraction step and the retry loop are ordinary classical code <em>around</em> that subroutine. Q42 hands you the measured value and a script does the rest.</p>
+<p>What is genuinely on the far side of the line is narrower than it first looks: <strong>error correction</strong>, where syndromes are measured and acted on repeatedly while the computation continues; <strong>measurement-based computing</strong>, whose entire model is adaptive measurement; and <strong>qubit reuse</strong>, which matters when hardware has a fixed qubit budget and not at all in a simulator. None of these is what Q42 is for.</p>
+<p>Two smaller boundaries follow from the same place:</p>
+<ul><li><strong>No mid-program state preparation.</strong> A Q42 program is a unitary on a fixed space, so there is no conjuring a fresh <code>|0&gt;</code> half way through; that would change the dimension. Inputs come from the command line instead.</li><li><strong>No noise.</strong> No decoherence, no gate fidelities, no error model. Everything here is the idealised unitary layer.</li></ul>
+<h3 id="93-the-comparison-that-is-not-the-right-one"><a class="anchor" href="#93-the-comparison-that-is-not-the-right-one" aria-label="Link to this section">#</a>9.3 The comparison that is not the right one</h3>
+<p>An <code>n</code>-qubit gate is a <code>2ⁿ × 2ⁿ</code> matrix, so running Q42 costs exponential time and memory. It is worth being precise about what that does and does not mean.</p>
+<p>It does <strong>not</strong> distinguish Q42 from other quantum languages. Every classical simulator of quantum circuits pays this, Qiskit's included; it is a fact about simulating quantum mechanics on a classical machine, not about this implementation. A quantum <em>language</em> is not in competition with quantum <em>hardware</em> — Q42's peers are Silq, Π and Quipper, not a superconducting chip.</p>
+<p>There is one genuine nuance. By the <strong>Gottesman–Knill theorem</strong>, circuits built only from Clifford gates (<code>h</code>, <code>s</code>, <code>cx</code>) are efficiently simulable classically, despite looking thoroughly quantum — entanglement and interference included. So "quantum-looking" and "hard to simulate" are not the same property. It is <code>t</code> that takes a circuit beyond Clifford, and Q42 has <code>t</code>.</p>
+<p>In summary: Q42 is a language and a proof-checker for the unitary layer of quantum computing, complete for that layer, with measurement at its edge (§9.2) and simulation cost as the price everybody pays.</p>
+<h3 id="94-could-a-q42-program-run-on-real-hardware"><a class="anchor" href="#94-could-a-q42-program-run-on-real-hardware" aria-label="Link to this section">#</a>9.4 Could a Q42 program run on real hardware?</h3>
+<p>It can, once machines are stable and large enough: <code>42q emit</code> writes any definition out as OpenQASM 3, which every mainstream toolchain reads. This section says why the language sits well for that, what the emitter does, and where the real limit is.</p>
+<p><strong>Why it is well placed.</strong> A Q42 program already <em>is</em> a unitary circuit in a fault-tolerant gate set: <code>omega</code> and <code>v</code> generate Clifford+T, which is what surface-code architectures target and what T-count — the standard cost measure for such machines — is counted in. Nothing needs translating into another model of computation.</p>
+<p>Better, most of the language costs nothing to execute. Classifying each primitive by what it does to the underlying bits:</p>
+<div class="scroller"><table><thead><tr><th>primitive</th><th>effect on the bits</th><th>on hardware</th></tr></thead><tbody><tr><td><code>id</code>, <code>assocprod</code>, <code>unitprod</code>, <code>unitsum</code>, <code>dist</code></td><td>nothing at all</td><td><strong>free</strong></td></tr><tr><td><code>swapprod</code></td><td>permutes them</td><td>a relabelling, or a SWAP</td></tr><tr><td><code>swapsum</code></td><td>flips one</td><td>Pauli X</td></tr><tr><td><code>omega</code></td><td>nothing, but multiplies by a phase</td><td>a phase gate</td></tr><tr><td><code>v</code></td><td>superposes them</td><td>√X</td></tr></tbody></table></div>
+<p>Only <strong>three of the ten</strong> are physical operations, and they are exactly X, phase and √X. Everything else is the semiring plumbing of §1.5, and plumbing is compile-time bookkeeping: <code>assocprod</code> regroups <code>a × (b × c)</code> into <code>(a × b) × c</code> and the bit string is untouched, while <code>unitsum</code> removes a tag whose other branch is uninhabited — <code>0 + qubit</code> and <code>qubit</code> are both two-dimensional, so there was never a bit there to move.</p>
+<p>Inlining the library bears this out:</p>
+<div class="code"><pre><code>  gate     structural  physical   which physical operations
+  ccx              14         1   {swapsum: 1}
+  cswap             7         1   {swapprod: 1}
+  bell             12         9   {omega: 5, swapsum: 3, v: 1}</code></pre></div>
+<p>A Toffoli is fourteen structural steps and <strong>one</strong> real gate. Every <code>ctrl</code> is <code>dist</code>-plumbing wrapped round a single operation, which is a direct consequence of the primitives being the semiring isomorphisms rather than a hand-picked set.</p>
+<p><strong>Which types are qubit registers.</strong> Not all of them: <code>a + b</code> has dimension <code>dim(a) + dim(b)</code>, which need not be a power of two — <code>1 + (1 + 1)</code> is a <em>qutrit</em>, a perfectly good three-dimensional space with no qubit realisation. Q42 itself does not care, because it evaluates in any finite dimension; a compiler would, and the condition it needs is not "is the dimension a power of two" but a recursive width:</p>
+<div class="code"><pre><code>width(1)      = 0
+width(a x b)  = width(a) + width(b)
+width(a + b)  = 1 + width(a),  provided width(a) = width(b)</code></pre></div>
+<p>a sum is a register exactly when both branches are the same width, and then the tag is one qubit and the branches share the rest. That correctly accepts <code>(1+1) + (1+1)</code> as two qubits and rejects <code>1 + (1+1)</code>. It is <code>q42.types.width</code>, and it returns <code>None</code> for the types that are not registers — <code>0</code>, a variable and a <code>mu</code> among them, the last because Q42 has no infinite-dimensional spaces.</p>
+<p>In practice it does not bite: <strong>every non-combinator definition in every Q42 library is register-shaped</strong>, across <code>gates.42</code>, <code>fib.42</code>, <code>deutsch.42</code>, <code>teleport.42</code>, <code>grover.42</code>, <code>gsum.42</code>, <code>qft3.42</code> and <code>classical.42</code>, with none rejected. Programs people actually write in this language are already circuits.</p>
+<p><strong>Measurement.</strong> <em>Terminal</em> measurement is part of the tooling today (§7.5) — run the unitary, then sample the result — and it is the Born rule and a random number, nothing more. It covers every algorithm whose last step is a single measurement: Deutsch, Bernstein–Vazirani, Grover, and the quantum subroutine of Shor.</p>
+<div class="code"><pre><code>$ 42q sample deutsch dnot "|01&gt;" --bits 0
+    |1_&gt;  100.0%    100</code></pre></div>
+<p><em>Mid-circuit</em> measurement is outside the language by design (§9.2), and by the deferred measurement principle a compiler can always work without it: the circuit it would emit is the one Q42 already describes, with quantum control where a device might have used a classical wire. What that trade costs on real hardware, and what a compiler could do about it, is the last paragraph below.</p>
+<p><strong>An emitter, not a backend.</strong> Q42 writes circuits; it does not drive machines, and the distinction is smaller than "no backend" makes it sound. The hard parts of getting a circuit onto a device — <strong>routing</strong>, because real hardware cannot apply a two-qubit gate to an arbitrary pair, and <strong>rotation synthesis</strong>, because <code>omega</code> is only an <em>eighth</em> root of unity so finer angles must be approximated into many T gates — are commodity. Any existing quantum compiler does them for anything handed over as OpenQASM 3 or QIR. They are not Q42's to write.</p>
+<p>What is genuinely Q42's is the lowering, and it is short — two parts:</p>
+<ul><li><strong>wire assignment</strong> — which physical qubit is which position in the nested pair, the width rule above read constructively, plus tracking <code>swapprod</code> as a permutation carried to the end so that it costs nothing instead of three CNOTs. That is exactly what <code>q42/emit.py</code> does, and it is why <strong>seven of the ten primitives emit no gate at all</strong>: <code>id</code>, <code>assocprod</code>, <code>unitprod</code> and <code>dist</code> re-bracket, <code>swapprod</code> is carried in the layout, and <code>assocsum</code> and <code>unitsum</code> cannot occur at a register type in the first place. Only <code>swapsum</code>, <code>omega</code> and <code>v</code> produce output.</li><li><strong>depth bounding</strong> — a circuit is finite, so a recursive definition must unroll to a fixed depth, and the emitter does not check that it does; it stops on a depth budget rather than proving termination.</li></ul>
+<p>Control needs no rule of its own, which is worth knowing: at a type <code>a + b</code> the first qubit is the tag, and <code>f + g</code> means f under tag 0 and g under tag 1. From that alone, <code>cx</code>, <code>ccx</code> and the Fredkin come out as single gates, and <code>t = id + omega</code> derives as the T gate — a controlled <em>global</em> phase being a relative one. The emitter never mentions <code>ctrl</code>, which is right, <code>ctrl</code> being a library definition rather than a language feature.</p>
+<p>Every definition in every Q42 library emits, and each is checked against Q42's own matrix by a simulator in <code>tools/qasm_sim.py</code> that deliberately shares no code with the evaluator. What comes out is unoptimised — <code>z</code> leaves as four eighth-turn phases — because correctness came first and the downstream transpiler folds most of it.</p>
+<p>There is also one piece that is not commodity, because no previous language needed it. Q42 defers every measurement (§9.2), and on hardware deferral is not free: it spends coherence time and forbids reusing a qubit. So a serious lowering would want to run the deferred measurement principle <em>backwards</em> — recognise a <code>ctrl</code> whose control qubit is never touched again, and emit measure-and-branch where the term says quantum control. That is a rewrite over a program Q42 already expresses, not a feature the language lacks.</p>
+<p><strong>The summary.</strong> Q42 is a plausible front end and not a plausible toolchain, and that is the shape to aim at rather than a shortfall. Its semantics are already the right ones, its plumbing is free, its own libraries all describe genuine registers, and the measurement it does not have is one a compiler can do without. It translates into a circuit format the rest of the world already compiles, so the remaining limit is not the emitter but the gate set: <code>omega</code> is an eighth root of unity, so Q42 expresses only Clifford+T and is therefore <em>more</em> restricted than the hardware, which does arbitrary rotations cheaply. Lifting that would buy device-generality and cost the exact equational theory of §6, which is the trade the whole language is made of.</p>
+<hr aria-hidden="true">
+<h2 id="10-reference"><a class="anchor" href="#10-reference" aria-label="Link to this section">#</a>10. Reference</h2>
+<h3 id="primitives"><a class="anchor" href="#primitives" aria-label="Link to this section">#</a>Primitives</h3>
+<p>The rig-groupoid core, identical to 42's and unitary because each is a permutation matrix:</p>
+<div class="scroller"><table><tbody><tr><td><code>id</code></td><td>identity</td></tr><tr><td><code>swapsum</code>, <code>assocsum</code>, <code>unitsum</code></td><td><code>a+b ↔ b+a</code>, <code>a+(b+c) ↔ (a+b)+c</code>, <code>0+a ↔ a</code></td></tr><tr><td><code>swapprod</code>, <code>assocprod</code>, <code>unitprod</code></td><td><code>a×b ↔ b×a</code>, <code>a×(b×c) ↔ (a×b)×c</code>, <code>1×a ↔ a</code></td></tr><tr><td><code>dist</code></td><td><code>(a+b)×c ↔ (a×c)+(b×c)</code> — and so every conditional</td></tr></tbody></table></div>
+<p>plus the two generators:</p>
+<div class="scroller"><table><tbody><tr><td><code>omega</code></td><td><code>1 ↔ 1</code>, an 8th root of unity</td></tr><tr><td><code>v</code></td><td><code>1+1 ↔ 1+1</code>, a square root of <code>swapsum</code></td></tr></tbody></table></div>
+<p>Absent, with reasons in §5: <code>zero</code>, <code>inl</code>, <code>inr</code>, <code>copy</code>, <code>join</code>, <code>|</code>, <code>^</code>.</p>
+<h3 id="gates-in-q42gates42"><a class="anchor" href="#gates-in-q42gates42" aria-label="Link to this section">#</a>Gates in <code>q42/gates.42</code></h3>
+<div class="scroller"><table><tbody><tr><td><code>x</code>, <code>y</code>, <code>z</code></td><td>the Pauli gates; <code>x</code> is <code>swapsum</code></td></tr><tr><td><code>h</code></td><td>Hadamard — makes and unmakes superpositions</td></tr><tr><td><code>s</code>, <code>t</code></td><td>phase gates, <code>diag(1, i)</code> and <code>diag(1, e^{iπ/4})</code></td></tr><tr><td><code>v</code>, <code>vdg</code>, <code>sdg</code>, <code>tdg</code></td><td>square root of NOT, and the adjoints</td></tr><tr><td><code>swap</code></td><td><code>swapprod</code></td></tr><tr><td><code>ctrl m</code>, <code>nctrl m</code></td><td>control on <code>|1&gt;</code>, control on <code>|0&gt;</code></td></tr><tr><td><code>cx</code>, <code>cz</code>, <code>ch</code>, <code>cv</code></td><td>controlled one-qubit gates</td></tr><tr><td><code>ccx</code>, <code>ccz</code></td><td>Toffoli, controlled-Z-on-two</td></tr><tr><td><code>cswap</code></td><td>Fredkin</td></tr><tr><td><code>bell</code>, <code>ghz</code></td><td>the two standard entangled states</td></tr></tbody></table></div>
+<h3 id="commands"><a class="anchor" href="#commands" aria-label="Link to this section">#</a>Commands</h3>
+<div class="scroller"><table><tbody><tr><td><code>42q FILE GATE STATE</code></td><td>apply a gate; <code>-b</code> for its adjoint</td></tr><tr><td><code>42q sample FILE GATE STATE</code></td><td>apply it and measure; <code>--shots</code>, <code>--seed</code>, <code>--bits</code></td></tr><tr><td><code>42q law FILE GATE STATE</code></td><td>check that <code>!</code> is the adjoint</td></tr><tr><td><code>42q unitary FILE [GATE]</code></td><td>check <code>t ; t! = id</code> over the basis</td></tr><tr><td><code>42q matrix FILE [GATE]</code></td><td>print the matrix; <code>--qubits N</code> to fix a width</td></tr><tr><td><code>42q type FILE [GATE]</code></td><td>infer the type</td></tr><tr><td><code>42q show FILE [GATE]</code></td><td>print a definition and its adjoint</td></tr></tbody></table></div>
+<h3 id="source-files"><a class="anchor" href="#source-files" aria-label="Link to this section">#</a>Source files</h3>
+<div class="code"><pre><code>type qubit = 1 + 1                  -- a printing abbreviation
+def  name   = gate
+def  name m = gate                  -- m is a parameter, standing for a gate
+-- comments run to end of line</code></pre></div>
+<p><code>q42/classical.42</code> uses only primitives that 42 <em>also</em> has, so the same file runs under either interpreter — which is one way to see that <code>omega</code> and <code>v</code> buy nothing classical.</p>
+<h3 id="further-reading"><a class="anchor" href="#further-reading" aria-label="Link to this section">#</a>Further reading</h3>
+<ul><li><code>MANUAL.md</code> — the language this one is built on. Read it first.</li><li><code>README.md</code> — 42's design in mathematical terms.</li><li><code>Q42.md</code> — the design of Q42, and why each departure is forced.</li><li><code>RELATED.md</code> — where 42 and Q42 sit in the literature.</li><li>Carette, Heunen, Kaarsgaard &amp; Sabry, <em>With a Few Square Roots, Quantum Computing is as Easy as Π</em>, POPL 2024 — the result §4.2 and §6 rest on.</li></ul></main>
+</div>
+<script>
+const links = [...document.querySelectorAll('.rail a')];
+const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const seen = new Set();
+const spy = new IntersectionObserver(entries => {
+  for (const e of entries) e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id);
+  const order = [...byId.keys()].filter(id => seen.has(id));
+  links.forEach(a => a.classList.remove('here'));
+  const active = byId.get(order[0]);
+  if (active) active.classList.add('here');
+}, { rootMargin: '0px 0px -70% 0px' });
+document.querySelectorAll('h2[id], h3[id]').forEach(h => spy.observe(h));
+</script>
+</body>
+</html>

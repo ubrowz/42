@@ -1,0 +1,80 @@
+-- prelude.42 -- example programs for the point-free core.
+--
+-- Encodings (untyped at runtime, so these are just conventions):
+--   bool  = 1 + 1            false = L (), true = R ()
+--   nat   = mu X. 1 + X      0 = L (), n+1 = R n           written 0, 1, 2, ...
+--   list  = mu X. 1 + (A x X)   nil = L (), cons = R (h, t)  written [a, b, c]
+
+
+-- ---------------------------------------------------------------------------
+-- Bijections.  Image and preimage are both singletons; these live in the
+-- groupoid fragment, where dagger is a genuine inverse.
+-- ---------------------------------------------------------------------------
+
+type nat    = mu X. 1 + X
+type list a = mu X. 1 + (a x X)
+
+def not   = swapsum
+def swap  = swapprod
+
+-- (a, (b, c)) |-> (c, (a, b))
+def rot3  = assocprod ; swapprod
+
+
+-- ---------------------------------------------------------------------------
+-- Partial injections.  Image and preimage have at most one element; `pred 0`
+-- is empty because 0 has no predecessor.  Partiality, but no ambiguity.
+-- ---------------------------------------------------------------------------
+
+def succ  = inr
+def pred  = inr!
+
+
+-- ---------------------------------------------------------------------------
+-- Relations proper.  `add` is a function forwards and genuinely
+-- many-valued backwards: add!(n) enumerates every pair summing to n.
+--
+--   add = dist ; (unitprod + (add ; inr)) ; join
+--          |       |          |             |
+--          |       |          |             `- merge the two branches
+--          |       |          `- (m', n) |-> succ (m' + n)
+--          |       `- (unit, n) |-> n,  i.e.  0 + n = n
+--          `- split on whether the first argument is zero
+-- ---------------------------------------------------------------------------
+
+def add = dist ; (unitprod + (add ; inr)) ; join
+
+-- Composition can *restore* determinism that a factor lacks: `copy` forces
+-- both summands to agree, so double! has exactly one answer on even inputs
+-- and none on odd ones, even though add! has many.
+def double = copy ; add
+
+-- Append on lists.  Backwards it enumerates every way to split a list.
+def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
+
+-- Iteration.  Star is the reflexive transitive closure, so `downfrom` relates
+-- n to every m <= n: `pred` runs out at zero, which is what makes the closure
+-- finite.  Note that `succ^` would *not* terminate -- star is only computable
+-- when the orbit saturates, and the language does not pretend otherwise.
+def downfrom = pred^
+
+-- Its dagger is `succ^`, so running downfrom backwards diverges.  That
+-- asymmetry is real and worth seeing: in Rel a relation can be computable in
+-- one direction and not the other.
+def toggle = not^
+
+
+-- ---------------------------------------------------------------------------
+-- A parameterised definition, and the one MANUAL section 6 is built around.
+-- `ctrl m` reads "if the label is R, do m" -- but note what it does NOT do: the
+-- label is lifted out by `mat`, the branches are acted on without changing which
+-- branch you are in, and `mat!` puts the same label back.  `m` never sees it,
+-- and could not touch it if it wanted to: its type is `a <-> a`, and the label
+-- is not part of `a`.  That is why `ctrl! m` is `ctrl m!` with nothing to check.
+-- ---------------------------------------------------------------------------
+
+def mat     = dist ; (unitprod + unitprod)      -- (1+1) x a  <->  a + a
+def ctrl m  = mat ; (id + m) ; mat!
+def cdouble = ctrl double                       -- double the payload, if labelled R
+def flip    = ctrl not                          -- MANUAL section 6's example
+def flip2   = ctrl flip                         -- and the same trick twice

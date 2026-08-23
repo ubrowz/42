@@ -1,0 +1,1741 @@
+<title>Running the Warehouse Backwards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --ink:       #17222A;
+  --ink-soft:  #4A5A64;
+  --ink-faint: #7C8C95;
+  --paper:     #EDF1F0;
+  --card:      #FFFFFF;
+  --rule:      #D3DCDA;
+  --rule-firm: #B4C2BF;
+  --gain:      #0E6B60;
+  --gain-bg:   #E2EFEC;
+  --cost:      #9E5410;
+  --cost-bg:   #F7EBDD;
+  --shadow:    0 1px 2px rgba(23,34,42,.05), 0 8px 24px -16px rgba(23,34,42,.18);
+
+  --f-display: "Archivo Narrow", "Arial Narrow", Helvetica, sans-serif;
+  --f-body:    "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:       #E4EBE9;
+    --ink-soft:  #A9B7B5;
+    --ink-faint: #77878A;
+    --paper:     #101718;
+    --card:      #18211F;
+    --rule:      #2A3736;
+    --rule-firm: #3B4B49;
+    --gain:      #55CDBA;
+    --gain-bg:   #11302C;
+    --cost:      #E3A566;
+    --cost-bg:   #33240F;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ink:       #E4EBE9;
+  --ink-soft:  #A9B7B5;
+  --ink-faint: #77878A;
+  --paper:     #101718;
+  --card:      #18211F;
+  --rule:      #2A3736;
+  --rule-firm: #3B4B49;
+  --gain:      #55CDBA;
+  --gain-bg:   #11302C;
+  --cost:      #E3A566;
+  --cost-bg:   #33240F;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 5vw, 2rem) 6rem;
+}
+
+/* ---------- masthead ---------- */
+
+.mast { border-bottom: 2px solid var(--ink); padding-bottom: 1.75rem; margin-bottom: 2.5rem; }
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: .70rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--gain);
+  margin: 0 0 1rem;
+}
+
+h1 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 7vw, 3.3rem);
+  line-height: 1.02;
+  letter-spacing: -.015em;
+  margin: 0 0 .6rem;
+  text-wrap: balance;
+}
+
+.deck {
+  font-size: 1.14rem;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 34rem;
+  text-wrap: pretty;
+}
+
+/* ---------- headings ---------- */
+
+h2 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4.2vw, 2rem);
+  line-height: 1.12;
+  letter-spacing: -.01em;
+  margin: 4rem 0 .2rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--rule-firm);
+  text-wrap: balance;
+}
+
+h2 .num {
+  display: block;
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-size: .70rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: .55rem;
+}
+
+h3 {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 1.18rem;
+  line-height: 1.25;
+  margin: 2.4rem 0 .1rem;
+  text-wrap: balance;
+}
+
+h3 .num { font-family: var(--f-mono); font-weight: 400; font-size: .85em; color: var(--ink-faint); margin-right: .5em; }
+
+h4 {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin: 1.8rem 0 .1rem;
+  color: var(--ink-soft);
+}
+
+p { margin: 1em 0; text-wrap: pretty; }
+h2 + p, h3 + p, h4 + p { margin-top: .8em; }
+
+strong { font-weight: 600; }
+em { font-style: italic; }
+a { color: var(--gain); text-decoration-thickness: 1px; text-underline-offset: .15em; }
+a:focus-visible { outline: 2px solid var(--gain); outline-offset: 3px; border-radius: 2px; }
+
+code {
+  font-family: var(--f-mono);
+  font-size: .86em;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .08em .32em;
+  white-space: nowrap;
+}
+
+/* ---------- table of contents ---------- */
+
+.toc {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.3rem 1.5rem;
+  margin: 2.5rem 0;
+  box-shadow: var(--shadow);
+}
+.toc h4 { margin-top: 0; }
+.toc ol { margin: .6rem 0 0; padding-left: 1.4rem; font-family: var(--f-display); font-size: 1rem; }
+.toc li { margin: .3rem 0; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { text-decoration: underline; color: var(--gain); }
+
+/* ---------- figures, tables ---------- */
+
+figure {
+  margin: 2rem 0;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+figcaption {
+  font-family: var(--f-mono);
+  font-size: .70rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: .7rem 1.1rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+}
+figcaption b { color: var(--gain); font-weight: 500; letter-spacing: .13em; }
+
+.scroll { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+th, td { text-align: left; padding: .62rem 1.1rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: .8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+tr:last-child td { border-bottom: none; }
+td code { background: transparent; border: none; padding: 0; white-space: nowrap; }
+td.t { font-family: var(--f-mono); font-size: .84rem; white-space: nowrap; color: var(--gain); }
+
+/* ---------- code ---------- */
+
+pre {
+  font-family: var(--f-mono);
+  font-size: .82rem;
+  line-height: 1.6;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.1rem 1.2rem;
+  overflow-x: auto;
+  margin: 1.6rem 0;
+  box-shadow: var(--shadow);
+}
+pre .c { color: var(--ink-faint); }
+figure pre { border: none; border-radius: 0; margin: 0; box-shadow: none; }
+
+/* ---------- claims ---------- */
+
+.claim {
+  border-left: 3px solid var(--gain);
+  background: var(--card);
+  padding: 1.1rem 1.3rem;
+  margin: 2rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.claim .label {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: .70rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gain);
+  margin-bottom: .5rem;
+}
+.claim p { margin: .4em 0; }
+.claim p:first-of-type { margin-top: 0; }
+.claim p:last-child { margin-bottom: 0; }
+
+/* ---------- ledger: gains and costs ---------- */
+
+.ledger { display: grid; gap: 1rem; margin: 2rem 0; }
+@media (min-width: 44rem) {
+  .ledger.two { grid-template-columns: 1fr 1fr; }
+  .ledger.three { grid-template-columns: repeat(3, 1fr); }
+}
+
+.entry { border-radius: 4px; padding: 1rem 1.2rem; border: 1px solid transparent; }
+.entry h4 { margin: 0 0 .35rem; font-size: .95rem; color: inherit; }
+.entry p { margin: .35em 0 0; font-size: .95rem; }
+.entry p:last-child { margin-bottom: 0; }
+
+.entry.g { background: var(--gain-bg); border-color: var(--gain); color: var(--ink); }
+.entry.g h4 { color: var(--gain); }
+.entry.c { background: var(--cost-bg); border-color: var(--cost); color: var(--ink); }
+.entry.c h4 { color: var(--cost); }
+
+/* ---------- quotes and notes ---------- */
+
+blockquote {
+  margin: 1.5rem 0;
+  padding: 0 0 0 1.2rem;
+  border-left: 2px solid var(--rule-firm);
+  color: var(--ink-soft);
+  font-style: italic;
+}
+blockquote p { margin: .5em 0; }
+
+.gloss {
+  font-size: .95rem;
+  color: var(--ink-soft);
+  border-top: 1px dashed var(--rule-firm);
+  padding-top: .7rem;
+  margin-top: -.3rem;
+}
+.gloss b { font-family: var(--f-display); font-weight: 600; color: var(--ink); font-style: normal; }
+
+.note {
+  font-size: .95rem;
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-firm);
+  border-radius: 0 4px 4px 0;
+  padding: .9rem 1.1rem;
+  margin: 1.6rem 0;
+}
+.note p { margin: .3em 0; }
+.note p:first-child { margin-top: 0; }
+.note p:last-child { margin-bottom: 0; }
+
+ul, ol { padding-left: 1.4rem; }
+li { margin: .5em 0; }
+
+/* ---- stepped demonstration ---- */
+.demo { padding-bottom: .2rem; }
+.demo > svg { width: 100%; height: auto; display: block; padding: 1rem 1rem 0; }
+.demo-cap {
+  margin: 0; padding: .9rem 1.1rem 0; min-height: 4.6em;
+  font-size: .97rem; color: var(--ink-soft); border-top: 1px solid var(--rule);
+}
+.demo-cap b { color: var(--ink); font-weight: 600; }
+.demo-ctl { display: flex; align-items: center; gap: .8rem; padding: .7rem 1.1rem 1.1rem; }
+.demo-ctl button {
+  font-family: var(--f-display); font-size: .85rem; font-weight: 600;
+  color: var(--ink); background: var(--paper); border: 1px solid var(--rule-firm);
+  border-radius: 3px; padding: .35rem .8rem; cursor: pointer;
+}
+.demo-ctl button:hover:not(:disabled) { border-color: var(--gain); color: var(--gain); }
+.demo-ctl button:disabled { opacity: .38; cursor: default; }
+.demo-dots { display: flex; gap: .35rem; margin-left: auto; }
+.demo-dots i { width: .45rem; height: .45rem; border-radius: 50%; background: var(--rule-firm); display: block; }
+.demo-dots i.on { background: var(--gain); }
+
+.demo .bx      { fill: var(--card); stroke: var(--rule-firm); stroke-width: 1; }
+.demo .bx.one  { stroke: var(--gain); stroke-width: 1.5; }
+.demo .bx.two  { stroke: var(--cost); stroke-width: 1.5; }
+.demo .nm      { fill: var(--ink); font: 600 12px var(--f-display); }
+.demo .id      { fill: var(--ink-faint); font: 400 10.5px var(--f-mono); }
+.demo .in      { fill: var(--ink-soft); font: 400 12px var(--f-body); }
+.demo .arw     { stroke: var(--ink-faint); fill: var(--ink-faint); stroke-width: 1.5; }
+.demo .tag     { font: 600 10px var(--f-display); letter-spacing: .07em; }
+.demo .tag.one { fill: var(--gain); }
+.demo .tag.two { fill: var(--cost); }
+.demo .none    { fill: var(--cost); font: 400 13px var(--f-body); font-style: italic; }
+.demo .rule    { stroke: var(--rule); stroke-width: 1; }
+.demo .fade    { transition: opacity .28s ease; }
+@media (prefers-reduced-motion: reduce) { .demo .fade { transition: none; } }
+
+.end { margin-top: 4rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); font-size: .95rem; color: var(--ink-soft); }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">A paper on reversible programming, retold</p>
+  <h1>Running the Warehouse Backwards</h1>
+  <p class="deck">The same argument as the technical paper &mdash; same sections, same claims, same
+  proofs &mdash; with every piece of algebra replaced by something you can picture on a loading dock.</p>
+</header>
+
+<h4>What this is</h4>
+
+<p>The paper being retold is called <em>Reversibility without Injectivity</em>. It is about a
+programming language, called 42, whose programs can be run backwards as easily as forwards. That is
+a small field with about six competing languages in it, and the paper's claim is that all six have
+made the same design decision, that the decision is a mistake, and that undoing it makes everything
+simpler rather than harder.</p>
+
+<p>None of that requires knowing any mathematics. It requires being able to think about a process
+with steps in it, and about what it takes to retrace one. So this version is written around a
+warehouse: goods arrive, procedures act on them, and the question throughout is whether you can
+work out where something came from by knowing where it ended up.</p>
+
+<p><strong>Start with Part zero.</strong> The paper assumes you already know why anyone would want a
+program that runs backwards, why that turns out to be difficult, and why the language looks so
+peculiar &mdash; so it never explains any of them. Part zero is not in the paper and does all three in
+about five minutes.</p>
+
+<p>Section numbering, figures, propositions and proofs are all where they are in the original, so if
+you ever want to look at the real thing the two documents line up paragraph for paragraph.</p>
+
+<p>There is a companion to this one. The same language, read with a different kind of arithmetic,
+turns out to be a <em>quantum</em> programming language, and that is the subject of a second paper
+&mdash; retold the same way in
+<a href="quantum-warehouse.html"><strong>When Yes Becomes a Number</strong></a>, which opens by explaining what a quantum
+computer actually does. Read this one first.</p>
+
+<figure>
+  <figcaption><b>Translation key</b> &nbsp;&mdash;&nbsp; the whole document in one table</figcaption>
+  <div class="scroll"><table>
+    <tr><th>In the paper</th><th>In the warehouse</th></tr>
+    <tr><td>A program</td><td>A procedure: a set of rules for handling goods</td></tr>
+    <tr><td>Running forwards</td><td>Processing a consignment</td></tr>
+    <tr><td>Running backwards</td><td>Asking what consignment could have produced this result</td></tr>
+    <tr><td>A <em>type</em></td><td>A manifest: what kind of thing may be on each side of a step</td></tr>
+    <tr><td>A <em>relation</em></td><td>A <strong>table</strong>, or ledger, of which inputs may lead to which outputs</td></tr>
+    <tr><td>An <em>interpreter</em></td><td>A <strong>reader</strong>: the machinery that works out what a written procedure does</td></tr>
+    <tr><td><em>Injective</em></td><td>Every result has exactly one possible origin</td></tr>
+    <tr><td>The <em>disjointness condition</em></td><td>The rule that no two procedures may produce the same result</td></tr>
+    <tr><td><em>Recursively enumerable</em> / listable</td><td>You can print all the valid pairs one by one, forever</td></tr>
+    <tr><td>The <em>dagger</em>, written <code>!</code></td><td>The reverse of a procedure</td></tr>
+  </table></div>
+</figure>
+
+<div class="toc">
+  <h4>Contents</h4>
+  <ol start="0">
+    <li><a href="#s0">Why anyone would run a program backwards</a> &mdash; <em>not in the paper</em></li>
+    <li><a href="#s1">The obligation everybody accepts</a></li>
+    <li><a href="#s2">The language</a></li>
+    <li><a href="#s3">What dropping the condition buys</a></li>
+    <li><a href="#s4">Manifests</a></li>
+    <li><a href="#s5">Exactly how much it can express</a></li>
+    <li><a href="#s6">The neighbours</a></li>
+    <li><a href="#s7">Conclusion</a></li>
+  </ol>
+</div>
+
+
+<h2 id="s0"><span class="num">Part zero &nbsp;&middot;&nbsp; not in the paper</span>Why anyone would run a program backwards</h2>
+
+<p>The paper opens at full speed, with six competing languages and the constraint they share. Before
+that is readable, four things need saying: why running backwards is wanted at all, why it turns out to
+be hard, why this particular language looks so unlike ordinary programming, and what the single design
+question in the field is. None of it is in the paper, because the paper is written for people who
+already know.</p>
+
+<h3 id="s01"><span class="num">0.1</span>Three reasons to want it</h3>
+
+<p>They arrived independently, decades apart, and they have almost nothing to do with each other.</p>
+
+<div class="ledger three">
+  <div class="entry g">
+    <h4>Never write the inverse twice</h4>
+    <p>An enormous amount of software comes in pairs that must agree <em>exactly</em>. Encrypt and
+    decrypt. Compress and decompress. Write a file format and read it back. Convert an incoming
+    message into your own format and convert it back out. A database migration and its rollback. In
+    every one of those, somebody writes both halves by hand and then has to keep them in step forever
+    &mdash; and when they drift, the failure is silent and expensive: what went in does not come out.
+    If the language <em>derives</em> one half from the other, they cannot drift.</p>
+  </div>
+  <div class="entry g">
+    <h4>Heat</h4>
+    <p>Landauer, 1961: erasing one bit of information necessarily releases a definite minimum quantity
+    of heat. Not as an engineering shortcoming &mdash; <em>necessarily</em>, as thermodynamics. Every
+    logic gate that throws information away is paying it. Bennett, 1973: therefore a computation that
+    never erases anything has, in principle, no minimum energy cost at all. Chips today run thousands
+    of times above that floor, and have been approaching it for decades; data centres now consume a
+    noticeable share of national electricity, almost all of it leaving as heat.</p>
+  </div>
+  <div class="entry g">
+    <h4>Physics</h4>
+    <p>The laws governing an isolated quantum system supply only reversible operations &mdash; there
+    is no "erase this" among them. So a quantum programming language has no choice about being a
+    reversible one. This is the subject of the companion document, and it is the reason a piece of
+    work begun for entirely different purposes turned out to matter.</p>
+  </div>
+</div>
+
+<p>The first reason is the immediate and unromantic one, and it is the one this particular language
+actually came from. Its ancestor was built for machine translation: grammars that had to run in both
+directions, turning a sentence into a meaning and a meaning back into a sentence, where writing the
+two halves separately and hoping they agreed was not an acceptable answer.</p>
+
+<h3 id="s02"><span class="num">0.2</span>Why it is hard: ordinary programs destroy things</h3>
+
+<p>Here is the obstacle, and it is bigger than it first sounds. <strong>Destroying information is most
+of what ordinary programs do.</strong></p>
+
+<ul>
+  <li>Add one to a counter, and the old value is gone.</li>
+  <li>Add an item to a running total, and the item is unrecoverable.</li>
+  <li>Take a branch, and afterwards nothing records which branch you took.</li>
+  <li>Overwrite a field, discard a working value, delete a row.</li>
+</ul>
+
+<p>The smallest example is addition. Two pallets and three pallets make five. Now look only at the
+five: were there two and three? One and four? Nothing in the answer says. <strong>Plain addition is
+not a reversible step</strong>, and neither is almost anything else you would normally write.</p>
+
+<p>But look at the standard repair, because the entire field lives inside it. Rather than turning
+<em>(a, b)</em> into <em>a+b</em>, turn it into <em>(a, a+b)</em> &mdash; keep one of the inputs
+alongside the answer:</p>
+
+<figure>
+  <figcaption><b>The repair</b> &nbsp;&mdash;&nbsp; carry enough to find your way back</figcaption>
+  <pre>(2, 3)  --&gt;  5           from 5 alone: no idea.        <span class="c">not reversible</span>
+(2, 3)  --&gt;  (2, 5)      from (2, 5): it was (2, 3).   <span class="c">reversible</span></pre>
+</figure>
+
+<p>Nothing was lost, and you paid for it in the size of what you carry. That is the shape of every
+reversible design ever proposed: <em>compute whatever you like, but carry enough with you to retrace
+the route.</em> The whole field is an argument about what you are allowed to write given that
+constraint &mdash; and this paper's contribution is to notice that the constraint has been drawn
+tighter than it needs to be.</p>
+
+<h3 id="s03"><span class="num">0.3</span>Why this language looks so strange: it has no variables</h3>
+
+<p>You are about to see procedures written like this:</p>
+
+<pre>def double = copy ; add</pre>
+
+<p>and it is worth knowing in advance that <strong>there are no names in this language at all</strong>.
+Not "few". None.</p>
+
+<p>Nearly all programming names things: <em>put the count in x, put the weight in y, work out x times
+y.</em> The names are the whole idiom. Here you never name a value. You describe the <em>plumbing</em>
+&mdash; what is connected to what. It is the difference between a written procedure with a clipboard
+and a conveyor schematic. The line above says: send the goods through a duplicator, then through an
+adder. There is no x and no y because there is nowhere to put one.</p>
+
+<p>That is not an aesthetic preference, and this is the point worth carrying into &sect;1. Look at what
+the other languages in this field actually struggle with:</p>
+
+<blockquote><p>Did you use that variable exactly once? Did you use it on both sides? Did you use it
+twice? Did you fail to use it at all?</p></blockquote>
+
+<p>Those are the questions that make one of the six languages reject a perfectly sensible program for
+using a name twice, and another for not using one at all, and force a third to carve out a special
+exception so that duplication is possible at all. <strong>They are all questions about names.</strong>
+With no names, none of them can even be asked, and the obligation the paper is about has nowhere to
+attach itself.</p>
+
+<h3 id="s04"><span class="num">0.4</span>The one dial the whole field turns on</h3>
+
+<p>Ask a single question of any design here:</p>
+
+<div class="claim">
+  <span class="label">The question</span>
+  <p>Given a result, how many inputs could have produced it?</p>
+</div>
+
+<p>There are exactly three answers, and they order the entire literature:</p>
+
+<figure>
+  <figcaption><b>The dial</b></figcaption>
+  <div class="scroll"><table>
+    <tr><th>Setting</th><th>Backwards you get</th><th>Meaning</th></tr>
+    <tr><td>Exact correspondence</td><td>always exactly one</td><td>Nothing may ever fail and nothing may ever be ambiguous.</td></tr>
+    <tr><td>Uniqueness</td><td>at most one</td><td>A step may have no answer, but never two. <strong>Almost every language in the field.</strong></td></tr>
+    <tr><td>Shortlists</td><td>any number</td><td>A step may have several possible origins. <strong>This paper.</strong></td></tr>
+  </table></div>
+</figure>
+
+<p>Hold on to that, because it makes two things in the paper immediately legible. &sect;1's "six
+languages, six answers" is six different ways of <em>staying in the middle row</em>. And &sect;6's
+table, which sorts the whole field, is this dial with names attached.</p>
+
+<h3 id="s05"><span class="num">0.5</span>So what is the paper actually arguing?</h3>
+
+<p>That the middle row is a mistake, and that the bottom row is both simpler and larger.</p>
+
+<p>Everyone in the middle row is buying the same thing &mdash; a guarantee that running backwards
+gives one definite answer &mdash; and every one of them pays for it. One spends an extra built-in
+operation. One rejects programs people expect to write. One makes the meaning of a procedure depend on
+the order the rules are written in. One makes the programmer supply an extra correctness condition at
+every branch, and leaves the program undefined if they get it wrong.</p>
+
+<p>This paper declines to buy the guarantee. Running backwards may return a shortlist. In exchange,
+reversal becomes something that always works, needs no checks, cannot fail, and rejects no program
+&mdash; and the reversal routine in the working implementation is eight lines long.</p>
+
+<p>Everything after this is the case for that trade: what the others pay (&sect;3.1), what declining
+buys (&sect;3.2), what it costs (&sect;3.3), why the trade is favourable for a structural reason
+rather than by luck (&sect;3.4) &mdash; and then, in &sect;5, a proof that nothing at all was given up
+in expressive power.</p>
+
+<p>From here on, the paper.</p>
+
+<h2 id="abstract"><span class="num">Abstract</span>The argument in one page</h2>
+
+<p>A reversible procedure is one you can run backwards. If you want backward runs to give a single
+definite answer, you have to insist that no two of your rules ever produce the same result &mdash;
+otherwise, seeing that result, you cannot tell which rule you came through. Every existing language
+in this field insists on it, and they differ mainly in <em>how</em>. One assumes it and leaves the
+checking for later. One makes it the single rule the programmer must maintain by hand. One replaces
+it with an ordering, first match wins. One decides it mechanically. Two write it into the rules that
+say when a program is well formed. One makes the programmer supply an extra test at every branch.</p>
+
+<p>This paper asks the question none of them asks: <strong>what if you simply do not insist?</strong></p>
+
+<p>The answer is a language in which running backwards may return <em>several</em> candidate
+origins rather than one. That is the entire cost, and it is paid in exactly one place. What it buys
+is that reversal becomes <strong>free and infallible</strong>: the reverse of a procedure is obtained
+by reversing each step and doing them in the opposite order, there is nothing to check, nothing that
+can fail, and no program that has to be rejected. The reversal routine in the working implementation
+is eight lines long.</p>
+
+<p>The paper then does three more things. It gives the manifest system &mdash; the part that checks
+that goods and procedures fit together &mdash; which requires no annotations at all: it works out
+every manifest by itself, including the self-referential ones. It proves that the manifest system is
+sound, in a form that necessarily talks about <em>both</em> directions at once, for a reason that
+turns out to be the same reason reversal is free. And it settles exactly how expressive the language
+is: the procedures you can write are precisely the ones whose behaviour you could list out pair by
+pair &mdash; no more, and no less.</p>
+
+<p class="gloss"><b>Keywords</b> reversible computation &middot; relational semantics &middot;
+point-free programming &middot; dagger categories &middot; expressiveness</p>
+
+<h2 id="s1"><span class="num">Section 1</span>The obligation everybody accepts</h2>
+
+<p>Picture a dispatch hall. Consignments come in, a set of written procedures acts on them,
+consignments go out. Now you are asked to make the hall <em>auditable in reverse</em>: given
+anything on the outbound dock, you must be able to say what came in.</p>
+
+<p>There is an obstruction, and it is completely obvious once stated. Suppose two different
+procedures can both produce an identical outbound pallet. Then that pallet does not tell you which
+procedure ran, and so it does not tell you what came in. If you want reverse audit to give one
+answer, you must forbid that situation: <strong>no two procedures may produce overlapping
+results.</strong></p>
+
+<p>Every language in this field carries that obligation. What is striking is how differently they
+discharge it, and that each way of discharging it costs something.</p>
+
+<h4>Six answers</h4>
+
+<p><strong>Inv</strong> assumes it. Its authors require that when you offer a choice between two
+procedures, "<em>not only the domains, but the ranges</em>" must be disjoint &mdash; both what they
+accept and what they produce &mdash; and add candidly that "<em>the disjointness may be checked by a
+type system, but we have not explored this possibility</em>". The condition costs them an extra
+built-in operation: an inequality test exists in their language specifically because it is
+"<em>sometimes necessary for ensuring the disjointness of the two branches of a union</em>". In
+warehouse terms they had to add a "these two are not the same" check to the standard equipment list,
+purely to keep the audit trail clean.</p>
+
+<p><strong>Theseus</strong> makes it the one rule the programmer must maintain, and states it on both
+sides:</p>
+
+<blockquote><p>Non-overlapping and exhaustive coverage in pattern clauses. The collections of
+patterns in the left-hand side of each clause must be a complete non-overlapping covering of the
+input type. Similarly, the collections of patterns in the right-hand side of each clause must also
+be a complete non-overlapping covering of the return type.</p></blockquote>
+
+<p class="gloss"><b>Read as</b> the rules must between them handle every possible incoming
+consignment; no two may accept the same one; and &mdash; the unusual half &mdash; the same must hold
+for everything they <em>send out</em>.</p>
+
+<p><strong>RFUN</strong> identifies the same problem, calling it "<em>the functional variant of the
+problem of the general irreversibility of if-then-else constructs</em>", and answers it not by
+forbidding overlap but by <em>ordering</em> it: results "<em>must never match a branch that
+textually precedes it</em>". First rule on the page wins. The audit becomes possible, but the
+meaning of the procedure now depends on the order the rules are written in.</p>
+
+<p><strong>PisoLang</strong> settles the question mechanically, by matching patterns against each
+other. <strong>Chardonnet, Lemonnier and Valiron</strong> write non-overlap into their formal rules
+as a side condition appearing twice, while deliberately dropping the requirement that the rules cover
+everything, "<em>in order to allow non-terminating behaviour</em>".</p>
+
+<p><strong>Janus</strong> &mdash; the one imperative language here, closer to ordinary
+step-by-step instructions &mdash; pushes the obligation onto the programmer. Every branch must carry
+a <em>second</em> test at the far end: "<em>the predicate after <code>if</code> is the test, and that
+after <code>fi</code> is the assertion</em>", and "<em>the assertion makes the conditional
+reversible</em>". The price is stated just as plainly: "<em>if the assertion does not have the
+required value, execution of the loop is undefined</em>". In warehouse terms, every fork in the
+process must be stamped at the exit with a note saying which way it came &mdash; and if the stamp is
+wrong, the procedure has no defined meaning at all.</p>
+
+<p>Six languages, six answers, and one question none of them asks:
+<strong>what if the condition is simply not imposed?</strong></p>
+
+<h3 id="s11"><span class="num">1.1</span>What happens if you decline</h3>
+
+<p>Declining it means moving from a world where each result has at most one origin to a world where
+it may have several. The reverse audit stops returning an answer and starts returning a
+<strong>shortlist</strong>. Written down, the law the language runs on becomes:</p>
+
+<pre>    x is a possible input for y   &lt;=&gt;   y is a possible output for x
+
+    (in the paper:  x &isin; P(y)  &lt;=&gt;  y &isin; inv(P)(x) )</pre>
+
+<p>The word doing the work is "possible". Run forwards, then run the reverse, and you get back a
+<em>list containing</em> where you started rather than where you started. That is the price. It is
+paid in exactly one place, and the paper states it at the outset because the rest of the paper is an
+argument that it is worth paying.</p>
+
+<p>What it buys is that reversal becomes <strong>total</strong> &mdash; defined for every procedure,
+with no conditions, no checks, no proof obligations and no undecidable questions anywhere. The rule
+is the one you would guess: to undo "load the truck, then seal it", you unseal it, then unload it.
+Reverse each step, and do the steps in the opposite order. That is the whole algorithm, and here it
+is, as it actually appears in the working code:</p>
+
+<figure>
+  <figcaption><b>The entire reversal routine</b> &nbsp;&mdash;&nbsp; eight lines, no side conditions</figcaption>
+  <pre>def dagger(t):
+    match t:
+        case Prim(n, i):  return Prim(n, not i)      <span class="c"># a basic step: flip it</span>
+        case Ref(n, i):   return Ref(n, not i)       <span class="c"># a named procedure: flip it</span>
+        case Seq(s, u):   return Seq(dagger(u), dagger(s))   <span class="c"># reverse order</span>
+        case Union(s, u): return Union(dagger(s), dagger(u))
+        case Sum(s, u):   return Sum(dagger(s), dagger(u))
+        case Prod(s, u):  return Prod(dagger(s), dagger(u))
+        case Star(s):     return Star(dagger(s))</pre>
+</figure>
+
+<p>Only one line is interesting: the one for "do this, then that", where the two are swapped. All
+the others just push the reversal inwards. And reversing twice gets you the original text back
+exactly &mdash; not something equivalent to it, the same text.</p>
+
+<p>Because reversal always works, the language does not even need to keep it around. When you write
+"reverse of (copy, then merge)", the <strong>reader</strong> &mdash; this document's word for the
+machinery that takes a written procedure and works out what it does &mdash; rewrites it on the spot
+into "reverse of merge, then reverse of copy", and the reversal symbol never appears again
+anywhere.</p>
+
+<div class="note">
+  <p><strong>This property has been named three times independently</strong>, which is worth
+  recording. Theseus calls an operation <em>syntactically reversible</em> when reversing its text
+  gives you its reverse meaning. Yokoyama and Gl&uuml;ck call an inversion <em>local</em> when "<em>for
+  any given program unit the inversion can always produce an inverse unit</em>", and prove Janus has
+  it. And the 1993 design this language descends from (&sect;1.3) writes it as an equation. All three
+  use "do this, then that" as the worked example, and all three arrive at the same order-swapping
+  rule.</p>
+</div>
+
+<p>Where they differ is what it costs to hold the property <em>everywhere</em>. Janus holds it, and
+pays with the exit stamp on every branch &mdash; a thing the programmer must get right, whose failure
+mode is a procedure with no defined meaning. Theseus does not hold it: its own branching construct
+fails the property, and so does its yes/no test, which leaves open whether restricting tests to a
+well-behaved subclass costs you expressive power. The 1993 design does not hold it either, for the
+same reason.</p>
+
+<p><strong>This paper's language holds it with neither price</strong>: nothing for the programmer to
+discharge, and nothing excluded. The trick is that there is no branching construct to fail the
+property and no test operator to weaken. Branching is done by a general-purpose "handle bin one this
+way, bin two that way" operation, and filtering is assembled out of copying (&sect;5.3).</p>
+
+<h3 id="s12"><span class="num">1.2</span>What the paper contributes</h3>
+
+<ol>
+  <li><strong>A reversible language in which every single operation reverses by text alone</strong>
+  (&sect;2, &sect;3). The paper shows this is exactly what dropping the obligation buys, and that the
+  resulting theory is <em>smaller</em> than that of the languages which keep it, not larger.</li>
+  <li><strong>A manifest system that requires no annotations</strong> (&sect;4), in which a
+  self-referential manifest is accepted precisely when something could actually satisfy it. The
+  standard check that normally rejects such manifests becomes a diagnosis instead of a failure. The
+  paper proves the system sound, and shows the statement has to talk about both directions at
+  once.</li>
+  <li><strong>An exact measure of expressive power</strong> (&sect;5): the procedures you can write
+  are precisely those whose behaviour is <em>listable</em>. Being able to compute anything computable
+  is the easy half; the informative half is the ceiling, and it holds because every operation in the
+  language is positive &mdash; nothing anywhere can express "this does <em>not</em> happen".</li>
+</ol>
+
+<h3 id="s13"><span class="num">1.3</span>Where it comes from</h3>
+
+<p>The design is not new. It is the second version of a language specified in a 1993 Master's thesis
+at the University of Amsterdam and never published &mdash; and it did not come from reversible
+computing at all. It came from machine translation: grammars that had to run in both directions,
+turning a sentence into a meaning and a meaning back into a sentence. That thesis already states the
+law above as a numbered equation, already defines reversal-by-text as an equation, and already
+notices that its own branching construct breaks it. What it does not have is the small forced set of
+basic operations described in &sect;2. The lineage is recorded for honesty about priority; nothing in
+the paper rests on it.</p>
+
+<h2 id="s2"><span class="num">Section 2</span>The language</h2>
+
+<h3 id="s21"><span class="num">2.1</span>What you can write</h3>
+
+<p>Start with manifests &mdash; the descriptions of what kind of thing may be handled. There are only
+four ways to build one, and then one way to make one refer to itself:</p>
+
+<figure>
+  <figcaption><b>Manifests</b> &nbsp;&mdash;&nbsp; four builders and a self-reference</figcaption>
+  <div class="scroll"><table>
+    <tr><th>Written</th><th>Means</th></tr>
+    <tr><td class="t">0</td><td>Nothing can be of this kind. An empty category &mdash; no consignment qualifies.</td></tr>
+    <tr><td class="t">1</td><td>Exactly one possibility. A token: it tells you something is here and nothing else.</td></tr>
+    <tr><td class="t">A + B</td><td>Either an A or a B. Two labelled bins; whatever it is, it is in one of them.</td></tr>
+    <tr><td class="t">A &times; B</td><td>An A <em>and</em> a B, travelling together as one unit.</td></tr>
+    <tr><td class="t">&mu;X. &hellip;X&hellip;</td><td>A manifest that mentions itself. "A stack is either empty, or a box sitting on a stack."</td></tr>
+  </table></div>
+</figure>
+
+<p>The self-referential ones are <strong>equirecursive</strong>, which means: "a stack" and "either
+empty or a box on a stack" are <em>the same manifest</em>, not two manifests that happen to
+correspond. Nothing has to be done to move between them &mdash; no unwrapping paperwork. That choice
+turns out to save a lot of machinery later.</p>
+
+<p>Actual goods are built from the same four ideas: a token, "in the left bin, containing this",
+"in the right bin, containing this", and "these two together".</p>
+
+<p>A procedure is built from <strong>thirteen basic steps</strong> and <strong>six ways of combining
+them</strong>. The thirteen are not a wishlist. They are exactly the steps that say the four manifest
+builders behave the way arithmetic behaves &mdash; that "either A or B" doesn't care about order, that
+grouping doesn't matter, that a token adds nothing, and so on &mdash; plus the two steps that make
+this a world of shortlists rather than a world of exact correspondences.</p>
+
+<figure>
+  <figcaption><b>Figure 1</b> &nbsp;&mdash;&nbsp; the thirteen basic steps</figcaption>
+  <div class="scroll"><table>
+    <tr><th>Step</th><th>What it does on the dock</th></tr>
+    <tr><td class="t">id</td><td>Nothing at all. Pass it through untouched.</td></tr>
+    <tr><td class="t">zero</td><td>The procedure that never applies to anything. Handles nothing, produces nothing.</td></tr>
+    <tr><td class="t">swapsum</td><td>Relabel two bins: what was in the left bin is now in the right, and vice versa.</td></tr>
+    <tr><td class="t">assocsum</td><td>Regroup a three-way choice. "Left, or (middle or right)" becomes "(left or middle), or right".</td></tr>
+    <tr><td class="t">unitsum</td><td>A choice between an impossible category and A is just A. Drop the dead bin.</td></tr>
+    <tr><td class="t">swapprod</td><td>Swap the two items travelling together.</td></tr>
+    <tr><td class="t">assocprod</td><td>Regroup three items travelling together.</td></tr>
+    <tr><td class="t">unitprod</td><td>A token travelling with A is just A. A docket that says nothing adds nothing.</td></tr>
+    <tr><td class="t">dist</td><td>"Either A or B, plus C alongside" is the same as "either (A with C) or (B with C)". Pushing the escort into both bins.</td></tr>
+    <tr><td class="t">inl</td><td>Put it in the left bin.</td></tr>
+    <tr><td class="t">inr</td><td>Put it in the right bin.</td></tr>
+    <tr><td class="t">copy</td><td>Make a second identical copy, so there are now two.</td></tr>
+    <tr><td class="t">join</td><td>Tip both bins into one pile. Afterwards you cannot see which bin it came from.</td></tr>
+  </table></div>
+</figure>
+
+<p>Those thirteen fall into three groups, and the three groups are exactly the three rows of the dial
+in &sect;0.4 &mdash; which is worth noticing, because it means the design question of the whole field is
+settled by which of these you allow.</p>
+
+<div class="ledger three">
+  <div class="entry g">
+    <h4>Eight are pure rearrangement</h4>
+    <p>Everything from <code>id</code> down to <code>dist</code>. Nothing is created, destroyed or
+    obscured; each definite consignment goes to exactly one other, and each has an obvious undo.
+    Backwards, always exactly one answer. <em>The top row of the dial.</em></p>
+  </div>
+  <div class="entry g">
+    <h4>Four may come up empty</h4>
+    <p>The never-applies step, the two bin operations, and copying. Never ambiguous backwards, but
+    sometimes no answer at all: "take it out of the left bin" has nothing to say about something in the
+    right bin, and copying cannot be undone if the two copies differ. <em>The middle row.</em></p>
+  </div>
+  <div class="entry c">
+    <h4>One can be ambiguous</h4>
+    <p>Tipping the two bins into one &mdash; and that is the entire list. It is the <strong>only</strong> step in the
+    language that can give two answers backwards, which is why &sect;2.3 can say that all ambiguity
+    anywhere traces to this one place. <em>The bottom row.</em></p>
+  </div>
+</div>
+
+<p>Copying and bin-merging are also the pair &sect;6 returns to, for a striking reason: the best-known
+language in the strict world explicitly names exactly these two as the things that <em>cannot</em> be
+done, and recovers them only through extra machinery.</p>
+
+<figure>
+  <figcaption><b>The six combinations</b></figcaption>
+  <div class="scroll"><table>
+    <tr><th>Written</th><th>Means</th></tr>
+    <tr><td class="t">t ; u</td><td>Do t, then do u.</td></tr>
+    <tr><td class="t">t + u</td><td>Two bins side by side: apply t to whatever is in the left bin, u to whatever is in the right. This is how branching is done &mdash; and note that it is <em>not</em> a test. Nothing decides; the bin the goods are already in decides.</td></tr>
+    <tr><td class="t">t * u</td><td>Two items travelling together: apply t to one, u to the other.</td></tr>
+    <tr><td class="t">t | u</td><td>Either procedure may apply. Both are legitimate.</td></tr>
+    <tr><td class="t">t^</td><td>Repeat t any number of times, including none.</td></tr>
+    <tr><td class="t">t!</td><td>Run t backwards.</td></tr>
+  </table></div>
+</figure>
+
+<h3 id="s22"><span class="num">2.2</span>Checking that things fit</h3>
+
+<p>The manifest rules say when a procedure is well formed. They are exactly what you would write
+down yourself.</p>
+
+<figure>
+  <figcaption><b>Figure 2</b> &nbsp;&mdash;&nbsp; the manifest rules</figcaption>
+  <div class="scroll"><table>
+    <tr><th>If you know</th><th>Then</th></tr>
+    <tr><td>t goes A&rarr;B, and u goes B&rarr;C</td><td>"t then u" goes A&rarr;C</td></tr>
+    <tr><td>t goes A&rarr;B, and u goes C&rarr;D</td><td>"t on the left bin, u on the right" goes (A or C)&rarr;(B or D)</td></tr>
+    <tr><td>t goes A&rarr;B, and u goes C&rarr;D</td><td>"t and u in parallel on a pair" goes (A with C)&rarr;(B with D)</td></tr>
+    <tr><td>t and u both go A&rarr;B</td><td>"either t or u" goes A&rarr;B</td></tr>
+    <tr><td>t goes A&rarr;A</td><td>"repeat t" goes A&rarr;A</td></tr>
+    <tr><td>t goes A&rarr;B</td><td><strong>"t backwards" goes B&rarr;A</strong></td></tr>
+  </table></div>
+</figure>
+
+<p>Two remarks. There are no rules for wrapping and unwrapping self-referential manifests, and their
+absence <em>is</em> the equirecursive choice from &sect;2.1: a stack and its unfolding are the same
+manifest, so nothing needs to be written to pass between them.</p>
+
+<p>And the last rule &mdash; the one for running backwards &mdash; is the law of the language showing
+up at the level of manifests. It swaps the two sides and does nothing else. In the implementation it
+is literally a swap.</p>
+
+<h3 id="s23"><span class="num">2.3</span>What the steps actually mean</h3>
+
+<p>The meaning of a procedure is a <strong>table</strong> &mdash; a ledger, if you prefer, which is
+what the companion document calls it &mdash; of which inbound goods may lead to which outbound goods. The
+evaluator does not consult manifests at all. If you hand a procedure something of the wrong shape,
+that is not an error &mdash; the procedure simply has nothing to do with it, and the table of
+possibilities for that input is empty. <strong>Being outside a procedure's scope is not a failure; it
+is having no outcome.</strong></p>
+
+<figure>
+  <figcaption><b>Figure 3</b> &nbsp;&mdash;&nbsp; which goods each step relates</figcaption>
+  <div class="scroll"><table>
+    <tr><th>Step</th><th>Relates</th></tr>
+    <tr><td class="t">id</td><td>each thing to itself</td></tr>
+    <tr><td class="t">zero</td><td>nothing to anything</td></tr>
+    <tr><td class="t">swapsum</td><td>left-bin-x to right-bin-x, and right-bin-x to left-bin-x</td></tr>
+    <tr><td class="t">assocsum</td><td>each of three positions to its regrouped counterpart</td></tr>
+    <tr><td class="t">unitsum</td><td>right-bin-x to x &mdash; and nothing at all in the left bin, because nothing can be there</td></tr>
+    <tr><td class="t">swapprod</td><td>the pair (a,&nbsp;b) to the pair (b,&nbsp;a)</td></tr>
+    <tr><td class="t">assocprod</td><td>a triple to its regrouped counterpart</td></tr>
+    <tr><td class="t">unitprod</td><td>the pair (token,&nbsp;x) to x</td></tr>
+    <tr><td class="t">dist</td><td>(left-bin-a, escort c) to left-bin-(a with c); same on the right</td></tr>
+    <tr><td class="t">inl / inr</td><td>x to left-bin-x / x to right-bin-x</td></tr>
+    <tr><td class="t">copy</td><td>x to the pair (x,&nbsp;x)</td></tr>
+    <tr><td class="t">join</td><td>left-bin-x to x, <em>and also</em> right-bin-x to x</td></tr>
+  </table></div>
+</figure>
+
+<p>Look at <code>inl</code> and <code>inr</code>. Forwards they always work: you can always put
+something in the left bin. Backwards they may not: if the thing is in the right bin, "take it out of
+the left bin" has nothing to say. That is where the possibility of <em>no answer</em> enters the
+language.</p>
+
+<p>Now look at <code>join</code> reversed. A pallet came out of the pile; which bin had it been in?
+Either. Two answers. And here is the fact worth carrying away from this section:</p>
+
+<div class="claim">
+  <span class="label">The single source of ambiguity</span>
+  <p><code>join</code> run backwards is the <em>only</em> step anywhere in the language that can give
+  more than one answer. Every shortlist longer than one item, in any program however large, traces
+  back to a reversed merge.</p>
+</div>
+
+<p>That is a strong structural statement. Ambiguity in this language is not diffuse; it has exactly
+one origin, and you can point at it.</p>
+
+<figure class="demo" id="backDemo">
+  <figcaption><b>Three steps, run backwards</b> &nbsp;&mdash;&nbsp; step through it</figcaption>
+  <svg viewBox="0 0 520 306" role="img"
+       aria-label="Running three steps backwards: one answer, no answer, two answers"></svg>
+  <p class="demo-cap" aria-live="polite"></p>
+  <div class="demo-ctl">
+    <button type="button" data-go="-1" aria-label="Previous step">&larr; Back</button>
+    <span class="demo-dots" aria-hidden="true"></span>
+    <button type="button" data-go="1" aria-label="Next step">Next &rarr;</button>
+  </div>
+  <noscript><p class="demo-cap">Relabelling the two bins, run backwards, gives exactly one answer.
+  "Put it in the left bin", run backwards on something in the right bin, gives no answer at all.
+  Tipping both bins into one, run backwards, gives two answers with no way to choose between them
+  &mdash; and it is the only step in the language that does.</p></noscript>
+</figure>
+
+<p>A procedure may be defined in terms of itself, and several may be defined in terms of each other.
+The meaning of such a definition is the obvious one: start from "nothing is related to anything",
+apply the definitions once, then again, then again, and collect everything that shows up at any
+finite stage. This works because every operation in the language only ever <em>adds</em>
+possibilities &mdash; including reversal, which just swaps every pair in the table &mdash; so the
+stages only grow, and the limit is well defined.</p>
+
+<p>Finally, a procedure may take another procedure as a parameter &mdash; "controlled-by", say, which
+turns any step into a step that happens only if a flag is set. This works one level deep only: a
+parameter stands for a procedure, never for another parameter-taking procedure. Parameters are
+filled in before anything runs. &sect;6 notes that two of the other languages make the same choice and
+describe it in the same words.</p>
+
+<h3 id="s24"><span class="num">2.4</span>This is not just route patterns</h3>
+
+<p>"Do this then that", "either this or that", "repeat this" are the three operations of a
+well-known small algebra &mdash; the same algebra behind text search patterns and behind simple
+route descriptions. The resemblance is not accidental; the 1993 design cites exactly that
+literature. But there are two differences, and they are what the paper is about.</p>
+
+<p>First, that algebra deals in <strong>one kind of thing</strong>. Here every procedure is labelled
+with what it accepts and what it produces, and these may be different kinds, and the "two bins" and
+"travelling together" operations act on those labels rather than being extra operations on a single
+pool. Second, the basic steps are not an arbitrary chosen alphabet; they are forced, being exactly
+the statements that the four manifest builders behave like arithmetic.</p>
+
+<p>So the setting is <em>route patterns over forced data plumbing</em>, and the content is in the
+interaction. <code>dist</code> is what lets the route operations see <em>inside</em> a two-bin choice.
+<code>copy</code> and <code>join</code> are what let them leave the world of exact correspondence.</p>
+
+<p>One consequence matters later. If the manifest allows only finitely many possible consignments,
+then "then", "either" and "repeat" between them give you no more power than a fixed flowchart. All of
+the open-endedness in the language comes from the <em>self-referential manifests</em>, never from the
+control structure.</p>
+
+<h2 id="s3"><span class="num">Section 3</span>What dropping the condition buys</h2>
+
+<h3 id="s31"><span class="num">3.1</span>What it costs those who accept it</h3>
+
+<p>&sect;1 listed six ways of discharging one obligation. What is less often noted is that each one
+charges a fee.</p>
+
+<ul>
+  <li><strong>Inv</strong> spends a piece of standard equipment: an inequality test that exists only
+  to establish non-overlap.</li>
+  <li><strong>Theseus</strong> must reject procedures a working programmer would expect to write. Its
+  own paper lists four invalid examples, of which one merely fails to use something it was given, and
+  another uses something twice. In warehouse terms: <em>throwing an item away</em> and
+  <em>duplicating an item</em> are both forbidden outright.</li>
+  <li><strong>PisoLang</strong> must decide non-overlap mechanically, and must then carve out a
+  special exception to get duplication back at all.</li>
+  <li><strong>Chardonnet et al.</strong> carry non-overlap as two side conditions inside a formal
+  rule.</li>
+  <li><strong>RFUN</strong> must fix an order on its rules and make the meaning depend on it.</li>
+  <li><strong>Janus</strong> pushes the obligation onto the programmer, who must supply a correct exit
+  stamp at every branch, and whose procedure has no defined meaning if the stamp is wrong.</li>
+</ul>
+
+<p>Janus repays a closer look, because on one point it agrees with this paper against all the
+functional languages. It does <strong>not</strong> require its operations to have unique origins.
+Its authors write that evaluating an expression "<em>is not backward deterministic because the
+function is not injective, and thus there exists no inverse</em>", and then that "<em>this does not
+harm the backward and forward determinism of Janus statements</em>". Uniqueness is demanded of
+statements, not of arithmetic, and a restriction on how you may write an assignment buys it. So Janus
+and this paper agree that non-unique operations are admissible. They differ only in where the bill is
+sent: Janus to a restriction plus a stamp on every branch, 42 to the shortlist.</p>
+
+<h3 id="s32"><span class="num">3.2</span>What declining it buys</h3>
+
+<div class="ledger two">
+  <div class="entry g">
+    <h4>Reversal always works</h4>
+    <p>The reverse of a procedure is defined for every procedure, by the eight lines of &sect;1.1.
+    There is no case where it is undefined, no condition to check, and no property of the input that
+    must be established first. Reversing twice returns the original text exactly.</p>
+  </div>
+  <div class="entry g">
+    <h4>Reversal need not be kept</h4>
+    <p>Because it always works, the reader pushes it down to the individual steps and discards it. No
+    part of the machinery &mdash; evaluator, printer, checker, optimiser &mdash; ever meets a reversed
+    composite procedure.</p>
+  </div>
+  <div class="entry g">
+    <h4>Nothing can get stuck</h4>
+    <p>In a language of exact correspondences, a procedure that is well formed but has nothing to do
+    is an embarrassment: it means a guarantee you wanted to make is false. PisoLang records exactly
+    such a case. Here, a procedure with nothing to do is a perfectly ordinary procedure that relates
+    nothing, and no guarantee is lost because none was claimed.</p>
+  </div>
+  <div class="entry g">
+    <h4>Ambiguity has one source</h4>
+    <p>Every shortlist longer than one traces to a reversed merge (&sect;2.3). A language that forbids
+    ambiguity must exclude it everywhere; a language that permits it can point at it.</p>
+  </div>
+</div>
+
+<h3 id="s33"><span class="num">3.3</span>What it costs</h3>
+
+<div class="ledger">
+  <div class="entry c">
+    <h4>The shortlist</h4>
+    <p>Run forwards, then backwards, and you get a list containing where you started rather than
+    where you started. That is the whole of the cost.</p>
+  </div>
+</div>
+
+<p>Here it is, in the smallest possible example. A procedure that adds two counts:</p>
+
+<figure>
+  <figcaption><b>The cost, concretely</b></figcaption>
+  <pre>add(2, 3)  =  5
+
+add backwards, from 5:
+   (0, 5)   (1, 4)   (2, 3)   (3, 2)   (4, 1)   (5, 0)</pre>
+</figure>
+
+<p>Five pallets could have been two-and-three, or one-and-four, or any of six splits. Both directions
+run the <em>same written definition</em>; the backward one is its mechanical reverse. Whether that
+shortlist is acceptable is a real question about what you want a reversible procedure for &mdash; and
+the paper immediately notes something that softens it considerably: <strong>combining steps can
+restore the uniqueness that an individual step lacks.</strong></p>
+
+<p>Take "make a copy of the count, then add the two copies" &mdash; a doubling procedure. Run it
+backwards from 6. The addition offers all seven splits of 6, but the copy, run backwards, keeps only
+the ones where both halves are identical. Exactly one survives: 3. And run it backwards from 7 and
+<em>none</em> survives, correctly, because 7 is not double anything. The shortlist has collapsed to a
+single answer, without anyone imposing a condition.</p>
+
+<h3 id="s34"><span class="num">3.4</span>Why the trade is favourable in principle</h3>
+
+<p>There is a reason the theory gets smaller rather than larger, and it is not luck.</p>
+
+<p>&sect;5 will show that the procedures expressible in this language are exactly the ones whose
+behaviour is <em>listable</em>: you could print out all the valid input/output pairs, one after
+another, forever. Now ask what the reverse of such a procedure looks like. You take the listing and
+swap each pair. That is all. <strong>Reversal is free because the class of listable things is
+obviously closed under swapping.</strong></p>
+
+<p>The languages that keep the obligation live in a smaller class &mdash; behaviours where every
+output has at most one input. That class is closed under reversal too, but the closure has to be
+<em>earned</em>: every construct the language admits must be checked to preserve uniqueness, and that
+checking is precisely the obligation. So:</p>
+
+<div class="claim">
+  <span class="label">The point of the whole paper</span>
+  <p>Reversal being free in the <em>syntax</em> is a shadow of reversal being free in the underlying
+  world. The languages that must check things are the ones whose underlying world does not hand them
+  reversal for nothing.</p>
+</div>
+
+<h2 id="s4"><span class="num">Section 4</span>Manifests</h2>
+
+<p>Manifests are worked out, never written. Nothing in what the programmer types mentions one, and
+there is no wrapping or unwrapping to do.</p>
+
+<h3 id="s41"><span class="num">4.1</span>Working them out</h3>
+
+<p>The method is the standard one from ordinary programming languages: collect the constraints each
+step imposes and solve them. It is unusually easy here, because every definition stands on its own
+&mdash; there are no local variables anywhere in the language &mdash; so none of the usual
+complications arise. Groups of mutually recursive definitions are solved together and generalised
+once.</p>
+
+<p>A self-referential manifest is never something the programmer asks for. It is what the checker
+<em>discovers</em> when the constraints close a loop:</p>
+
+<pre>def double = copy ; add      <span class="c">--&gt;</span>  double : count &lt;-&gt; count</pre>
+
+<p>Nobody declared "count" anywhere. The copy forces the two halves of the addition to agree, and
+that constraint, solved, <em>is</em> "a count in, a count out".</p>
+
+<h3 id="s42"><span class="num">4.2</span>A loop is the self-referential manifest</h3>
+
+<p>Where a conventional checker finds a manifest referring to itself, declares it impossible and
+stops, this one accepts the loop and carries on. Comparing two manifests then has to work
+"up to unwrapping": assume the two are the same, and check that the assumption survives one layer of
+unwrapping. This terminates for a concrete reason &mdash; a looping manifest, however deeply you
+unwrap it, only ever has finitely many <em>distinct</em> parts, so the set of assumptions cannot keep
+growing.</p>
+
+<h3 id="s43"><span class="num">4.3</span>But a loop is read before it is trusted</h3>
+
+<p>Not every loop describes something real. Compare two:</p>
+
+<div class="ledger two">
+  <div class="entry g">
+    <h4>&ldquo;A stack is empty, or a box on a stack&rdquo;</h4>
+    <p>Fine. There are things that satisfy it: the empty stack, one box, two boxes. The loop has a way
+    out.</p>
+  </div>
+  <div class="entry c">
+    <h4>&ldquo;A crate contains two crates&rdquo;</h4>
+    <p>Nothing whatsoever satisfies this. Every crate would need two crates inside it, forever. No
+    finite object qualifies.</p>
+  </div>
+</div>
+
+<p>The test is one unwrapping with the self-reference taken to be empty:</p>
+
+<div class="claim">
+  <span class="label">The test</span>
+  <p>A self-referential manifest describes something real exactly when it describes something real
+  after you replace the self-reference by "nothing qualifies".</p>
+</div>
+
+<p>If it comes out empty at that first step, it will be empty at every step. So the check that other
+languages use to <em>reject</em> looping manifests becomes, here, a <strong>diagnosis</strong>: a loop
+is admitted when something can satisfy it and rejected when nothing can, and the rejection message
+names the specific constraint that could not be satisfied. The paper knows of no other language in
+this family that works its recursive manifests out at all &mdash; in all of them they are
+declared by hand.</p>
+
+<h3 id="s44"><span class="num">4.4</span>Soundness, and why it must face both ways</h3>
+
+<p>What should the manifest system guarantee? The obvious answer: <em>if you feed a procedure
+something matching its input manifest, whatever comes out matches its output manifest.</em> That is
+the guarantee every such system aims for, and here <strong>it cannot be proved</strong>. The reason
+is worth following, because it is the same reason reversal is free.</p>
+
+<p>Proofs of this kind go by working through the procedure's structure one operation at a time,
+assuming the guarantee for the parts and deriving it for the whole. Now reach the operation "run
+backwards". For a reversed procedure, the thing you need to conclude about is what the
+<em>original</em> procedure <em>accepts</em> &mdash; and the assumption you were handed only says
+something about what the original <em>produces</em>. The proof has nothing to work with.</p>
+
+<p>The fix is to state the guarantee symmetrically from the start.</p>
+
+<div class="claim">
+  <span class="label">Proposition 1 &nbsp;&middot;&nbsp; Soundness</span>
+  <p>Suppose a procedure is checked as going from manifest A to manifest B. Then for any pair of
+  goods it relates: <strong>if <em>either</em> end matches its manifest, both do.</strong></p>
+</div>
+
+<p>Stated that way the guarantee is <em>self-mirroring</em>: the claim about a procedure going A to B
+and the claim about its reverse going B to A are word for word the same sentence. So the troublesome
+case is discharged by observing that reversing a procedure just swaps every pair in its table, and the
+condition does not care which way round a pair is written.</p>
+
+<div class="claim">
+  <span class="label">The moral</span>
+  <p>A language whose reversal always works cannot have a one-directional soundness guarantee &mdash;
+  and does not need one. The law of the language has reappeared inside the proof.</p>
+</div>
+
+<h4>How the proof goes</h4>
+
+<p>By working through each operation. The thirteen basic steps are immediate from Figure 3, and three
+are representative.</p>
+
+<ul>
+  <li><strong>Merge.</strong> A pair it relates is "left-bin-x to x" or "right-bin-x to x". And x is a
+  legitimate two-bin item exactly when x is a legitimate item &mdash; the both-ways statement the
+  guarantee wants, for free.</li>
+  <li><strong>Left bin.</strong> A pair is "x to left-bin-x", and left-bin-x is legitimate exactly
+  when x is.</li>
+  <li><strong>Dropping a dead bin.</strong> A pair is "right-bin-x to x", and the manifest "either
+  nothing-qualifies or A" has no left-bin members at all, because nothing qualifies for the left. Which
+  is precisely why the evaluator returns no outcome when handed a left-bin item &mdash; the
+  implementation and the proof agree.</li>
+</ul>
+
+<p>For "do this then that": you have goods going in, something in the middle, goods coming out. If you
+know the front end is legitimate, use the first assumption to get the middle, then the second to get
+the far end. If instead you know the <em>far</em> end is legitimate, use the same two assumptions in
+the other order. Both readings are available precisely because the guarantee is two-directional.</p>
+
+<p>The two-bin and travelling-together cases reduce to the parts. Note that "travelling together"
+<em>already</em> needs the two-way form even with no reversal in sight: knowing only that the outgoing
+pair is legitimate means reading each assumption backwards. "Either procedure" applies whichever
+assumption fits. "Repeat" is the identity at zero steps, and each further step is the assumption for
+the body, read in whichever direction the known end supplies. Reversal is as above. And for a
+self-referential definition, the meaning is the union of its finite stages (&sect;2.3); each stage has
+the property, and the property is about individual pairs, so it survives the union.</p>
+
+<div class="claim">
+  <span class="label">Corollary 2</span>
+  <p>Feed a checked procedure something matching its input manifest and every answer it gives matches
+  the output manifest. Run it backwards from something matching the output manifest and every answer
+  matches the input manifest.</p>
+</div>
+
+<p>Note what this does <em>not</em> say. Nothing here promises that there <em>is</em> an answer.
+"Take one away" applied to zero gives nothing at all, which is a perfectly legitimate outcome, so
+there is no liveness guarantee to state and none is lost (&sect;3.2).</p>
+
+<h2 id="s5"><span class="num">Section 5</span>Exactly how much it can express</h2>
+
+<h3 id="s51"><span class="num">5.1</span>The statement</h3>
+
+<p>First, the word "listable". A behaviour &mdash; a table of which inputs may lead to which outputs
+&mdash; is <em>listable</em> if you could write a program that prints its entries one after another,
+forever, such that every genuine entry appears eventually. Note what you do <em>not</em> get: if an
+entry is not in the table, no amount of waiting tells you so. You just keep waiting. This is the
+standard notion of "as much as a computer can do" for tables that may be infinite.</p>
+
+<div class="claim">
+  <span class="label">Theorem 3</span>
+  <p>Fix any two manifests. A behaviour between them can be written as a program in this language
+  <strong>exactly when</strong> it is listable.</p>
+</div>
+
+<p>Two remarks on why the paper states this, rather than the usual "the language can compute anything
+computable" &mdash; which is only the easier half.</p>
+
+<p>First, <strong>the harder half is the ceiling</strong>, and it is the more informative one. It says
+the language expresses exactly the listable behaviours and nothing beyond: no program in it decides
+questions that no computer can decide, and no amount of adding new basic steps can change that
+without adding something the language deliberately does not have (see &sect;5.2).</p>
+
+<p>Second, the statement has the right shape. The reference result in this field is that reversible
+machines compute exactly the computable behaviours with unique origins; and one of the six languages
+proves the matching statement for itself, concluding that it "<em>fully characterises all of the
+computable morphisms</em>" of its world. Read side by side, that result and Theorem 3 are the same
+sentence in two different worlds. <strong>What this language changes is not the theorem; it is the
+world the theorem is read in.</strong></p>
+
+<h3 id="s52"><span class="num">5.2</span>The ceiling</h3>
+
+<div class="claim">
+  <span class="label">Proposition 4</span>
+  <p>Every procedure written in this language has listable behaviour, and the listing program can be
+  produced mechanically from the text.</p>
+</div>
+
+<p>Three steps. The thirteen basic steps have behaviour you can decide outright by looking. Each of
+the six combinations preserves listability: "then" by working on many partial answers in
+rotation so none starves; "either" by alternating between the two listings; the two bin operations by
+tagging or pairing; reversal by swapping each printed pair; and "repeat" because the
+n-step behaviour is uniformly listable in n. Self-reference adds nothing new: the meaning is the union
+of the finite stages, a listing for each stage can be produced from the stage number, and the same
+rotation trick collects the whole.</p>
+
+<div class="claim">
+  <span class="label">Corollary 5</span>
+  <p>No program in this language expresses a behaviour beyond the listable ones.</p>
+</div>
+
+<h4>Where the ceiling comes from</h4>
+
+<p>Not where you would guess. Not from reversibility, and not from any restriction on recursion
+&mdash; the language has fully general recursion. It comes from the <em>shape of what you can write</em>:</p>
+
+<div class="claim">
+  <span class="label">The reason</span>
+  <p>Every operation in the language is <strong>positive</strong>. Nothing anywhere expresses
+  a negative. There is no way to write "this step <em>fails</em> here".</p>
+</div>
+
+<p>A hypothetical extra operation meaning "t does not apply to this" would describe the complement of
+a scope, and would break the ceiling immediately. The practical consequence is a licence: you may add
+any number of new basic steps to the language, as long as each is decidable by inspection, and the
+theorem survives untouched.</p>
+
+<p>It is a small pleasure that the 1993 design also excluded negation, for a related but distinct
+reason: that "everything except this finite list" cannot be written down finitely when the universe
+of possible goods is infinite. Convergent instinct, different argument.</p>
+
+<h3 id="s53"><span class="num">5.3</span>Four things you can build</h3>
+
+<p>The other half of the theorem &mdash; that everything listable <em>can</em> be written &mdash; is
+assembled from four constructions. None of them is a new feature; each is built out of what &sect;2
+already lists.</p>
+
+<h4>Throwing something away</h4>
+
+<div class="claim">
+  <span class="label">Lemma 6 &nbsp;&middot;&nbsp; Discard</span>
+  <p>For any manifest there is a procedure taking anything of that kind to a bare token &mdash;
+  reducing it to "something was here" and nothing more.</p>
+</div>
+
+<p>It is built by following the manifest's own structure: for a two-bin choice, reduce each bin and
+merge; for a pair, reduce both halves and drop the resulting token; and so on, with a self-referential
+definition for the self-referential manifests.</p>
+
+<p>This deserves a comment, because it looks like a contradiction. Throwing information away is
+supposedly the one thing a reversible language must not do &mdash; and there is no such basic step in
+the thirteen. Yet it is definable. There is no contradiction, because the actual rule was never "you
+may not throw anything away". The rule is:</p>
+
+<div class="claim">
+  <span class="label">The real rule</span>
+  <p>If a step loses information, then running it backwards must be allowed to offer <em>every</em>
+  candidate. Reduce a consignment to a bare token, then run that backwards, and out comes the entire
+  catalogue of consignments that could have produced it.</p>
+  <p><strong>This language forbids forgetting <em>reversibly</em>. It does not forbid forgetting.</strong></p>
+</div>
+
+<p>For contrast: Theseus lists exactly this program among its invalid expressions.</p>
+
+<h4>Relating everything to everything</h4>
+
+<div class="claim">
+  <span class="label">Lemma 7 &nbsp;&middot;&nbsp; The catalogue</span>
+  <p>"Reduce to a token, then run a reduction backwards" relates <em>every</em> possible input to
+  <em>every</em> possible output.</p>
+</div>
+
+<p>Which sounds useless and is in fact the engine of the whole proof. It is a generator of
+possibilities: hand it anything and it offers the complete catalogue of the other kind. Keep it in
+mind for &sect;5.5.</p>
+
+<h4>Filtering</h4>
+
+<div class="claim">
+  <span class="label">Lemma 8 &nbsp;&middot;&nbsp; Filter</span>
+  <p>Take any test &mdash; any procedure that succeeds on some consignments and has no outcome on the
+  rest. Then "copy the consignment, submit one copy to the test, and pass the other copy through
+  unchanged" is a procedure that lets exactly the accepted consignments through, untouched.</p>
+</div>
+
+<p>Copy the docket, send one copy for approval, and if approval comes back the other copy proceeds. If
+approval never comes, nothing proceeds. This is how a test that might never answer becomes a usable
+step.</p>
+
+<p>It also answers a question Theseus left open (&sect;1.1). Filtering here is not a construct that had
+to be designed; it is a three-part assembly. It is its own reverse for <em>any</em> test whatsoever,
+and no restriction to well-behaved tests is needed.</p>
+
+<h4>Writing anything down as a barcode</h4>
+
+<div class="claim">
+  <span class="label">Lemma 9 &nbsp;&middot;&nbsp; Serialisation</span>
+  <p>For any manifest there is a procedure encoding any consignment of that kind as a string of bits,
+  with two properties: different consignments get different strings, and the set of valid strings is
+  <em>prefix-free</em> &mdash; no valid code is the beginning of another valid code.</p>
+</div>
+
+<p>Prefix-freeness is the barcode property: you can tell where one code ends without being told its
+length. It is built the same way as the discard, by following the manifest's structure: a two-bin
+choice becomes a leading 0 or 1 followed by the encoding of the contents, and a pair becomes the two
+encodings joined end to end.</p>
+
+<p>That last clause looks unsound and is not, and the reason is a lovely one. "Joined end to end", run
+backwards, gives you <em>every</em> way of splitting the string &mdash; six ways, for the five-bit
+encoding of a particular pair of counts. And yet the full encoding of a pair, run backwards, gives
+exactly <em>one</em> answer, because prefix-freeness rules out every split except the one that
+actually decodes. This is the phenomenon from &sect;3.3 &mdash; combining steps restoring uniqueness
+that an individual step lacks &mdash; doing real load-bearing work inside a proof.</p>
+
+<h3 id="s54"><span class="num">5.4</span>Simulating a machine</h3>
+
+<div class="claim">
+  <span class="label">Lemma 10 &nbsp;&middot;&nbsp; Halting</span>
+  <p>For any deterministic machine of the standard theoretical kind, there is a procedure in this
+  language that succeeds on exactly the inputs on which that machine eventually stops, and has no
+  outcome on the others.</p>
+</div>
+
+<p>The standard theoretical machine is easy to picture as a warehouse. There is one very long aisle of
+bays, each bay either empty or holding a marker. A picker stands at one bay. The picker holds an
+instruction card. Reading what is in the current bay, the card tells the picker what to leave in the
+bay, whether to step left or right, and which card to pick up next. That is all a computer is, in
+theory, and it is enough for anything computable.</p>
+
+<h4>The encoding</h4>
+
+<p>A snapshot of the aisle is written as three parts: the bays to the left in reverse order, the bay
+you are standing at, and the bays to the right. And the instruction card is <strong>a label on the
+whole snapshot, not a fourth part of it</strong>. That single decision is what keeps the whole
+simulation short. Because the card is a label &mdash; a bin, in the sense of &sect;2 &mdash; acting
+differently under different cards is just "handle bin one this way, bin two that way", which is
+already an operation in the language. Nothing has to reach in, extract the card, consult it, and put
+it back.</p>
+
+<p>Stepping right is: push the current bay onto the left list, pop the next bay off the right list.
+Written out it is one line. And <strong>stepping left is not written out at all &mdash; it is
+"stepping right, backwards"</strong>. Likewise, reading the current bay is one line, and writing to it
+is that line run backwards. This is the paper's thesis showing up as an economy of about half the
+code.</p>
+
+<figure>
+  <figcaption><b>The whole simulation</b></figcaption>
+  <pre>one transition   = write the new marker ; step ; label with the next card
+one card         = read the bay ; (transition if empty + transition if marked) ; merge
+the halt card    = zero               <span class="c">-- no transition: a dead end</span>
+one step         = (card 1 + (card 2 + ...)) ; merge
+halts            = load ; label with card 1 ; <span class="c">repeat</span> step ; select the halt label ; discard</pre>
+</figure>
+
+<p>The word doing the work is <em>repeat</em>. "Repeat one step, any number of times" gives you the
+entire run of the machine. The halting card is a dead end, so once the machine stops, nothing further
+is reachable &mdash; and "select the halt label" therefore picks out the halted snapshot, of which
+there is at most one.</p>
+
+<h4>The one case worth keeping in full</h4>
+
+<p>An aisle in theory is infinite; a written record is finite. So the encoding is
+<strong>many-to-one</strong>: trailing empty bays are represented by not being mentioned. When the
+picker steps right off the end of the written record, a special branch invents an empty bay &mdash;
+and this is correct precisely because an empty right-hand list <em>means</em> the next bay is empty.</p>
+
+<p>Note what the simulation claim carefully does <em>not</em> say. It says nothing about the record
+being in a canonical form. Hand it a record with three trailing empties written out explicitly and it
+gives you back a record with three trailing empties, and since the claim is about what the record
+<em>describes</em> rather than how it is written, the padding simply rides along. The whole
+finite-versus-infinite mismatch costs one branch of one definition and one case of one proof.</p>
+
+<p>A working instance of this construction &mdash; a three-card machine that adds one to a binary
+number &mdash; is included with the implementation and runs.</p>
+
+<h3 id="s55"><span class="num">5.5</span>Everything listable can be written</h3>
+
+<div class="claim">
+  <span class="label">Theorem 11</span>
+  <p>For any two manifests and any listable behaviour between them, some program in this language
+  expresses exactly that behaviour.</p>
+</div>
+
+<p>The proof is a construction, and the shape of it is the point. Given the behaviour you want:</p>
+
+<ol>
+  <li>Encode input-and-output-together as a barcode (Lemma 9). The set of valid barcodes for the
+  behaviour you want is listable.</li>
+  <li>Take a machine that stops on exactly those barcodes, and turn it into a test (Lemma 10). The
+  test succeeds on exactly the input/output pairs you want to allow.</li>
+  <li>Turn that test into a filter (Lemma 8).</li>
+  <li>And now the trick: <strong>guess the answer, then check it.</strong></li>
+</ol>
+
+<figure>
+  <figcaption><b>The whole construction</b></figcaption>
+  <pre>copy ; (leave one alone * catalogue) ; filter ; (discard the input * leave it) ; drop the token</pre>
+</figure>
+
+<p>Follow a consignment through. <em>Copy</em> gives you two of it. <em>Catalogue</em> replaces the
+second copy by every possible outcome, in turn (Lemma 7). <em>Filter</em> keeps only those pairings
+that the behaviour actually allows. <em>Discard the input</em> throws away the first copy, which has
+done its job. What is left is the outcome. So the procedure expresses exactly the behaviour you
+wanted.</p>
+
+<div class="claim">
+  <span class="label">Why an injective language cannot do this</span>
+  <p>The guess is "reduce to a token, then run a reduction backwards" &mdash; a step with many answers
+  by design. The check is "make a copy" &mdash; whose reverse keeps only matching pairs. Both are
+  already in the language; neither was invented for the proof. A language that insists every result
+  have a unique origin <strong>cannot write the guess at all.</strong></p>
+</div>
+
+<div class="claim">
+  <span class="label">Corollary 12 &nbsp;&middot;&nbsp; Full computational power</span>
+  <p>Every computable function whatsoever is expressible &mdash; that is just the special case where
+  the behaviour happens to allow one outcome per input. And by Proposition 4, nothing worse is
+  expressible.</p>
+</div>
+
+<h2 id="s6"><span class="num">Section 6</span>The neighbours</h2>
+
+<h4>One dial orders the whole field</h4>
+
+<p>How many answers may a backward run give? That single question sorts every language in the area.</p>
+
+<figure>
+  <figcaption><b>The axis</b></figcaption>
+  <div class="scroll"><table>
+    <tr><th>Setting</th><th>Answers going backwards</th><th>Languages</th></tr>
+    <tr><td>Exact correspondence</td><td>always exactly one</td><td>&Pi;</td></tr>
+    <tr><td>Unique but possibly absent</td><td>never more than one</td><td>Janus, Theseus, RFUN, Inv, Chardonnet et al., PisoLang</td></tr>
+    <tr><td>Shortlists</td><td>any number</td><td><strong>this paper</strong></td></tr>
+  </table></div>
+</figure>
+
+<p>Almost the entire field is the middle row. Reversible languages are, with near unanimity,
+<em>uniqueness</em> languages, differing in surface syntax and in how uniqueness is enforced rather
+than in what they can express.</p>
+
+<h4>Inv</h4>
+
+<p>The nearest relative, and it deserves generosity. Its point-free relational setting is this
+setting; its reversal law is this law; and its observation that undoing a duplication requires an
+equality check &mdash; "<em>it takes a pair and lets it go through only if the two components are
+equal</em>" &mdash; is exactly the observation this paper makes about reversed copying, made twenty
+years earlier. The difference is that Inv restricts itself to unique-origin behaviours and this
+language does not.</p>
+
+<h4>The &Pi; branch</h4>
+
+<p>&Pi; is built from precisely the statements that the manifest builders behave like arithmetic
+&mdash; which is Figure 1 <em>minus the last two rows</em>. And the two missing rows are the
+interesting part. Having listed its operations, the &Pi; literature explicitly names two things that
+are <em>not</em> among them, and 42's <code>copy</code> and <code>join</code> are exactly witnesses
+for one of them and its mirror image. &Pi; does get them back &mdash; but only in a separate
+supervisory language, as <em>information effects</em> built from "create" and "erase", where merging
+two bins is spelled out as "convert the input into a pair whose first component records which bin,
+then erase that component".</p>
+
+<div class="claim">
+  <span class="label">The comparison in one sentence</span>
+  <p>What &Pi; must treat as a special effect &mdash; requiring an effect-tracking system and a
+  supervisory language on top &mdash; this language has as an ordinary basic step, because in a world
+  of shortlists those two operations are perfectly ordinary steps.</p>
+</div>
+
+<p>Two smaller differences: &Pi; makes you write explicit wrapping and unwrapping for self-referential
+manifests, where the equirecursive choice of &sect;2.1 costs nothing; and one of &Pi;'s basic steps is
+absent here, being redundant &mdash; "an impossible thing travelling with something else" is itself
+impossible, so it is already covered by the step that never applies.</p>
+
+<h4>Procedures as parameters</h4>
+
+<p>Theseus describes its parameterised procedures as "<em>a macro or a meta-language
+construction</em>", stating plainly that "<em>Theseus does not have high-order maps in the formal
+sense</em>". RFUN says its procedure parameters are "<em>not enough to make functions first class
+citizens</em>". This paper's parameters are the same choice, made independently and for the same
+reason. Two of the six languages do go further and nest procedure parameters freely.</p>
+
+<h4>Program inversion</h4>
+
+<p>The classical ancestor, and a genuinely old tradition: Dijkstra, Gries, and others on the question
+of how to invert a given program &mdash; including a famous exercise on inverting a tree traversal.
+Where that tradition inverts a <em>particular</em> program by hand and by cleverness, this language
+makes the inverse fall out of the text automatically.</p>
+
+<h4>Janus</h4>
+
+<p>The imperative ancestor, and the only prior language the paper knows of in which <em>every</em>
+construct reverses by text alone. Janus buys that with the exit stamp; this paper buys it by admitting
+shortlists. Those two prices are the real subject of the comparison, and Janus's is the more familiar
+one: it is an obligation discharged per program, whose failure mode is a procedure with undefined
+behaviour rather than a procedure that gets rejected.</p>
+
+<h2 id="s7"><span class="num">Section 7</span>Conclusion</h2>
+
+<p>The paper presents a reversible language that declines the uniqueness its neighbours pay for, and
+argues the trade is favourable. Reversal becomes total. The reversal symbol leaves the machinery
+entirely. No liveness guarantee is at risk, because none was claimed. Ambiguity has a single,
+nameable source. And the price is one word: <em>possible</em>.</p>
+
+<p>It gives a manifest system that needs no annotations, including for the self-referential manifests
+&mdash; which it works out, and then checks that something could actually satisfy. It proves that
+system sound in the two-directional form that a total reversal forces. And it settles expressive
+power exactly: the expressible behaviours are precisely the listable ones &mdash; the same theorem the
+uniqueness languages prove about themselves, read in a larger world.</p>
+
+<h4>Limitations, stated here rather than left to reviewers</h4>
+
+<ul>
+  <li>Nothing is machine-checked; no proof assistant has seen these proofs.</li>
+  <li>Three standard simplifications of the theoretical machine are cited from the literature rather
+  than re-proved.</li>
+  <li>"Repeat" is computed by brute-force accumulation, so it only finishes when the possibilities run
+  out. A behaviour can be computable in one direction and not the other: "count down from here"
+  finishes, "count up from here" does not.</li>
+  <li>Backward runs can be very slow. Nothing prunes the search.</li>
+  <li>A recursive definition is given a single manifest inside its own group, in the standard way.</li>
+  <li>Worked-out manifests are not in a canonical form, self-referential manifests having no unique way
+  of being written down.</li>
+  <li>Parameters are filled in before anything runs, so a procedure that takes a parameter <em>and
+  refers to itself</em> cannot be run, even though it checks out. The paper's example passes the
+  manifest checker and its reverse is computed correctly, but filling in the parameter never
+  terminates. Interpreting parameters as they are reached, rather than filling them in beforehand,
+  would fix it, and nothing in the manifest system stands in the way.</li>
+</ul>
+
+<h4>Future work</h4>
+
+<p>That last limitation is the most inviting. Beyond it: the ceiling of &sect;5 holds precisely because
+nothing in the language expresses a negative, which suggests a principled account of what admitting
+negation would actually cost.</p>
+
+<h4>And a sibling</h4>
+
+<p>Here is the part that sounds like a joke and is not. The meaning of a procedure in this language is
+a table of yes/no entries: can this input lead to that output, yes or no. Replace yes/no by ordinary
+numbers &mdash; the sort that can be negative, and can cancel each other out &mdash; and the very same
+tables become the operations of <strong>quantum computing</strong>. The same program text, the same
+reader, the same manifest checker, and literally the same reversal routine. Two of the six
+combinations have to go, being exactly the two whose meaning depends on "yes or yes" being the same as
+"yes". That is a separate paper, and it exists.</p>
+
+<h4>Artifact</h4>
+
+<p>A working implementation with no external dependencies, 368 tests, every result claimed in the
+manual re-run automatically by a checker, and the two figures of &sect;2 verified against the
+implementation by the test suite.</p>
+
+<p class="end">This retelling follows <em>Reversibility without Injectivity</em> section by section.
+Everything asserted here is asserted there, and nothing has been added or softened &mdash; only the
+vocabulary has changed. Where this version says "shortlist", the paper says "the backward direction is
+many-valued"; where this version says "listable", the paper says "recursively enumerable"; and where
+this version says the reversal routine is eight lines, the paper prints the eight lines.</p>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var fig = document.getElementById("backDemo");
+  if (!fig) return;
+
+  var NS = "http://www.w3.org/2000/svg";
+  var svg  = fig.querySelector("svg");
+  var cap  = fig.querySelector(".demo-cap");
+  var dots = fig.querySelector(".demo-dots");
+  var btns = fig.querySelectorAll(".demo-ctl button");
+
+  var TRACKS = [
+    { name: "Relabel the bins", id: "swapsum!", from: "in the right bin",
+      to: ["in the left bin"], tag: "exactly one", cls: "one" },
+    { name: "Put it in the left bin", id: "inl!", from: "in the right bin",
+      to: [], tag: "no answer", cls: "two" },
+    { name: "Tip both bins into one", id: "join!", from: "the item alone",
+      to: ["from the left bin", "from the right bin"], tag: "two answers", cls: "two" }
+  ];
+
+  var CAPS = [
+    "Three steps of the language, each run <em>backwards</em> from something that came out. The only " +
+      "question being asked is: <b>how many things could have produced this?</b>",
+    "<b>Relabel the bins.</b> Exactly one answer, always. Eight of the thirteen steps behave like " +
+      "this &mdash; they merely rearrange, so there is never any doubt about where you were.",
+    "<b>Put it in the left bin.</b> Run backwards on something in the <em>right</em> bin and there is " +
+      "no answer at all &mdash; nothing that goes into the left bin ever comes out of the right one. " +
+      "That is not a failure; it is an empty shortlist, and it is a perfectly ordinary outcome.",
+    "<b>Tip both bins into one.</b> Two answers, and nothing whatever to choose between them. This is the " +
+      "only step in the entire language that does this &mdash; so <b>every shortlist longer than one " +
+      "item, in any program however large, was made right here.</b>"
+  ];
+
+  var step = 0, MAX = CAPS.length - 1;
+  var BAND = [16, 112, 208], BH = 82, BOXH = 44;
+  var LBLX = 8, INX = 140, INW = 112, ARW0 = 268, ARW1 = 306, OUTX = 318, OUTW = 96, GAP = 8;
+
+  function el(n, a, t) {
+    var e = document.createElementNS(NS, n);
+    for (var k in a) e.setAttribute(k, a[k]);
+    if (t != null) e.textContent = t;
+    return e;
+  }
+
+  function box(g, x, y, label, cls) {
+    g.appendChild(el("rect", { x: x, y: y, width: (cls ? OUTW : INW), height: BOXH, rx: 3,
+                               "class": "bx" + (cls ? " " + cls : "") }));
+    var words = label.split(" "), line1 = words.slice(0, 2).join(" "),
+        line2 = words.slice(2).join(" ");
+    g.appendChild(el("text", { x: x + (cls ? OUTW : INW) / 2, y: y + (line2 ? 20 : 27),
+                               "class": "in", "text-anchor": "middle" }, line1));
+    if (line2) g.appendChild(el("text", { x: x + (cls ? OUTW : INW) / 2, y: y + 35,
+                                          "class": "in", "text-anchor": "middle" }, line2));
+  }
+
+  function draw() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var g = el("g", { "class": "fade" });
+
+    for (var i = 0; i < TRACKS.length; i++) {
+      var T = TRACKS[i], y = BAND[i], by = y + (BH - BOXH) / 2 - 6, shown = step > i;
+
+      if (i > 0) g.appendChild(el("line", { x1: 8, y1: y - 10, x2: 512, y2: y - 10, "class": "rule" }));
+
+      g.appendChild(el("text", { x: LBLX, y: by + 18, "class": "nm" }, T.name));
+      g.appendChild(el("text", { x: LBLX, y: by + 34, "class": "id" }, T.id));
+
+      box(g, INX, by, T.from, null);
+
+      g.appendChild(el("line", { x1: ARW0, y1: by + BOXH / 2, x2: ARW1 - 6, y2: by + BOXH / 2,
+                                 "class": "arw" }));
+      g.appendChild(el("polygon", { points: [ARW1, by + BOXH / 2, ARW1 - 8, by + BOXH / 2 - 4,
+                                             ARW1 - 8, by + BOXH / 2 + 4].join(" "), "class": "arw" }));
+
+      if (!shown) continue;
+
+      if (T.to.length === 0) {
+        g.appendChild(el("text", { x: OUTX + 4, y: by + 28, "class": "none" }, "nothing at all"));
+      } else {
+        for (var j = 0; j < T.to.length; j++)
+          box(g, OUTX + j * (OUTW + GAP), by, T.to[j], T.cls);
+      }
+      g.appendChild(el("text", { x: OUTX + 2, y: by + BOXH + 15, "class": "tag " + T.cls }, T.tag));
+    }
+    svg.appendChild(g);
+  }
+
+  function render() {
+    draw();
+    cap.innerHTML = CAPS[step];
+    btns[0].disabled = step === 0;
+    btns[1].disabled = step === MAX;
+    dots.innerHTML = "";
+    for (var i = 0; i <= MAX; i++) {
+      var d = document.createElement("i");
+      if (i === step) d.className = "on";
+      dots.appendChild(d);
+    }
+  }
+
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      step = Math.min(MAX, Math.max(0, step + (+this.getAttribute("data-go"))));
+      render();
+    });
+  }
+  fig.setAttribute("tabindex", "0");
+  fig.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" && step < MAX) { step++; render(); e.preventDefault(); }
+    if (e.key === "ArrowLeft"  && step > 0)   { step--; render(); e.preventDefault(); }
+  });
+
+  render();
+})();
+</script>
