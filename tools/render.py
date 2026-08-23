@@ -403,31 +403,18 @@ def target_for(name: str) -> str:
 
 
 def relink(body: str) -> str:
+    """Point a link at the published page for its target.
+
+    The site is meant to stand on its own, so the documents name each other in
+    prose rather than by file name; what is left to rewrite is the handful of
+    real links between them.  A link to a file with no page here falls back to
+    the source on GitHub.
+    """
     def fix(m: re.Match) -> str:
         anchor = m.group(2) or ""
         return f'href="{target_for(m.group(1))}{anchor}"'
 
     return re.sub(r'href="([\w.-]+\.(?:md|42|py|tex|bib))(#[\w-]*)?"', fix, body)
-
-
-def link_mentions(body: str) -> str:
-    """Turn a bare `OTHER.md` in the prose into a link.
-
-    The documents refer to each other by file name, which is what they are in
-    the repository but a dead end on the site: a reader meeting `README.md` in
-    a sentence has nowhere to go.  Give every such mention the same destination
-    a real link to it would get.  Mentions already inside an anchor are left
-    alone, so a Markdown link is never wrapped twice.
-    """
-    def wrap(m: re.Match) -> str:
-        name = m.group(1)
-        return f'<a href="{target_for(name)}"><code>{name}</code></a>'
-
-    # Odd-numbered pieces are whole anchors; only rewrite between them.
-    pieces = re.split(r"(<a\b[^>]*>.*?</a>)", body, flags=re.S)
-    for i in range(0, len(pieces), 2):
-        pieces[i] = re.sub(r"<code>([\w-]+\.md)</code>", wrap, pieces[i])
-    return "".join(pieces)
 
 
 def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> str:
@@ -452,7 +439,7 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
 
     switch = "".join(tab(h, l) for h, l in tabs)
     return PAGE.format(
-        title=title, heading=heading, blurb=blurb, body=link_mentions(relink(body)),
+        title=title, heading=heading, blurb=blurb, body=relink(body),
         blurb_plain=html.escape(re.sub(r"&[a-z]+;", "", blurb), quote=True),
         toc=items, switch=switch, css=CSS, script=SCRIPT,
     )

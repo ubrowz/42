@@ -1892,7 +1892,5 @@ and guesses `0`.
 - `qft.42` — a 42 program that writes *Q42* programs: a circuit family, generated.
   It uses nothing beyond §§4–9, and is the clearest example in the project of a
   recursive definition doing real work.
-- [`QMANUAL.md`](QMANUAL.md) — the same language over the complex numbers, which
-  makes it a quantum one. Read this manual first; that one assumes it.
-- `README.md` — the mathematics behind the design, in mathematical vocabulary.
-  Read it last, or not at all; nothing in this manual depends on it.
+- [The Q42 manual](QMANUAL.md) — the same language over the complex numbers,
+  which makes it a quantum one. Read this manual first; that one assumes it.

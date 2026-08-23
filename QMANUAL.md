@@ -1,7 +1,7 @@
 # Q42 — User Manual
 
 For a reader with a computer science background who has read
-[`MANUAL.md`](MANUAL.md). No prior knowledge of quantum mechanics is assumed;
+[the 42 manual](MANUAL.md). No prior knowledge of quantum mechanics is assumed;
 the physics is developed here from scratch, but only as far as Q42 actually
 needs it, and the parts Q42 does *not* model are named as such.
 
@@ -43,7 +43,7 @@ sits in the cells.
 ### 1.1 A program is a grid
 
 Take a shape with finitely many values, say the two-value shape `1 + 1`, whose
-values are `L ()` and `R ()` (`MANUAL.md` §3.1). A program from that shape to
+values are `L ()` and `R ()` (the 42 manual, §3.1). A program from that shape to
 itself either can or cannot turn each input into each output, so you can write
 the whole program down as a grid: one row per input, one column per output, and a
 mark where the program can get from one to the other.
@@ -81,7 +81,7 @@ labels, has two marks in one row. That is a set of two answers, drawn:
 ```
 
 Nothing new has been said yet. This is the same "a program returns a set" from
-`MANUAL.md` §7, written as a picture instead of as a list.
+the 42 manual's §7, written as a picture instead of as a list.
 
 ### 1.2 Running backwards is reading the other way
 
@@ -99,8 +99,8 @@ So `!` **is the grid, flipped about its diagonal.** Compare `join!` above with
     ()        *     *            R ()        *
 ```
 
-Same marks, rows and columns exchanged. This is why `MANUAL.md` never needed a
-second algorithm for the backward direction, and why `f!!` is `f`: flipping
+Same marks, rows and columns exchanged. This is why 42 never needed a second
+algorithm for the backward direction, and why `f!!` is `f`: flipping
 twice puts everything back.
 
 ### 1.3 Composing is combining grids
@@ -232,7 +232,7 @@ gate, which keeps its inputs and writes the answer into a third wire:
 ```
 
 Set `c = 0` and the third component becomes `a AND b`, with `a` and `b` still
-there. This is the padding trick from `MANUAL.md` §11.3, where `mul` keeps its
+there. This is the padding trick from the 42 manual's §11.3, where `mul` keeps its
 multiplier in order to stay invertible; the same pressure produces the same
 answer in both places.
 
@@ -313,7 +313,7 @@ Two things follow, and they are why the condition is the one physics imposes:
   summing to `1`. Unitarity is exactly the condition "still a valid state
   afterwards".
 
-Q42 spells `U†` as `U!`, which is the same `!` that `MANUAL.md` uses for running
+Q42 spells `U†` as `U!`, which is the same `!` that 42 uses for running
 a program backwards. It is not an analogy: in 42 the operation is the converse
 of a relation, in Q42 the adjoint of a matrix, and they are the same structural
 operation in two different settings (§4).
@@ -450,7 +450,7 @@ quantum mechanics* (Abramsky & Coecke, 2004), and it means `rel42/core.py`'s
 `dagger` function is already the right function; only the primitive table it
 consults has to change.
 
-Compare, from `README.md` and this manual respectively:
+The two laws, side by side:
 
 ```
 42 :   x in P(y)      <=>   y in inv(P)(x)
@@ -651,8 +651,8 @@ h : qubit <-> qubit
 ### 6.4 Control is `dist`, which you have already met
 
 A **controlled** gate applies its target gate only when the control qubit is
-`|1>`. That is a conditional, and 42 does conditionals with `dist` (`MANUAL.md`
-§12.5). So:
+`|1>`. That is a conditional, and 42 does conditionals with `dist` (the 42
+manual, §12.5). So:
 
 ```
 def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  <->  A + A
@@ -701,7 +701,7 @@ printing, and a file may name the type:
 type qubit = 1 + 1
 ```
 
-which is a printing abbreviation and changes nothing (`MANUAL.md` §3.7).
+which is a printing abbreviation and changes nothing (the 42 manual, §3.7).
 
 ### 7.2 Registers and kets
 
@@ -897,7 +897,7 @@ tells you nothing about the other. Deutsch's algorithm answers after one.
 
 The oracle has to be reversible like everything else, so it takes the standard
 shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §2,
-which is also `mul` keeping its multiplier in `MANUAL.md` §11.3. There are only
+which is also `mul` keeping its multiplier in the 42 manual's §11.3. There are only
 four one-bit functions, so `q42/deutsch.42` writes all four out:
 
 ```
@@ -1347,9 +1347,8 @@ nothing classical.
 
 ### Further reading
 
-- `MANUAL.md` — the language this one is built on. Read it first.
-- `README.md` — 42's design in mathematical terms.
-- `Q42.md` — the design of Q42, and why each departure is forced.
-- `RELATED.md` — where 42 and Q42 sit in the literature.
+- [The 42 manual](MANUAL.md) — the language this one is built on. Read it
+  first.
+- [Related work](RELATED.md) — where 42 and Q42 sit in the literature.
 - Carette, Heunen, Kaarsgaard & Sabry, *With a Few Square Roots, Quantum
   Computing is as Easy as Π*, POPL 2024 — the result §4.2 and §6 rest on.

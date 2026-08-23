@@ -101,7 +101,8 @@ of a decidable language (§2.2), and complement is deliberately absent:
 > level of complex relations is not implemented. The reason for this is the
 > requirement of finiteness of result
 
-Those are the two ingredients of `THEOREM.md`'s soundness proof: decidable
+Those are the two ingredients of the [expressiveness theorem](THEOREM.md)'s
+soundness proof: decidable
 primitives, and only positive operators over them. The 1993 reason is not the
 2026 reason: theirs is that a complement in an infinite universe is not finitely
 presentable, mine is that it leaves Σ⁰₁. Convergent instinct, different argument.
@@ -140,7 +141,7 @@ and returning the copy on success:
 **42 is the language in which every operator is syntactically reversible**, and
 that is what going point-free buys. There is no conditional to fail the property,
 because branching is `+`; and there is no test operator, because filtering is the
-composite `copy ; (test * id) ; unitprod`. That is `THEOREM.md`'s Lemma 5, and
+composite `copy ; (test * id) ; unitprod`. That is the theorem's Lemma 5, and
 it is its own dagger for *any* test, with no restriction to symmetrical
 programs:
 
@@ -158,7 +159,7 @@ keepd(R ()) =
   -- 1 result
 ```
 
-The expressiveness half of the 1993 question is settled by `THEOREM.md`'s Theorem
+The expressiveness half of the 1993 question is settled by the theorem's Theorem
 12: filters of exactly this shape reach every r.e. subset, so nothing is lost by
 having no primitive test at all. Intersection goes the same way: 4₂'s `&` is
 `copy ; (f * g) ; copy!`, running both and insisting the answers agree, so the
@@ -223,7 +224,7 @@ and semantics, have not.
 ## 1. The axis everything sits on
 
 Every language here can be placed by how many answers running backwards may
-give. This is `README.md`'s table, extended:
+give:
 
 | Setting | `\|P(y)\|` | Languages |
 |---|---|---|
@@ -263,7 +264,7 @@ Turing machines.
 > The converse of a relation `R`, written `R°`, is obtained by swapping the pairs
 > in `R`. That is, `(b, a) ∈ R° ≡ (a, b) ∈ R`.
 
-42's `README.md`:
+42:
 
 > `x ∈ P(y) ⟺ y ∈ inv(P)(x)`
 
@@ -480,8 +481,8 @@ Its `add` is 42's padding trick, arrived at independently:
 > The function `add` … takes two natural numbers `m` and `n` and returns a pair
 > `(m + n, n)` **in order to make the function injective**.
 
-Compare `README.md` on `mul : (m, n) → (n, m×n)`: *"keeping the multiplier costs
-one component and buys injectivity"*. Same move, same reason.
+42 makes the same trade in `mul : (m, n) → (n, m×n)`, where keeping the
+multiplier costs one component and buys injectivity. Same move, same reason.
 
 **Where 42's generality earns something.** Beyond the disjointness condition of
 §3:
@@ -495,7 +496,7 @@ one component and buys injectivity"*. Same move, same reason.
 - *No failure of progress.* PisoLang's Example 2.6 exists to record that
   `(case True ↔ ()) False` is well-typed but **stuck**, so progress does not hold.
   In 42 that term denotes `∅`, a legitimate morphism of Rel, and there is no
-  theorem to weaken. `README.md`'s "partiality is not failure" is the same point.
+  theorem to weaken. In 42, partiality is not failure, which is the same point.
 - *No linearity.* PisoLang types expressions in a **linear** context, and says so:
   *"the rules for expressions treat `∆` as a linear context, and that isos are
   typed without `∆`; these aspects contribute to the reversibility of isos."* It
@@ -660,7 +661,7 @@ Carette, Heunen, Kaarsgaard & Sabry, **√Π** (POPL 2024), prove that a
 rig groupoid extended with **two maps and three equations** is computationally
 universal for quantum computing, and equationally sound and complete for
 Clifford, ≤2-qubit Clifford+T, and Gaussian Clifford+T. The maps are an 8th root
-of the identity on the unit and a square root of the symmetry on `1 + 1`. `Q42.md`
+of the identity on the unit and a square root of the symmetry on `1 + 1`. Q42
 is 42 taken to ℂ along exactly this route, and `q42/` implements it.
 
 ### 5.2 Two routes from a rig groupoid to quantum
@@ -864,7 +865,8 @@ underexplored and better behaved, not that the others made a mistake.
   other two is narrower and is stated in §4: all three admit `map`, but 42
   eliminates parameters by substitution and so cannot *run* a recursive
   combinator, while RFUN and Theseus interpret theirs.
-- **A discipline against erasure.** `THEOREM.md`'s Lemma 5 shows `drop : C <-> 1`
+- **A discipline against erasure.** Lemma 5 of the expressiveness theorem shows
+  `drop : C <-> 1`
   is *definable* in 42, at every type, though it is not a primitive. Theseus
   lists exactly that program as ill-formed. Its §3.1 gives `drop_var`, in which
   a bound `n` is not used on the other side, as one of four examples of invalid
@@ -889,7 +891,7 @@ underexplored and better behaved, not that the others made a mistake.
   one is less of a gap than it looks, since `neq` is there largely to establish
   the disjointness 42 does not require (§3), but the expressiveness difference
   is real and worth checking rather than assuming away.
-- **A mechanised proof of it.** 42 has a completeness result, `THEOREM.md`,
+- **A mechanised proof of it.** 42 has a completeness result,
   summarised in the note below, but like PisoLang's and Inv's it is on paper.
   Nobody in this table has a machine-checked one.
 - **Verified inference.** Nobody has this, PisoLang included, so it is a
@@ -911,7 +913,8 @@ underexplored and better behaved, not that the others made a mistake.
 languages prove is Axelsen & Glück's: reversible Turing machines compute exactly
 the *injective computable functions*. That is the right statement for a language
 whose terms denote injections, and it is the wrong shape for 42, whose terms
-denote relations. The statement proved in `THEOREM.md` is a characterisation
+denote relations. The statement proved in the [expressiveness
+theorem](THEOREM.md) is a characterisation
 rather than a lower bound:
 
 > a relation `R ⊆ A × B` is denotable in 42 iff `R` is recursively enumerable
@@ -936,7 +939,7 @@ exactly the injective version, and say so in those words:
 > whose semantics is `f`, thus our language fully characterises all of the
 > computable morphisms in PInj.
 
-Read side by side, their theorem and `THEOREM.md`'s Theorem 14 are the same
+Read side by side, their theorem and Theorem 14 here are the same
 statement in two different categories: *every computable morphism of the ambient
 category is denotable*, with PInj there and Rel here. That is the cleanest way to
 put what 42 changes: not the theorem, the category.
@@ -1111,7 +1114,8 @@ attempting it.
   Programming 15 (1990), pp. 1–13.
 - J. E. Hopcroft, J. D. Ullman. *Introduction to Automata Theory, Languages, and
   Computation.* Addison-Wesley, Reading, 1979. — the source of the Turing
-  machine normalisations `THEOREM.md` §5.1 assumes, and on the 1993 shelf.
+  machine normalisations §5.1 of the expressiveness theorem assumes, and on the
+  1993 shelf.
 - R. Leermakers, J. Rous. *The Translation Method of Rosetta.* Computers and
   Translation, Vol. 1, No. 3 (1986), pp. 169–183.
 - L. Appelo, J. Landsbergen. *The Machine Translation Project Rosetta.* Proc.
