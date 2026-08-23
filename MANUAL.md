@@ -22,6 +22,7 @@ reversible computing is assumed, and no term is used before it is defined.
 13. [A Turing machine](#13-a-turing-machine)
 14. [Reference](#14-reference)
 15. [Troubleshooting](#15-troubleshooting)
+16. [Appendix: a program and its inverse](#appendix-a-program-and-its-inverse)
 
 ---
 
@@ -1900,3 +1901,114 @@ requirement.
   recursive definition doing real work.
 - [The Q42 manual](QMANUAL.md) — the same language over the complex numbers,
   which makes it a quantum one. Read this manual first; that one assumes it.
+---
+
+## Appendix: a program and its inverse
+
+The claim this manual opens with is that you write a program once and get both
+directions. Section 8 shows you reading a program backwards by hand. This
+appendix shows the machine doing it, on a recursive definition, where the
+backward direction is not the forward one run in reverse but a different
+algorithm altogether.
+
+### The program
+
+Addition, from §11.2, is six operators:
+
+```
+$ 42 show prelude add
+add   = dist ; unitprod + (add ; inr) ; join
+add!  = join! ; (unitprod! + (inr! ; add!) ; dist!)
+```
+
+The second line is not in `prelude.42`. It was computed from the first.
+
+### The derivation
+
+Two rules produce it. Reversing a composite reverses the order of its parts,
+`(f ; g)! = g! ; f!`, and reversing a part is reversing whatever it is made of.
+Section 8 applies them by hand to a program that does not call itself; applied
+to `add`, they give:
+
+| in `add`, in order | in `add!`, in order |
+|---|---|
+| `dist` | `join!` |
+| `unitprod + (add ; inr)` | `unitprod! + (inr! ; add!)` |
+| `join` | `dist!` |
+
+Three things are worth noticing in that table.
+
+The first column read downwards is the second column read upwards. That is
+contravariance, and it is what keeps the pipeline fitting together: `join`
+produced the value that `join!` now consumes.
+
+Inside the sum, `add ; inr` becomes `inr! ; add!`. The same reversal applies at
+every depth, including to the recursive call, which is what makes `add!`
+recursive too.
+
+And `unitprod!` becomes `unitprod`, not `unitprod!!`, because `f!!` is `f`
+(§5). The operator that discards a `()` and the one that invents it trade
+places.
+
+### The two directions
+
+Forwards, `add` is a function:
+
+```
+$ 42 prelude add "(2, 3)"
+add(2, 3) =
+  5
+  -- 1 result
+```
+
+Backwards, it is a search, and it finds everything:
+
+```
+$ 42 prelude add 5 --backward
+add!(5) =
+  (0, 5)
+  (1, 4)
+  (2, 3)
+  (3, 2)
+  (4, 1)
+  (5, 0)
+  -- 6 results
+```
+
+Those are different computations. One walks a number down to zero; the other
+enumerates a set whose size depends on the input. No line of `prelude.42`
+describes the second, and `arith.42` contains no subtraction (§11.1).
+
+### Checking it
+
+The defining law says that running forwards and then backwards returns a set
+containing where you started. That is checkable on any input:
+
+```
+$ 42 law prelude add "(2, 3)"
+add(2, 3) has 1 result(s)
+  [ok ] 5: inv has 6 preimage(s), input in it
+law holds
+```
+
+Six preimages, and `(2, 3)` is among them. The check is not that the answer is
+unique, which it is not, but that nothing was lost: §7 is the section on why
+those are different statements.
+
+The type comes from the same definition, with no annotation anywhere in the
+file:
+
+```
+$ 42 type prelude add
+add  : nat x (mu Y. a + Y) <-> mu Y. a + Y
+```
+
+The `<->` is doing the same work as everything above. There is no domain and no
+codomain, only two sides, and which one is the input depends on the direction
+you ran it.
+
+### What was not written
+
+Not the inverse term, not the search, not a subtraction, not a second type, and
+not a proof that the two agree. What was written is one line of `prelude.42`;
+everything else on this page was derived from it mechanically.
