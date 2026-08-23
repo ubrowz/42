@@ -1015,9 +1015,9 @@ compiler destroys the property it exists to preserve. That constraint applies to
 42 exactly as written, and it is not a constraint 42's design has yet been tested
 against.
 
-PISA is a *classical* reversible ISA, valued in 𝔹, the semiring 42 is
-interpreted in (§1). The natural compilation target for **42**, as distinct from Q42, is
-therefore this branch rather than quantum hardware.
+PISA is a *classical* reversible ISA, valued in 𝔹, the semiring in which 42 is
+interpreted (§1). The natural compilation target for **42**, as distinct from
+Q42, is therefore this branch rather than quantum hardware.
 
 ### 8.2 Quantum: the stack is standardised, but the front ends are not languages
 
