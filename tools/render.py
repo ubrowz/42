@@ -386,6 +386,26 @@ PAGE = """<!doctype html>
 """
 
 
+#: A document links to its siblings by file name -- `[...](QMANUAL.md)` -- which
+#: is right in the repository and a 404 on the site.  Rewrite the ones that have
+#: a page here to that page, and send the rest to the source on GitHub.
+SITE_PAGE = {
+    "MANUAL.md": "manual.html",
+    "QMANUAL.md": "qmanual.html",
+    "README.md": "readme.html",
+    "RELATED.md": "related.html",
+    "THEOREM.md": "theorem.html",
+}
+
+
+def relink(body: str) -> str:
+    def fix(m: re.Match) -> str:
+        target, anchor = m.group(1), m.group(2) or ""
+        return f'href="{SITE_PAGE.get(target, f"{REPO}/blob/main/{target}")}{anchor}"'
+
+    return re.sub(r'href="([\w.-]+\.(?:md|42|py|tex|bib))(#[\w-]*)?"', fix, body)
+
+
 def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> str:
     items = "".join(
         f'<li><a class="{"sub" if lvl == 3 else ""}" href="#{a}">{html.escape(t)}</a></li>'
@@ -409,7 +429,7 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
 
     switch = "".join(tab(h, l) for h, l in tabs)
     return PAGE.format(
-        title=title, heading=heading, blurb=blurb, body=body,
+        title=title, heading=heading, blurb=blurb, body=relink(body),
         blurb_plain=html.escape(re.sub(r"&[a-z]+;", "", blurb), quote=True),
         toc=items, switch=switch, css=CSS, script=SCRIPT,
     )

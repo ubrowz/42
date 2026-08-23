@@ -187,7 +187,7 @@ add!(5) =
   -- 6 results</code></pre></div>
 <p>Forwards, <code>add</code> is a function. Backwards, it enumerates every preimage. Both directions run the <em>same definition</em>; the backward one is its dagger, computed mechanically.</p>
 <p>The three words after <code>42</code> are a file, a program defined in it, and an input: <code>prelude</code> is <code>prelude.42</code>, a file of worked examples that ships with the project, and <code>add</code> is one of the definitions in it.</p>
-<p><strong>New here? Start with <a href="MANUAL.md"><code>MANUAL.md</code></a></strong> — a ground-up user manual that assumes no vocabulary beyond a CS background. This README describes the <em>design</em> in mathematical terms and will be much easier after it.</p>
+<p><strong>New here? Start with <a href="manual.html"><code>MANUAL.md</code></a></strong> — a ground-up user manual that assumes no vocabulary beyond a CS background. This README describes the <em>design</em> in mathematical terms and will be much easier after it.</p>
 <h2 id="the-dagger"><a class="anchor" href="#the-dagger" aria-label="Link to this section">#</a>The dagger</h2>
 <p>The entire inversion algorithm, from <code>rel42/core.py</code>:</p>
 <div class="code"><pre><code>def dagger(t: Term) -&gt; Term:
@@ -298,14 +298,14 @@ law holds</code></pre></div>
 <p>Flags: <code>--raw</code> disables nat/list sugar, <code>--limit</code> bounds call depth, <code>--orbit</code> bounds how large a <code>Star</code> closure may grow before being declared infinite, and <code>--untyped</code> skips the type check that <code>run</code> and <code>law</code> otherwise apply.</p>
 <p>Tests: <code>python3 tests/test_rel42.py</code> (121), <code>python3 tests/test_types.py</code> (123), <code>python3 tests/test_q42.py</code> (93), <code>python3 tests/test_docs.py</code> (31) and <code>python3 tests/test_emit.py</code> (27) — 395 in all. Stdlib only, no dependencies, and <code>test_docs.py</code> checks the documentation itself, including these counts.</p>
 <h2 id="q42--the-same-language-over-ℂ"><a class="anchor" href="#q42--the-same-language-over-ℂ" aria-label="Link to this section">#</a>Q42 — the same language over ℂ</h2>
-<p>Rel is matrices over the Boolean semiring. Swap the semiring for ℂ and you get finite-dimensional Hilbert spaces and unitary maps, which is quantum computing. That is <code>q42/</code>, and <a href="Q42.md"><code>Q42.md</code></a> is its design.</p>
+<p>Rel is matrices over the Boolean semiring. Swap the semiring for ℂ and you get finite-dimensional Hilbert spaces and unitary maps, which is quantum computing. That is <code>q42/</code>, and <a href="https://github.com/ubrowz/42/blob/main/Q42.md"><code>Q42.md</code></a> is its design.</p>
 <div class="code"><pre><code>$ 42q gates ghz "|000&gt;"
 ghz |000&gt;
   = 0.707107|000&gt;  +  0.707107|111&gt;
 
 $ 42q unitary gates
 -- 24/26 unitary, 2 with no single matrix</code></pre></div>
-<p><strong><a href="QMANUAL.md"><code>QMANUAL.md</code></a> is its user manual</strong> — the physics developed from scratch for a computer scientist, and the parts Q42 does not model named as such.</p>
+<p><strong><a href="qmanual.html"><code>QMANUAL.md</code></a> is its user manual</strong> — the physics developed from scratch for a computer scientist, and the parts Q42 does not model named as such.</p>
 <p>It is a sibling, not a fork: <code>Value</code>, <code>Term</code>, <code>dagger</code>, the parser and the type-inference engine are all rel42's, unchanged — <code>q42.dagger is rel42.dagger</code>. Only the primitive table and the evaluator differ. Two departures are worth knowing, and both are forced rather than chosen:</p>
 <ul><li><strong><code>|</code> and <code>^</code> are gone</strong>, because they are exactly the two constructors whose meaning needs addition to be <em>idempotent</em>: <code>f | f</code> would denote <code>2f</code>, and <code>Star</code> is a least fixed point wanting <code>1 + 1 = 1</code>. Superposition comes from the new generator <code>v</code>, not from choice.</li><li><strong><code>copy</code>, <code>join</code>, <code>inl</code>, <code>inr</code> and <code>zero</code> are gone</strong>, because none is unitary. <code>copy</code> is the interesting one: it is a perfectly good isometry that copies basis states, so it is a measurement basis rather than an illegal cloner — it is excluded only for not being surjective.</li></ul>
 <p>What is added is two generators, <code>omega</code> and <code>v</code>, an 8th root of unity and a square root of <code>swapsum</code>. That is enough for universal quantum computation (Carette, Heunen, Kaarsgaard &amp; Sabry, POPL 2024), and <code>dagger</code> needs no change at all — it stops being the converse and becomes the adjoint, and because every Q42 term is unitary, <code>t ; t!</code> is now <code>id</code> on the nose rather than a set containing where you started.</p>
