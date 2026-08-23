@@ -1347,6 +1347,11 @@ nothing classical.
 
 ### Further reading
 
+The gate libraries and worked examples named above are files in the 42
+repository, at <https://github.com/ubrowz/42>, along with both interpreters.
+Clone it and each one runs with the `42q` command of §7: `42q gates bell "|00>"`
+reads `q42/gates.42`, finds `bell` in it, and applies it.
+
 - [The 42 manual](MANUAL.md) — the language this one is built on. Read it
   first.
 - [Related work](RELATED.md) — where 42 and Q42 sit in the literature.

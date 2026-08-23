@@ -1882,6 +1882,12 @@ and guesses `0`.
 
 ## Where to go next
 
+The programs below are files in the 42 repository, at
+<https://github.com/ubrowz/42>, along with the interpreter itself. Clone it and
+each one runs with the `42` command of §14: `42 tour swap "(1, 2)"` reads
+`tour.42`, finds `swap` in it, and applies it. Python 3.12 is the only
+requirement.
+
 - `tour.42` — the same ground as this manual, in runnable form. It should read
   easily once §§4–6 have sunk in.
 - `arith.42` — the arithmetic of §11, heavily commented.

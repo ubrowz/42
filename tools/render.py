@@ -38,6 +38,12 @@ def inline(text: str) -> str:
     text = re.sub(r"`([^`]+)`", stash, text)
     text = html.escape(text, quote=False)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', text)
+    # `<https://…>` is Markdown's autolink.  The escaping above has already
+    # turned the brackets into entities, so match those: without this the
+    # bibliography's URLs render as literal text with `&lt;` around them.
+    text = re.sub(
+        r"&lt;(https?://[^\s&]+)&gt;", r'<a href="\1">\1</a>', text
+    )
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"(?<![*\w])\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", text)
     return re.sub(
