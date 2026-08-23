@@ -636,7 +636,7 @@ def h     = unitprod! ; (omega * hcore) ; unitprod</code></pre></div>
 bell : 2 qubit(s), 12 gate(s)
   gphase(0.785398) 
   x 0</code></pre></div>
-<p>The output is deliberately unoptimised: the four <code>p(π/4)</code> instructions above are two quarter turns written the long way, and any transpiler folds them. What the emitter guarantees is not brevity but agreement — <code>tests/test_emit.py</code> runs every library definition through a simulator in <code>tools/qasm_sim.py</code> that shares no code with the evaluator, and checks the circuit's matrix against the one Q42 computes from the term. For <code>bell</code> that is the 4×4 matrix sending <code>|00&gt;</code> to <code>(|00&gt; + |11&gt;)/√2</code>.</p>
+<p>The output is deliberately unoptimised: the four <code>p(π/4)</code> instructions above are two quarter turns written the long way, and any transpiler folds them. What the emitter guarantees is not brevity but agreement. <code>tests/test_emit.py</code> takes every definition in every library that is a circuit at all — a parameterised one like <code>ctrl</code> is not, until it is applied — emits it, reads the result back with a simulator in <code>tools/qasm_sim.py</code> that shares no code with the evaluator, and checks that matrix against the one Q42 computes from the term. For <code>bell</code> that is the 4×4 matrix sending <code>|00&gt;</code> to <code>(|00&gt; + |11&gt;)/√2</code>.</p>
 <p>A polymorphic definition needs its width supplied before it can be a circuit at all, since <code>swap : a x b &lt;-&gt; b x a</code> is not a two-qubit gate until you say that <code>a</code> and <code>b</code> are qubits:</p>
 <div class="code"><pre><code>$ 42q emit gates swap -q 2
 OPENQASM 3.0;

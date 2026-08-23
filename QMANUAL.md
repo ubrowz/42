@@ -1462,10 +1462,11 @@ bell : 2 qubit(s), 12 gate(s)
 
 The output is deliberately unoptimised: the four `p(π/4)` instructions above are
 two quarter turns written the long way, and any transpiler folds them. What the
-emitter guarantees is not brevity but agreement — `tests/test_emit.py` runs every
-library definition through a simulator in `tools/qasm_sim.py` that shares no code
-with the evaluator, and checks the circuit's matrix against the one Q42 computes
-from the term. For `bell` that is the 4×4 matrix sending `|00>` to
+emitter guarantees is not brevity but agreement. `tests/test_emit.py` takes every
+definition in every library that is a circuit at all — a parameterised one like
+`ctrl` is not, until it is applied — emits it, reads the result back with a
+simulator in `tools/qasm_sim.py` that shares no code with the evaluator, and
+checks that matrix against the one Q42 computes from the term. For `bell` that is the 4×4 matrix sending `|00>` to
 `(|00> + |11>)/√2`.
 
 A polymorphic definition needs its width supplied before it can be a circuit at
