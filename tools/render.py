@@ -418,7 +418,6 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
         (HOSTED["index.html"], "home"),
         (HOSTED["manual.html"], "42 manual"),
         (HOSTED["qmanual.html"], "Q42 manual"),
-        (HOSTED["readme.html"], "design notes"),
         (HOSTED["related.html"], "related work"),
         (HOSTED["theorem.html"], "the theorem"),
         (REPO, "source"),
@@ -632,18 +631,12 @@ hh |0&gt;
 
     <p class="eyebrow">Going deeper</p>
     <div class="minor">
-      <a href="readme.html"><b>Design notes</b>
-        <span>The mathematics behind the design: the dagger, the type system,
-        and the limitations.</span></a>
       <a href="theorem.html"><b>What 42 can compute</b>
         <span>A proof that the denotable relations are exactly the recursively
         enumerable ones.</span></a>
       <a href="related.html"><b>Related work</b>
         <span>Where 42 sits among Inv, PisoLang, Janus, RFUN and the
         &Pi; branch.</span></a>
-      <a href="plain/warehouse.html"><b>Without the mathematics</b>
-        <span>The two papers retold for a reader who wants the ideas and not the
-        notation.</span></a>
     </div>
 
     <p class="eyebrow">Running it</p>
