@@ -19,6 +19,7 @@ needs it, and the parts Q42 does *not* model are named as such.
 8. [Worked examples](#8-worked-examples)
 9. [What Q42 is, and is not, for](#9-what-q42-is-and-is-not-for)
 10. [Reference](#10-reference)
+11. [Appendix: a program and its circuit](#appendix-a-program-and-its-circuit)
 
 ---
 
@@ -1357,3 +1358,126 @@ reads `q42/gates.42`, finds `bell` in it, and applies it.
 - [Related work](RELATED.md) — where 42 and Q42 sit in the literature.
 - Carette, Heunen, Kaarsgaard & Sabry, *With a Few Square Roots, Quantum
   Computing is as Easy as Π*, POPL 2024 — the result §4.2 and §6 rest on.
+
+---
+
+## Appendix: a program and its circuit
+
+§9.4 says a Q42 definition lowers to OpenQASM 3 and that most of the language
+costs nothing to execute. This appendix does it once, in full, on the smallest
+program worth the trouble.
+
+### The program
+
+`bell` prepares the entangled pair of §8.2. Two operators:
+
+```
+$ 42q show gates bell
+bell   = h * id ; cx
+bell!  = cx! ; h! * id!
+```
+
+Read it as: Hadamard the left qubit, leave the right one alone, then a
+controlled-NOT. The adjoint was not written by anyone; it is the same
+definition read backwards.
+
+### The circuit
+
+```
+$ 42q emit gates bell
+OPENQASM 3.0;
+include "stdgates.inc";
+
+qubit[2] q;
+
+gphase(0.78539816339744828);
+x q[0];
+p(0.78539816339744828) q[0];
+p(0.78539816339744828) q[0];
+gphase(2.3561944901923448);
+p(1.5707963267948966) q[0];
+h q[0];
+p(1.5707963267948966) q[0];
+p(0.78539816339744828) q[0];
+p(0.78539816339744828) q[0];
+x q[0];
+cx q[0], q[1];
+```
+
+Twelve instructions for a two-operator program, and one qubit register of
+exactly the width the type demands.
+
+### Why twelve
+
+Because `h` is not a primitive here. Q42 has ten primitives (§10), and the
+Hadamard is a definition over two of them:
+
+```
+def hcore = x ; s ; v ; s ; x
+def h     = unitprod! ; (omega * hcore) ; unitprod
+```
+
+with `s = id + (omega ; omega)`. Expand that and the emitted sequence reads off
+in order:
+
+| in the term | emitted |
+|---|---|
+| `omega` | `gphase(π/4)` |
+| `x` | `x q[0]` |
+| `s` | two `p(π/4)`, an eighth turn each |
+| `v` | `gphase`, `p(π/2)`, `h`, `p(π/2)` — the square root of NOT |
+| `s` | two more `p(π/4)` |
+| `x` | `x q[0]` |
+| `cx` | `cx q[0], q[1]` |
+
+Nothing is looked up in a table of gate translations. The circuit is what the
+term says once the definitions are expanded, which is why the T-count of a Q42
+program is a property of the program rather than of the compiler.
+
+### What did not emit
+
+Three things in that term produce no instruction at all:
+
+- the `id` in `h * id`, which is the right qubit being left alone;
+- both halves of the `unitprod` sandwich, which change how the value is
+  bracketed and not what any bit holds;
+- the `ctrl` inside `cx`, which is `mat ; (id + m) ; mat!` and becomes the
+  control structure of the `cx` line rather than an instruction of its own.
+
+That is §9.4's claim about plumbing, visible: seven of the ten primitives emit
+nothing, so the instruction count tracks the *quantum* content of a term and
+not its size.
+
+### Reading it against the language
+
+The wire view drops the QASM boilerplate and says which qubits each gate lands
+on:
+
+```
+$ 42q emit gates bell --gates
+bell : 2 qubit(s), 12 gate(s)
+  gphase(0.785398) 
+  x 0
+```
+
+The output is deliberately unoptimised: the four `p(π/4)` instructions above are
+two quarter turns written the long way, and any transpiler folds them. What the
+emitter guarantees is not brevity but agreement — `tests/test_emit.py` runs every
+library definition through a simulator in `tools/qasm_sim.py` that shares no code
+with the evaluator, and checks the circuit's matrix against the one Q42 computes
+from the term. For `bell` that is the 4×4 matrix sending `|00>` to
+`(|00> + |11>)/√2`.
+
+A polymorphic definition needs its width supplied before it can be a circuit at
+all, since `swap : a x b <-> b x a` is not a two-qubit gate until you say that
+`a` and `b` are qubits:
+
+```
+$ 42q emit gates swap -q 2
+OPENQASM 3.0;
+include "stdgates.inc";
+
+qubit[2] q;
+
+swap q[1], q[0];
+```
