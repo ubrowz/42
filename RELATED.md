@@ -1058,8 +1058,7 @@ attempting it.
   of Amsterdam, study group Robotics and Artificial Intelligence, 1993. Research
   carried out at Philips Natuurkundig Laboratorium and IPO, Eindhoven, within the
   Rosetta project; the language is credited in the preface to Joep Rous and Paul
-  Jansen. Read: preface, chapters 2 and 3.1–3.5, bibliography. Paper only — see
-  §0.5.
+  Jansen. Paper only — see §0.5.
 - J. Rous, P. G. M. Jansen. *Reversible Programming in 4₂.* Listed as
   **forthcoming** in the thesis's own bibliography — the same title under joint
   authorship. Never published.
@@ -1073,7 +1072,7 @@ attempting it.
   Quantum Computing is as Easy as Π.* POPL 2024.
   <https://arxiv.org/abs/2310.14056>
 - J. Carette, C. Heunen, R. Kaarsgaard, A. Sabry. *The Quantum Effect: A Recipe
-  for QuantumΠ.* arXiv:2302.01885, 2023. Read: §§1–3, 9.4, 10. Agda development:
+  for QuantumΠ.* arXiv:2302.01885, 2023. Agda development:
   <https://github.com/JacquesCarette/QuantumPi>
 - C. Heunen, R. Kaarsgaard, L. Lemonnier. *One rig to control them all.*
   arXiv:2510.05032, 2025.
@@ -1088,8 +1087,7 @@ attempting it.
   Computing.* 2014. (Πo's full primitive table is in its §2.)
 - K. Chardonnet, L. Lemonnier, B. Valiron. *Semantics for a Turing-Complete
   Reversible Programming Language with Inductive Types.* FSCD 2024, LIPIcs 299,
-  19:1–19:19. <https://doi.org/10.4230/LIPIcs.FSCD.2024.19> Read: §§1–3 and
-  7–8; the categorical semantics of §§4–6 was not read.
+  19:1–19:19. <https://doi.org/10.4230/LIPIcs.FSCD.2024.19>
 
 **From the 1993 thesis's bibliography** (§0.4), transcribed from it:
 
