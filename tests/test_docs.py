@@ -488,10 +488,10 @@ class TestReadmeCounts(unittest.TestCase):
 class TestRelatedWorkQuotations(unittest.TestCase):
     """Every verbatim quotation in RELATED.md still appears in its source.
 
-    RELATED.md marks each reference [read], [abstract] or [cited] precisely so
-    that it can become a paper's related-work section. A quotation that has
-    drifted from its source would undo that, so the sources are kept in
-    `sources/` and the quotations are checked against them.
+    RELATED.md is meant to become a paper's related-work section, and quotes its
+    sources verbatim. A quotation that has drifted from its source would undo
+    that, so the papers are read from `sources/` and the quotations are checked
+    against them.
     """
 
     SOURCES = {

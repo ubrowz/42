@@ -3,34 +3,6 @@
 Where 42 sits in the literature on reversible programming, and what in it is
 actually new.
 
-**A note on sourcing, because this is meant to become a paper's related-work
-section.** Claims below are marked by how well they are grounded:
-
-- **[read]** — the paper was read in full or near-full and quotations are verbatim.
-- **[abstract]** — only the abstract or a summary page was read.
-- **[cited]** — known only through another paper's description of it. *Do not
-  cite these from this document without reading them.*
-
-| | source |
-|---|---|
-| Jansen, *4₂* (Master's thesis, Amsterdam, 1993) | **[read]** — paper only; see §0.4 |
-| Mu, Hu & Takeichi, *Inv* (MPC 2004) | **[read]** |
-| Onodera, Nakano, Asada & Kikuchi, *PisoLang* (RC 2026) | **[read]** |
-| Carette, Heunen, Kaarsgaard & Sabry, *√Π* (POPL 2024) | **[read]** |
-| Carette et al., *The Quantum Effect* | **[read]** |
-| Heunen, Kaarsgaard & Lemonnier, *One rig to control them all* | **[read]** |
-| Chardonnet, Lemonnier & Valiron (FSCD 2024) | **[read]** — §§1–3, 7–8; see §5.0 |
-| James & Sabry, *Theseus* (2014) | **[read]** |
-| James & Sabry, *Information Effects* / Π (POPL 2012) | **[read]** |
-| Thomsen & Axelsen, *RFUN* (IFL 2015) | **[read]** |
-| Yokoyama & Glück, *Janus* (PEPM 2007) | **[read]** |
-| Lutz & Derby, the original Janus letter (1986) | **[cited]** — via the above |
-| Abramsky & Coecke (2004); Coecke & Pavlović | **[cited]** |
-| Axelsen, *Clean translation…* (CC 2011); Vieri, *Pendulum* (1999) | **[cited]** |
-| Green et al., *Quipper* (PLDI 2013); Bichsel et al., *Silq* (PLDI 2020) | **[cited]** |
-| Voichick, Li, Rand & Hicks, *Qunity* (POPL 2023) | **[cited]** |
-| OpenQASM 3; QIR; tket; VOQC (POPL 2021) | **[cited]** |
-
 ---
 
 ## 0. The 1993 original
@@ -42,9 +14,8 @@ comparisons below cannot be dated without it.
 **The source.** P. G. M. Jansen, *Reversible Programming in 4₂*, Master's thesis,
 University of Amsterdam (study group Robotics and Artificial Intelligence),
 1993; the research carried out at Philips Natuurkundig Laboratorium and IPO
-(Institute for Perception Research), Eindhoven. **[read]** — preface, chapters 2
-and 3.1–3.5, bibliography. The language is called **4₂**, and the preface credits
-it to two people:
+(Institute for Perception Research), Eindhoven. The language is called **4₂**,
+and the preface credits it to two people:
 
 > The result was 4₂ (pronounce: forty-two), an imperative reversible programming
 > language created by Joep Rous and Paul Jansen.
@@ -202,7 +173,7 @@ parse("(copy ; join)!")  ==  parse("join! ; copy!")
 
 ### 0.4 What was in view in 1993
 
-The thesis's bibliography **[read]** answers a question this document would
+The thesis's bibliography answers a question this document would
 otherwise have to guess at: what a designer in 1993 could see. Five groups.
 
 - **Thermodynamics and reversible computation.** Landauer, *Irreversibility and
@@ -240,8 +211,8 @@ work, joint authorship, submitted nowhere. It did not appear.
 ### 0.5 A note on citing this
 
 The thesis exists on paper only. The quotations in §0 were transcribed from page
-images and are marked **[read]** because the pages were read in full, but unlike
-`inv.pdf` and `pisolang.pdf` the scan carries no text layer, so
+images. The pages were read in full, but unlike `inv.pdf` and `pisolang.pdf`
+the scan carries no text layer, so
 `tests/test_docs.py::TestRelatedWorkQuotations` cannot check them mechanically.
 Treat them as hand-transcribed. What has been read is the preface, chapters 2 and
 3.1–3.5, and the bibliography; chapters 4 and 5, which carry the formal syntax
@@ -273,7 +244,6 @@ rather than by adding restrictions.
 ## 2. Inv — the nearest relative
 
 Mu, Hu & Takeichi, *An Injective Language for Reversible Computation*, MPC 2004.
-**[read]**
 
 Inv is 42's closest predecessor. PisoLang's related-work section describes it
 as follows:
@@ -330,7 +300,7 @@ partial 'these agree'."* The fact and its framing are Inv's, from 2004.
 
 Three languages solve it three ways, and the third is the most ingenious. Inv
 has `dup` and `eq` as separate constructs with `eq = dup°`. 42 has one primitive
-`copy` whose dagger is partial. RFUN **[read]** has one operator `⌊·⌋` that is
+`copy` whose dagger is partial. RFUN has one operator `⌊·⌋` that is
 *total and self-inverse*, because it answers the equality question in the arity
 of its result:
 
@@ -381,7 +351,7 @@ in expressiveness; the third is the one §6 claims as new.
 The same condition appears in six languages here and is discharged six different
 ways, which locates 42 more precisely than any other single comparison.
 
-Inv, §4 **[read]** — *assumed, and flagged as unexplored*:
+Inv, §4 — *assumed, and flagged as unexplored*:
 
 > An extra restriction needs to be imposed on union. To preserve reversibility,
 > in `f ∪ g` we require not only the domains, but the ranges of `f` and `g`, to
@@ -394,7 +364,7 @@ purpose is that *"it is sometimes necessary for ensuring the disjointness of the
 two branches of a union."* So one of Inv's twelve constructs exists to discharge a
 proviso 42 does not have.
 
-PisoLang, `I-Case` **[read]** — *the same condition, now statically checked*.
+PisoLang, `I-Case` — *the same condition, now statically checked*.
 Its typing rule for a case-expression carries two premises beyond the types:
 
 ```
@@ -405,7 +375,7 @@ Its typing rule for a case-expression carries two premises beyond the types:
 with orthogonality defined as `p₁ ⊥ p₂ ⇔ σ(p₁) ≠ σ(p₂)` for every substitution
 `σ`, decided by unification: the type system Mu et al. left unexplored.
 
-Theseus **[read]** — *the same condition, on both sides, as the language's only
+Theseus — *the same condition, on both sides, as the language's only
 rule*. §3.1 states it as the single constraint a programmer must maintain:
 
 > **Non-overlapping and exhaustive coverage in pattern clauses.** The collections
@@ -414,7 +384,7 @@ rule*. §3.1 states it as the single constraint a programmer must maintain:
 > patterns in the right-hand side (RHS) of each clause must also be a complete
 > non-overlapping covering of the return type.
 
-Chardonnet, Lemonnier & Valiron **[read]** — *the same condition again, with
+Chardonnet, Lemonnier & Valiron — *the same condition again, with
 exhaustivity dropped*. Non-overlap is kept and made formal as an orthogonality
 relation `v₁ ⊥ v₂` decided structurally, appearing as two premises `∀i ≠ j, vᵢ ⊥
 vⱼ` and `∀i ≠ j, eᵢ ⊥ eⱼ` in the typing rule for an iso; exhaustivity goes,
@@ -422,7 +392,7 @@ deliberately, "*in order to allow non-terminating behaviour*". So within one
 lineage the condition survives on both sides while totality is given up, which
 is a useful data point for how load-bearing each half is.
 
-RFUN **[read]** — *the same condition, relaxed into an ordering*. Thomsen &
+RFUN — *the same condition, relaxed into an ordering*. Thomsen &
 Axelsen name it as one of the two ways irreversibility enters their irreversible
 source language:
 
@@ -444,7 +414,7 @@ Theseus draws independently: this is *if-then-else*, and it is the same construc
 the 1993 thesis found violating its own definition of syntactic reversibility
 (§0.3). Four languages, one conditional.
 
-Janus **[read]** — *the same condition, discharged by the programmer*. Yokoyama
+Janus — *the same condition, discharged by the programmer*. Yokoyama
 & Glück formalise the language and are exact about the mechanism:
 
 > A reversible conditional has two predicates: the predicate after `if` is the
@@ -495,11 +465,11 @@ weaker and do not.
 ## 4. PisoLang
 
 Onodera, Nakano, Asada & Kikuchi, *PisoLang: a User-Friendly Reversible
-Programming Language with Inductive Types*, RC 2026. **[read]**
+Programming Language with Inductive Types*, RC 2026.
 Implementation: `github.com/42067/reversible_lang`.
 
 An ML-style surface language over the reversible core calculus of Chardonnet,
-Lemonnier & Valiron **[cited]**, itself descended from Theseus. Its goal is
+Lemonnier & Valiron, itself descended from Theseus. Its goal is
 usability, and the surface language supplies it: algebraic data types with user-defined
 constructors, OCaml-style pattern matching, Hindley–Milner inference so functions
 are polymorphic by default, higher-order functions over isos, nested patterns and
@@ -620,7 +590,7 @@ closed a loop.
 
 ### 5.0 Π, exactly
 
-A second line descends from Theseus. James & Sabry's **Π** **[read]** is a
+A second line descends from Theseus. James & Sabry's **Π** is a
 reversible language whose terms are the isomorphisms witnessing a
 commutative-semiring structure, which is 42's primitive table, arrived at
 independently.
@@ -635,7 +605,7 @@ value types, b ::= 1 | b + b | b × b
 
 — **no `0`**, and six isomorphism pairs: `swap+`, `assocl+/assocr+`,
 `unite/uniti`, `swap×`, `assocl×/assocr×`, `distrib/factor`. The zero arrives
-with `Πo`, whose table is given in full in *Theseus* §2 **[read]**: types
+with `Πo`, whose table is given in full in *Theseus* §2: types
 `0 | 1 | b + b | b ∗ b | x | µx.b`, and additionally `zeroe/zeroi : 0 + b ↔ b`,
 `distrib0/factor0 : 0 ∗ b ↔ 0`, and `fold/unfold`. Of that presentation Theseus
 says exactly what this document has been saying of 42:
@@ -686,7 +656,7 @@ than per-use in an effect system.
 ### 5.1 √Π and the quantum branch
 
 
-Carette, Heunen, Kaarsgaard & Sabry, **√Π** (POPL 2024) **[read]**, prove that a
+Carette, Heunen, Kaarsgaard & Sabry, **√Π** (POPL 2024), prove that a
 rig groupoid extended with **two maps and three equations** is computationally
 universal for quantum computing, and equationally sound and complete for
 Clifford, ≤2-qubit Clifford+T, and Gaussian Clifford+T. The maps are an 8th root
@@ -695,7 +665,7 @@ is 42 taken to ℂ along exactly this route, and `q42/` implements it.
 
 ### 5.2 Two routes from a rig groupoid to quantum
 
-*The Quantum Effect* **[read]** is the other half of this branch, by overlapping
+*The Quantum Effect* is the other half of this branch, by overlapping
 authors, and it reaches universal quantum computation from Π by a completely
 different road than √Π does. Setting the two side by side is the sharpest thing
 this document can say about where Q42 sits.
@@ -741,7 +711,7 @@ sharper, more elementary statement of it: closure is a least fixed point wanting
 
 ### 5.3 Control and the rig structure are the same thing
 
-*One rig to control them all* **[read]** answers a question this document had
+*One rig to control them all* answers a question this document had
 been posing loosely, whether Q42's `ctrl` should be primitive or derived, and
 the answer is that the question dissolves. Heunen, Kaarsgaard and Lemonnier give
 **seven** equations for control (not eight, as this document previously said from
@@ -959,7 +929,7 @@ the same fact §2 and §3 keep circling: dropping the disjointness condition is
 what lets the semantic class be one that is already closed under the operation
 the language is built around.
 
-That shape is not hypothetical: Chardonnet, Lemonnier & Valiron **[read]** prove
+That shape is not hypothetical: Chardonnet, Lemonnier & Valiron prove
 exactly the injective version, and say so in those words:
 
 > we showed that for any computable function `f` from PInj, there exists an iso
@@ -986,9 +956,9 @@ the semantics: whether a language reaches a machine. Two of the languages here
 were designed with a compilation target in view, so the axis is a real one, and
 it is where 42 is furthest behind.
 
-**Everything in this section is [cited].** None of these papers was read for this
-document; the descriptions come from general knowledge of the field and must be
-checked before any of it is repeated in print. The claims made here concern only
+None of these papers was read for this document; the descriptions come from
+general knowledge of the field and must be checked before any of it is repeated
+in print. The claims made here concern only
 *shape*: which layers exist, and which systems occupy them.
 
 ### 8.1 Reversible classical: a complete stack, since 2011
@@ -1051,8 +1021,8 @@ a code generator.
 The nearest thing to a bridge is **Qunity** (Voichick, Li, Rand & Hicks, POPL
 2023), which is close to Q42 in spirit, being a unified quantum/classical
 language built on sums and products, and which describes a compilation procedure
-down to circuits. How far the implementation goes is exactly the sort of thing this
-document's sourcing rules exist to stop me asserting. **Silq** (Bichsel, Baader,
+down to circuits. How far the implementation goes is not something this document
+can assert, none of §8 having been read at first hand. **Silq** (Bichsel, Baader,
 Gehr & Vechev, PLDI 2020) is likewise simulator-centred; its contribution is the
 uncomputation inference, not a path to a device.
 
@@ -1083,8 +1053,6 @@ attempting it.
 ---
 
 ## References
-
-**[read]**
 
 - P. G. M. Jansen. *Reversible Programming in 4₂.* Master's thesis, University
   of Amsterdam, study group Robotics and Artificial Intelligence, 1993. Research
@@ -1123,10 +1091,7 @@ attempting it.
   19:1–19:19. <https://doi.org/10.4230/LIPIcs.FSCD.2024.19> Read: §§1–3 and
   7–8; the categorical semantics of §§4–6 was not read.
 
-**[abstract]**
-
-
-**[cited]** — via the 1993 thesis's bibliography (§0.4), transcribed from it
+**From the 1993 thesis's bibliography** (§0.4), transcribed from it:
 
 - V. R. Pratt. *Applications of a modal logic to programming.* Studia Logica 39
   (1980), pp. 257–274. — the regular relation operators.
@@ -1157,7 +1122,8 @@ attempting it.
 - D. Adams. *The Hitch Hiker's Guide to the Galaxy.* Pan Books, London, 1979. —
   the source of the language's name.
 
-**[cited]** — read before citing
+**Other references.**
+
 - C. Lutz. *Janus: a time-reversible language.* 1986. — the original letter;
   known here through Yokoyama & Glück's formalisation.
 - H. B. Axelsen. *Clean Translation of an Imperative Reversible Programming
