@@ -479,9 +479,10 @@ tools/qasm_sim.py an independent simulator over gate lists, sharing no code
                   with the evaluator, so the emitter can be round-tripped
                   against something that could not agree by construction
 tools/checkmanual.py  re-runs every result MANUAL.md claims
-docs/             the site, served by GitHub Pages: a landing page and the five
-                  documents rendered for reading in a browser
-docs/plain/       the two papers retold for a reader with no mathematics, using a
+docs/             the site, served by GitHub Pages: a landing page, the two
+                  manuals, RELATED.md and THEOREM.md, rendered for a browser.
+                  Generated -- rerun tools/render.py and commit the result
+plain/            the two papers retold for a reader with no mathematics, using a
                   warehouse instead of algebra; hand-written HTML, not generated,
                   with four stepped demonstrations.  Hand-edited, so render.py
                   neither writes nor overwrites them

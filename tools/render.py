@@ -392,7 +392,6 @@ PAGE = """<!doctype html>
 SITE_PAGE = {
     "MANUAL.md": "manual.html",
     "QMANUAL.md": "qmanual.html",
-    "README.md": "readme.html",
     "RELATED.md": "related.html",
     "THEOREM.md": "theorem.html",
 }
@@ -440,7 +439,6 @@ HOSTED = {
     "index.html":   "index.html",
     "manual.html":  "manual.html",
     "qmanual.html": "qmanual.html",
-    "readme.html":  "readme.html",
     "related.html": "related.html",
     "theorem.html": "theorem.html",
 }
@@ -460,12 +458,6 @@ DOCS = [
         "The same language over the complex numbers, which makes it a quantum "
         "one. The physics is developed from scratch, and the parts Q42 does not "
         "model are named as such.",
-    ),
-    (
-        "README.md", "readme.html", "42 Design Notes",
-        "42 &mdash; Design Notes",
-        "What the language is, in mathematical terms: the dagger, where 42 sits "
-        "among reversible languages, the type system, and the honest limitations.",
     ),
     (
         "RELATED.md", "related.html", "42 Related Work",
