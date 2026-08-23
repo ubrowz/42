@@ -35,6 +35,9 @@ def inline(text: str) -> str:
         spans.append(m.group(1))
         return f"\x00{len(spans) - 1}\x00"
 
+    # ``…`` first: a code span holding a backtick has to be written with a
+    # doubled fence, and matching the single form first would end it early.
+    text = re.sub(r"``(.+?)``", stash, text)
     text = re.sub(r"`([^`]+)`", stash, text)
     text = html.escape(text, quote=False)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', text)
@@ -78,11 +81,17 @@ def render(md: str) -> tuple[str, list[tuple[int, str, str]]]:
         line = lines[i]
 
         # fenced code -------------------------------------------------------
-        if line.startswith("```"):
+        # The fence may be indented, because a code block inside a list item is
+        # indented to match it.  Its own indentation is stripped from the body,
+        # so the code is shown as written rather than shifted right.
+        fence = re.match(r"^(\s*)```", line)
+        if fence:
+            pad = len(fence.group(1))
             i += 1
             body = []
-            while i < len(lines) and not lines[i].startswith("```"):
-                body.append(lines[i])
+            while i < len(lines) and not re.match(r"^\s*```", lines[i]):
+                row = lines[i]
+                body.append(row[pad:] if not row[:pad].strip() else row.lstrip())
                 i += 1
             i += 1
             code = html.escape("\n".join(body), quote=False)
@@ -111,8 +120,8 @@ def render(md: str) -> tuple[str, list[tuple[int, str, str]]]:
             continue
 
         # table -------------------------------------------------------------
-        if line.startswith("|") and i + 1 < len(lines) and re.match(
-            r"^\|[\s:|-]+\|?\s*$", lines[i + 1]
+        if line.lstrip().startswith("|") and i + 1 < len(lines) and re.match(
+            r"^\s*\|[\s:|-]+\|?\s*$", lines[i + 1]
         ):
             def cells(row: str) -> list[str]:
                 # `\|` is an escaped pipe, not a column separator -- without
@@ -131,11 +140,11 @@ def render(md: str) -> tuple[str, list[tuple[int, str, str]]]:
                 out.append(cell.strip())
                 return out
 
-            head = cells(line)
+            head = cells(line.strip())
             i += 2
             body_rows = []
-            while i < len(lines) and lines[i].startswith("|"):
-                body_rows.append(cells(lines[i]))
+            while i < len(lines) and lines[i].lstrip().startswith("|"):
+                body_rows.append(cells(lines[i].strip()))
                 i += 1
             th = "".join(f"<th>{inline(c)}</th>" for c in head)
             trs = "".join(
@@ -150,12 +159,16 @@ def render(md: str) -> tuple[str, list[tuple[int, str, str]]]:
             continue
 
         # blockquote --------------------------------------------------------
-        if line.startswith(">"):
+        # Render the quoted lines as a document in their own right.  Joining
+        # them into one paragraph instead would run a quoted code block and the
+        # paragraph after it together on a single line.
+        if line.lstrip().startswith(">"):
             body = []
-            while i < len(lines) and lines[i].startswith(">"):
-                body.append(lines[i].lstrip(">").strip())
+            while i < len(lines) and lines[i].lstrip().startswith(">"):
+                body.append(re.sub(r"^\s*>\s?", "", lines[i]))
                 i += 1
-            out.append(f"<blockquote><p>{inline(' '.join(body))}</p></blockquote>")
+            quoted, _ = render("\n".join(body))
+            out.append(f"<blockquote>{quoted}</blockquote>")
             continue
 
         # lists -------------------------------------------------------------
@@ -167,7 +180,8 @@ def render(md: str) -> tuple[str, list[tuple[int, str, str]]]:
                 m2 = re.match(r"^(\s*)([-*]|\d+\.)\s+(.*)$", lines[i])
                 if not m2 or bool(re.match(r"\d+\.", m2.group(2))) != ordered:
                     # a continuation line belongs to the item above it
-                    if items and lines[i].startswith("  ") and lines[i].strip():
+                    if (items and lines[i].startswith("  ") and lines[i].strip()
+                            and lines[i].lstrip()[0] not in "`>|"):
                         items[-1] += " " + lines[i].strip()
                         i += 1
                         continue
@@ -183,7 +197,7 @@ def render(md: str) -> tuple[str, list[tuple[int, str, str]]]:
         if line.strip():
             para = []
             while i < len(lines) and lines[i].strip() and not re.match(
-                r"^(#{1,6}\s|```|>|\||\s*([-*]|\d+\.)\s|-{3,}\s*$)", lines[i]
+                r"^(#{1,6}\s|\s*(?:```|>|\|)|\s*([-*]|\d+\.)\s|-{3,}\s*$)", lines[i]
             ):
                 para.append(lines[i].strip())
                 i += 1

@@ -1492,7 +1492,7 @@ Punctuation, spaces and digits now pass through untouched, and `swapcase` is
 still its own inverse.
 
 The residual inaccuracy, stated precisely rather than waved at: the sixteen
-bytes `@[\]^_`{|}~` and DEL share the letters' top two bits, so they still get
+bytes ``@[\]^_`{|}~`` and DEL share the letters' top two bits, so they still get
 mapped onto each other. Excluding them needs a range check on the low five
 bits, which is real work for very little return. (There is a test asserting this
 caveat is exactly true, so it cannot quietly become false.)
