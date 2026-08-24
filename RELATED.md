@@ -7,9 +7,10 @@ actually new.
 
 ## 0. The 1993 original
 
-42 is not a new design. It is the second instantiation of a language specified
-in 1993, and enough of the present one is already in that document that the
-comparisons below cannot be dated without it.
+42 is not a new design. It is the second instantiation of a language first
+defined in 1991 and specified in a thesis two years later, and enough of the
+present one is already in that document that the comparisons below cannot be
+dated without it.
 
 **The source.** P. G. M. Jansen, *Reversible Programming in 4₂*, Master's thesis,
 University of Amsterdam (study group Robotics and Artificial Intelligence),
@@ -19,6 +20,13 @@ and the preface credits it to two people:
 
 > The result was 4₂ (pronounce: forty-two), an imperative reversible programming
 > language created by Joep Rous and Paul Jansen.
+
+**The dates.** Two of them, and they are not the same. The language was first
+defined in 1991, inside Rosetta, and became a thesis topic afterwards; the
+thesis is from 1993 and is the only surviving document. The earlier date is Joep
+Rous's own recollection and is recorded here as that, not as something the
+thesis establishes. Where this page says "1993" it means the document, which is
+what every comparison below is actually dated against.
 
 **Where it came from.** The *motivation* was machine translation, not reversible
 computing: the Rosetta project at Philips, and a formalism of "M-rules" for
