@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from rel42.core import DepthExceeded  # noqa: E402
+from rel42.core import DepthExceeded, Rel42Error  # noqa: E402
 from rel42.syntax import (  # noqa: E402
     ParseError, as_byte, as_list, as_string, from_byte, from_list,
 )
@@ -1375,6 +1375,71 @@ class TestSelfInterpretation(unittest.TestCase):
         self.assertEqual(back("metasink", T), set())
         # a different encoder, same interpreter
         self.assertEqual(go("metaswap", Pair(F, T)), {Pair(T, F)})
+
+
+class TestQuoteAgreesWithTheTestEncoding(unittest.TestCase):
+    """`rel42/meta.py` and this file encode 42 programs independently.
+
+    The class above writes the encoding out a second time on purpose: checking
+    `meta.42` against the encoder it ships with would hide a bug that lived in
+    the encoder, since both sides would move together.  That only works while
+    the two really do agree, which is what this checks -- and it is the reason
+    `42 quote` can be trusted to be handing the interpreter what section 7.1
+    says it is.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        TestSelfInterpretation.setUpClass()
+
+    def test_the_primitive_order_is_the_one_meta_42_tags(self):
+        from rel42 import meta as M
+
+        self.assertEqual(M.PRIM_ORDER, TestSelfInterpretation.PRIMS)
+
+    def test_terms_and_values_encode_the_same_way(self):
+        from rel42 import meta as M
+
+        C = TestSelfInterpretation
+        for t, v in C.corpus(C):
+            with self.subTest(term=show_term(t), value=show(v)):
+                self.assertEqual(M.encode_term(t, C.NAMES), C.enct(t))
+                self.assertEqual(M.encode_value(v), C.encv(v))
+                self.assertEqual(M.decode_value(M.encode_value(v)), v)
+                self.assertEqual(
+                    M.encode_state(C.OBJ, t, v, C.NAMES), C.state(t, v)
+                )
+
+    def test_a_file_defining_combinators_still_encodes(self):
+        """`prelude.42` defines `ctrl`, and combinators take no slot.
+
+        Giving one a slot would not merely waste it -- there is no constructor
+        it could be encoded as, and it would shift the index of every
+        definition after it, so every `Ref` in the file would point somewhere
+        else.
+        """
+        from rel42.core import expand_env, is_combinator
+        from rel42 import meta as M
+
+        with open(PRELUDE, encoding="utf-8") as fh:
+            env = expand_env(parse_program(fh.read()))
+        names = M.relation_names(env)
+        self.assertTrue(any(is_combinator(b) for b in env.values()),
+                        "prelude.42 no longer exercises this")
+        self.assertFalse(any(is_combinator(env[n]) for n in names))
+
+        st = M.encode_state(env, Ref("add"), Pair(from_nat(2), from_nat(3)))
+        out = run(Ref("eval"), st, TestSelfInterpretation.M,
+                  max_depth=20000, max_orbit=400)
+        self.assertEqual({M.decode_state(s) for s in out}, {from_nat(5)})
+
+    def test_a_combinator_cannot_be_encoded_and_says_so(self):
+        """`meta.42` interprets the core; `Fun` is gone before it is reached."""
+        from rel42.core import Fun, Var
+        from rel42 import meta as M
+
+        with self.assertRaises(Rel42Error):
+            M.encode_term(Fun("m", Var("m")), TestSelfInterpretation.NAMES)
 
 
 if __name__ == "__main__":

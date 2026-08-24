@@ -4,6 +4,7 @@
     python -m rel42 law   FILE MAIN VALUE          -- check the defining law
     python -m rel42 show  FILE [MAIN]              -- print each def and its dagger
     python -m rel42 type  FILE [MAIN]              -- infer  A <-> B  for each def
+    python -m rel42 quote FILE MAIN [VALUE]        -- run it through meta.42
 """
 
 from __future__ import annotations
@@ -143,6 +144,62 @@ def cmd_run(args) -> int:
     return 0
 
 
+def cmd_quote(args) -> int:
+    """Run a definition through `meta.42` rather than directly.
+
+    `meta.42`'s own quoting combinators build a state against the *empty*
+    environment, so from a `.42` file they reach only the definitions that
+    mention no others.  This encodes the whole environment, which is what a
+    recursive program needs, and is why `42 quote arith mul` is possible and
+    `runq` is not.
+
+    The type check is the object program's, against the file it came from --
+    which is worth having and is cheap.  What cannot be checked is `meta.42`
+    itself after its combinators are substituted away; MANUAL section 14.7 says
+    why, and it is the reason `42 meta ...` wants `--untyped` while this does
+    not.
+    """
+    from . import meta as M
+
+    env = _load(args.file, reduce=True)
+    term = _resolve(env, args.main)
+    names = M.relation_names(env)
+
+    if args.value is None:
+        body = M.encode_term(env[args.main], names)
+        print(f"{args.main}, as a value meta.42 can read:")
+        print(f"  {show_as(body, None, True)}")
+        print(f"  -- {M.size(body)} nodes, against an environment of "
+              f"{len(names)} definition{'s' if len(names) != 1 else ''} "
+              f"({M.size(M.encode_env(env, names))} nodes)")
+        return 0
+
+    value = parse_value(args.value)
+    scheme = _check(env, args.main, dagger(term) if args.backward else term,
+                    value, args)
+    dom = scheme.dom if scheme else None
+    cod = scheme.cod if scheme else None
+
+    meta = M.load_meta()
+    state = M.encode_state(env, term, value, names)
+    ev = dagger(Ref("eval")) if args.backward else Ref("eval")
+    results = run(ev, state, meta, max_depth=args.limit, max_orbit=args.orbit)
+
+    # The `!` goes on `eval`, not on the program: `--backward` daggers the
+    # *interpreter*, and the encoded program it reads is unchanged -- which is
+    # THEOREM.md 7.4's point, so the printing should not blur it.
+    printed = sorted(show_as(M.decode_state(s), cod, args.raw) for s in results)
+    shown = _call(args.main, value, args.raw, False, dom)
+    print(f"eval{'!' if args.backward else ''} {shown} =")
+    if not printed:
+        print("  {}   (empty: no result)")
+    else:
+        for r in printed:
+            print(f"  {r}")
+        print(f"  -- {len(printed)} result{'s' if len(printed) != 1 else ''}")
+    return 0
+
+
 def cmd_law(args) -> int:
     """Check  x in P(y)  <=>  y in inv(P)(x)  for the given input."""
     env = _load(args.file, reduce=True)
@@ -241,6 +298,19 @@ def main(argv=None) -> int:
     p.add_argument("--untyped", action="store_true",
                    help="skip the type check and evaluate in Rel regardless")
     p.set_defaults(fn=cmd_law)
+
+    p = sub.add_parser("quote", parents=[common],
+                       help="run a definition through meta.42, the 42 "
+                            "interpreter written in 42")
+    p.add_argument("file")
+    p.add_argument("main")
+    p.add_argument("value", nargs="?",
+                   help="omit it to print the program encoded as a value")
+    p.add_argument("-b", "--backward", action="store_true",
+                   help="dagger the interpreter, which runs the program backwards")
+    p.add_argument("--untyped", action="store_true",
+                   help="skip the type check and evaluate in Rel regardless")
+    p.set_defaults(fn=cmd_quote)
 
     p = sub.add_parser("show", parents=[common],
                        help="print definitions alongside their reverses")

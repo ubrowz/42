@@ -1909,12 +1909,91 @@ metaswap(0, R ()) =
 — and an encoder for any other shape is written the same way, out of the four
 constructors of 14.1. That is the whole extension mechanism.
 
-### 14.6 Two things it costs
+### 14.6 Programs that mention other programs
+
+Everything so far quoted a program written out in full. Real files are not like
+that: `arith.42`'s `mul` calls itself, `divmod` is `undivmod!` and `undivmod`
+calls `mul`, `add` and `lt`. A quotation built by `runq` is read against an
+*empty* set of definitions, so it cannot reach any of them.
+
+For those there is a subcommand, which encodes the whole file and hands the
+interpreter the definition you name:
+
+```
+$ 42 quote arith mul "(3, 4)"
+eval mul(3, 4) =
+  (4, 12)                   -- mul keeps the multiplier; see §11.3
+  -- 1 result
+```
+
+`--backward` daggers the **interpreter** — the program it is reading is still
+`mul`, which is why only the `eval` gets the `!`:
+
+```
+$ 42 quote arith mul "(4, 12)" --backward
+eval! mul(4, 12) =
+  (3, 4)
+  -- 1 result
+```
+
+Read that one twice. It divided 12 by 4. §11.4 makes the point that `arith.42`
+contains no division algorithm, because `divexact` is `mul!` — and now there is
+no division algorithm in the *interpreter* either. `meta.42` knows thirteen
+built-ins and seven ways of combining them, and nothing else. The division came
+out of `!`.
+
+The whole file is reachable the same way:
+
+```
+$ 42 quote arith divmod "(7, 2)"
+eval divmod(7, 2) =
+  ((3, 1), 2)               -- 7 = 3x2 + 1
+  -- 1 result
+
+$ 42 quote arith sub "(5, 2)"
+eval sub(5, 2) =
+  (3, 2)
+  -- 1 result
+```
+
+It reaches `prelude.42` too, which means the example this manual opens with can
+be run through an interpreter written in the language it is interpreting:
+
+```
+$ 42 quote prelude add 5 --backward
+eval! add(5) =
+  (0, 5)
+  (1, 4)
+  (2, 3)
+  (3, 2)
+  (4, 1)
+  (5, 0)
+  -- 6 results
+```
+
+Every one of those six answers came out of `join!`, two levels down.
+
+And leaving the value off shows you the thing itself — the program of §11.3,
+as a value of the shape §14.1 describes:
+
+```
+$ 42 quote arith mul
+mul, as a value meta.42 can read:
+```
+
+which prints 174 nodes of `L`s, `R`s and pairs, read against an environment of
+nine definitions. That is what "a program is a value" means when you cash it
+out.
+
+### 14.7 Two things it costs
 
 **It is slow.** Every step of the interpreted program is many steps of the
-interpreter, and the state it carries is a deep tree. Expect roughly a
-hundredfold, and more once definitions are involved. This is an interpreter to
-think with, not one to compute with.
+interpreter, and the state it carries is a deep tree. For a quotation with no
+definitions in it, reckon on about a hundredfold. Once a file's definitions are
+encoded too, it is three to four orders of magnitude: `mul (3, 4)` takes about
+a tenth of a millisecond run directly and about two thirds of a second through
+`42 quote`, and `divmod (7, 2)` about a millisecond against about eight
+seconds. This is an interpreter to think with, not one to compute with.
 
 **Pass `--untyped`.** Every transcript above has it, and the reason is worth a
 sentence. `meta.42` type-checks perfectly well —
@@ -1927,9 +2006,11 @@ $ 42 type meta
 — but `42 run` infers types over the program *after* combinators have been
 substituted away, and `meta.42` substitutes one combinator in thirteen places.
 The types it then has to solve get very large. The check is skipped, not
-failed; section 15 has the flag.
+failed; section 15 has the flag. `42 quote` needs no such thing — it checks the
+*interpreted* program against the file it came from, which is an ordinary type
+check on an ordinary file.
 
-### 14.7 What this does and does not show
+### 14.8 What this does and does not show
 
 It shows that 42 can interpret 42 with nothing added to the language, and that
 the interpreter's backward direction costs nothing to obtain, because it is not
@@ -2014,6 +2095,7 @@ L x   R x     labelled
 42 law  FILE NAME VALUE                 check reversibility
 42 show FILE [NAME]                     print a definition and its reverse
 42 type FILE [NAME]                     report the shapes (section 3.7)
+42 quote FILE NAME [VALUE]              run it through meta.42 (section 14)
 ```
 
 `42` is shorthand. It assumes `run` when you do not name a subcommand, and the

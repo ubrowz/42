@@ -4,6 +4,7 @@
 #   ./42 prelude append "([1,2], [3])"
 #   ./42 type arith
 #   ./42 law tour rev "[1,2,3]"
+#   ./42 quote arith mul "(3, 4)"
 #
 # Three conveniences and nothing else:
 #
@@ -24,7 +25,7 @@ if [ $# -eq 0 ]; then
 fi
 
 case $1 in
-    run | law | show | type)
+    run | law | show | type | quote)
         cmd=$1
         shift
         ;;

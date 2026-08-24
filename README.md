@@ -319,6 +319,8 @@ print `(x + x) x (a + b)`.
 42 law  FILE MAIN VALUE                check the defining law
 42 show FILE [MAIN]                    print each def and its dagger
 42 type FILE [MAIN]                    infer  A <-> B  for each def
+42 quote FILE MAIN [VALUE]             run it through meta.42, the 42
+                                       interpreter written in 42
 
 42q     FILE MAIN STATE [--backward]   the same for Q42, over C
 42q sample  FILE MAIN STATE            ...and measure the result
@@ -360,9 +362,9 @@ Flags: `--raw` disables nat/list sugar, `--limit` bounds call depth, `--orbit`
 bounds how large a `Star` closure may grow before being declared infinite, and
 `--untyped` skips the type check that `run` and `law` otherwise apply.
 
-Tests: `python3 tests/test_rel42.py` (128), `python3 tests/test_types.py` (123),
+Tests: `python3 tests/test_rel42.py` (132), `python3 tests/test_types.py` (123),
 `python3 tests/test_q42.py` (93), `python3 tests/test_docs.py` (31) and
-`python3 tests/test_emit.py` (27) — 402 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
+`python3 tests/test_emit.py` (27) — 406 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
 itself, including these counts.
 
 ## Q42 — the same language over ℂ
@@ -438,6 +440,7 @@ where you started.
 rel42/core.py     values, terms, the dagger, primitives, the evaluator
 rel42/syntax.py   lexer, parser, pretty-printer (type-directed when given a type)
 rel42/types.py    types, equirecursive unification, inference
+rel42/meta.py     the encoding meta.42 reads: 42 programs and values, as values
 rel42/__main__.py CLI
 MANUAL.md         user manual -- start here
 QMANUAL.md        user manual for Q42, the version over C
@@ -448,10 +451,11 @@ strings.42        text: bytes as bit-tuples; every list program works on it
 cipher.42         a Feistel cipher in CBC mode; `decrypt = cbc!` is the whole decryptor
 tm.42             a Turing machine as `init ; step^ ; final` (MANUAL section 13)
 theorem.42        the constructions THEOREM.md's proof is assembled from
-meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7)
+meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7,
+                  MANUAL §14).  `42 quote arith mul "(3, 4)"`
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
-tests/            402 tests, including the defining law checked exhaustively,
+tests/            406 tests, including the defining law checked exhaustively,
                   every output claimed in tour.42, that all 263 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted
