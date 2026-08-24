@@ -20,8 +20,9 @@ reversible computing is assumed, and no term is used before it is defined.
 11. [Arithmetic](#11-arithmetic)
 12. [Strings and text](#12-strings-and-text)
 13. [A Turing machine](#13-a-turing-machine)
-14. [Reference](#14-reference)
-15. [Troubleshooting](#15-troubleshooting)
+14. [42 interpreting itself](#14-42-interpreting-itself)
+15. [Reference](#15-reference)
+16. [Troubleshooting](#16-troubleshooting)
 16. [Appendix: a program and its inverse](#appendix-a-program-and-its-inverse)
 
 ---
@@ -63,7 +64,7 @@ def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
 
 which will mean nothing yet, and is meant to: unpacking that line is what §4
 through §10 are for. The point for now is that **only thirteen primitives are
-built in** (listed in §14); everything else, `append` included, is written in a
+built in** (listed in §15); everything else, `append` included, is written in a
 file you can open.
 
 Both directions ran the *same* definition. Nobody wrote the second one.
@@ -243,7 +244,7 @@ $ assocprod!  on  ((1, 2), 3)   ->  (1, (2, 3))
 ```
 
 `assocprod` converts between the two groupings. Getting the nesting wrong is
-one of the most common causes of an unexpected empty result (§15).
+one of the most common causes of an unexpected empty result (§16).
 
 Pairs are how a program takes two arguments. 42 has no multi-argument
 application. `add` does not take two numbers; it takes one pair `(m, n)`.
@@ -316,7 +317,7 @@ Finally, a shape mismatch is never an error, just an absence of answers:
 $ swapprod  on  5   ->  {}   (nothing)
 ```
 
-`5` is not a pair, so `swapprod` does not apply to it. See §15.
+`5` is not a pair, so `swapprod` does not apply to it. See §16.
 
 ### 3.5 Numbers and lists
 
@@ -1704,12 +1705,260 @@ section 6. The transition table is a `+` over states and a `|` over the rows in
 each state, so a different machine is a different table in the same frame.
 
 It does not prove that 42 can compute everything computable. That would need an
-argument covering every machine, not one machine, and 42 has no such theorem
-stated. `tm.42` is the evidence that the encoding works, not the proof.
+argument covering every machine, not one machine. `tm.42` is the evidence that
+the encoding works, not the proof — the proof is
+[THEOREM.md](THEOREM.md), which settles rather more than Turing completeness:
+42 denotes *exactly* the relations a computer can enumerate, no fewer and no
+more. Section 14 is the other half of the same question, asked about 42 itself.
 
 ---
 
-## 14. Reference
+## 14. 42 interpreting itself
+
+Section 13 built a program that *runs*: it keeps changing a value until it is
+finished. This section builds one that runs **42 programs**. The file is
+`meta.42`, and it is an interpreter for 42, written in 42.
+
+That sounds like a stunt, and half of it is. The other half is not, and it is
+worth the section: **you write the interpreter once and get the backward one
+for nothing**, the same way you have got every backward program in this manual.
+Nobody writes a "reverse interpreter" here. It is `!` applied to the forward
+one.
+
+### 14.1 A program is a value, once you write it down
+
+Section 3 said every value is built from four things: the unit `()`, the two
+tags `L` and `R`, and the pair. A *program* is not a value — but a written-down
+description of one is. So the first job is to pick shapes.
+
+There are two. One holds any 42 value at all:
+
+```
+type val = mu V. 1 + (V + (V + (V x V)))
+```
+
+Read it as "a value is a unit, or an `L` of one, or an `R` of one, or a pair of
+two" — which is exactly what section 3 says a value is. Four constructors, one
+per line, and `meta.42` gives them names: `vunit`, `vinl`, `vinr`, `vpair`.
+
+The other holds a written-down program, and it has one case per way of
+combining programs from section 5, plus one for the built-ins and one for
+naming a definition:
+
+| case | what it describes |
+|---|---|
+| a primitive | `copy`, `join`, `swapsum`, … and whether a `!` was written on it |
+| a reference | "the definition at slot *n*", so recursion works |
+| `t ; u` | the two parts |
+| `t \| u` | the two parts |
+| `t + u` | the two parts |
+| `t * u` | the two parts |
+| `t^` | the one part |
+
+That is the whole language. You do not have to read the encoding to use the
+interpreter — sections 14.3 onwards never open it up — but it helps to know
+that nothing is hidden in there.
+
+### 14.2 Every construct interprets itself
+
+Here is the part worth seeing. Ask how the interpreter runs `t^`, the hardest
+of section 5's seven. This is the whole answer:
+
+```
+$ 42 show meta evstar
+evstar   = toframe! ; eval^ ; toframe ; tagstar * id
+```
+
+Ignore the `toframe` plumbing, which just moves components into place — that is
+section 6, and nothing more. What is left is `eval^`. **To interpret `^`, the
+interpreter uses `^`.** There is no loop, no counter, no "have we finished yet",
+for the same reason section 13's Turing machine needed none.
+
+It goes the whole way down. `;` is interpreted by `;`, `|` by `|`, `+` by `+`,
+`*` by `*`. Object-level `copy` is meta-level `copy`, so the "these agree" test
+of section 7 is inherited rather than rebuilt, and object-level `join` is
+meta-level `join`, so **every many-answered program in the interpreted language
+still traces back to `join!`**, exactly as section 7 said it does in the
+language itself.
+
+One thing that is *not* there is worth naming too. A language whose `if` has to
+be undone must record which branch it took, or the backward run cannot tell.
+The union case here is `onleft | onright` and records nothing, because section 7
+already allows two answers. Keeping both branches is cheaper than separating
+them.
+
+### 14.3 Running a program through it
+
+To hand the interpreter a program you have to write that program down as a
+value. `meta.42` has short names that build one — a **quotation**:
+
+| you write | you get |
+|---|---|
+| `qid`, `qnot`, `qcopy`, `qjoin`, `qinl`, `qinr`, `qswap`, `qdist`, `qzero` | that built-in, quoted |
+| `qinv n12` | `copy!`, quoted — any built-in with a `!` on it |
+| `qseq a b` | `a ; b`, quoted |
+| `qalt a b` | `a \| b`, quoted |
+| `qsum a b`, `qprod a b` | `a + b` and `a * b`, quoted |
+| `qstar a` | `a^`, quoted |
+
+and `runq` wraps one up so you can run it on an ordinary value:
+
+```
+def metanot = runq qnot
+```
+
+`metanot` is `not`, reached the long way round: the bit is encoded, paired with
+the quotation, handed to `eval`, and unpacked again. It behaves like `not`
+because it *is* `not`, one level up:
+
+```
+$ 42 meta metanot "L ()" --untyped
+metanot(0) =
+  R ()                      -- L () prints as 0; section 16 says why
+  -- 1 result
+```
+
+Bigger ones work the same way. `runq (qseq qnot qnot)` is `not ; not`, and
+`runq (qstar qnot)` is prelude.42's `toggle = not^` — many-answered, through
+two levels of interpretation:
+
+```
+$ 42 meta metatoggle "L ()" --untyped
+metatoggle(0) =
+  0
+  R ()
+  -- 2 results
+```
+
+### 14.4 It runs backwards, and nobody wrote that
+
+Everything in this manual so far has run both ways. So does this:
+
+```
+$ 42 meta metanot "R ()" --backward --untyped
+metanot!(R ()) =
+  0
+  -- 1 result
+```
+
+Look at what that is. `--backward` daggered `metanot`, which is
+`load q ; eval ; (load q)!` — so the dagger is `load q ; eval! ; (load q)!`.
+**The same interpreter, reading the same quotation, run the other way.** There
+is no second definition anywhere in `meta.42` for the backward direction. There
+could not be: section 5's `!` had already turned the forward one into it before
+anything ran.
+
+And the three cases of section 7 survive the trip. `metasink` interprets
+`join ; inl`, which throws the bit away:
+
+```
+$ 42 meta metasink "L ()" --untyped
+metasink(0) =
+  0                         -- forwards: both bits go to the same answer
+  -- 1 result
+
+$ 42 meta metasink "L ()" --backward --untyped
+metasink!(0) =
+  0                         -- backwards: both bits that could have led here
+  R ()
+  -- 2 results
+
+$ 42 meta metasink "R ()" --backward --untyped
+metasink!(R ()) =
+  {}   (empty: no result)   -- and nothing at all for the answer it never gives
+```
+
+None, one, or many — at the interpreted level, coming out of an interpreter
+that was never told about any of it.
+
+### 14.5 Quoting your own
+
+Two things to know and you can run your own programs through it.
+
+**Build the quotation.** Compose the names from 14.3 exactly as you would
+compose the programs. `copy ; copy!` becomes:
+
+```
+def metaeq = runq (qseq qcopy quncopy)
+```
+
+**Say which values you mean.** `val` holds every 42 value, so something has to
+say whether a given value is a bit, a pair of bits or a list. That is the
+*encoder*, and it is a parameter:
+
+```
+def encbool  = (vunit + vunit) ; vsum          -- values of  1 + 1
+def encpair  = (encbool * encbool) ; vpair     -- values of  (1+1) x (1+1)
+def runq q   = runw encbool q                  -- the bit version, for short
+```
+
+`runw` takes the encoder and the quotation. So interpreting `swapprod` on a
+pair of bits is one line —
+
+```
+def metaswap = runw encpair qswap
+```
+
+```
+$ 42 meta metaswap "(L (), R ())" --untyped
+metaswap(0, R ()) =
+  (R (), 0)
+  -- 1 result
+```
+
+— and an encoder for any other shape is written the same way, out of the four
+constructors of 14.1. That is the whole extension mechanism.
+
+### 14.6 Two things it costs
+
+**It is slow.** Every step of the interpreted program is many steps of the
+interpreter, and the state it carries is a deep tree. Expect roughly a
+hundredfold, and more once definitions are involved. This is an interpreter to
+think with, not one to compute with.
+
+**Pass `--untyped`.** Every transcript above has it, and the reason is worth a
+sentence. `meta.42` type-checks perfectly well —
+
+```
+$ 42 type meta
+-- 97/97 typed
+```
+
+— but `42 run` infers types over the program *after* combinators have been
+substituted away, and `meta.42` substitutes one combinator in thirteen places.
+The types it then has to solve get very large. The check is skipped, not
+failed; section 15 has the flag.
+
+### 14.7 What this does and does not show
+
+It shows that 42 can interpret 42 with nothing added to the language, and that
+the interpreter's backward direction costs nothing to obtain, because it is not
+a separate program.
+
+It does not show the interpreter is *correct* — that it interprets every
+program rather than the ones tried here. That claim, the encoding in full, and
+a second one that does not follow from it are in
+[THEOREM.md section 7](THEOREM.md#7-self-interpretation):
+
+- **Proposition 17** is the correctness claim, and is checked rather than
+  proved; section 8 there says so plainly.
+- **Corollary 18** is 14.4 stated properly: given the forward interpreter is
+  right, the backward one is too, with nothing further to prove.
+- **Theorem 19** is the one worth the trip. `meta.42` also contains `dag`,
+  which is 42's own `!` written *in* 42 — seven lines, one per case of 14.1.
+  There are now two ways to run a program backwards: dagger the interpreter, or
+  dagger the written-down program and run it forwards. The theorem says they
+  agree.
+
+That last one is the section's real content, and it is not the sort of thing
+the defining law can tell you. `x ∈ P(y) ⟺ y ∈ P!(x)` holds for `eval` — but it
+holds for *every* 42 program, including a badly written interpreter, so passing
+it is no evidence of anything. Theorem 19 is where a wrong `dag` would be
+caught, and it is the only place.
+
+---
+
+## 15. Reference
 
 ### Combining programs
 
@@ -1806,7 +2055,7 @@ Definitions may refer to each other and to themselves, in any order.
 
 ---
 
-## 15. Troubleshooting
+## 16. Troubleshooting
 
 ### "I got `{}` and expected an answer"
 
@@ -1825,7 +2074,7 @@ Definitions may refer to each other and to themselves, in any order.
 
    Failing that, run with `--raw` to see the true shape of your input, then walk
    the pipeline writing down shapes as in §8. The step where your written shape
-   stops matching the table in §14 is the bug. If a pair is involved, check the
+   stops matching the table in §15 is the bug. If a pair is involved, check the
    nesting first: `(a, (b, c))` and `((a, b), c)` are different values (§3.4).
 
 2. **A label was wrong.** `inl!` on an `R`-labelled value gives nothing, and
@@ -1885,7 +2134,7 @@ and guesses `0`.
 
 The programs below are files in the 42 repository, at
 <https://github.com/ubrowz/42>, along with the interpreter itself. Clone it and
-each one runs with the `42` command of §14: `42 tour swap "(1, 2)"` reads
+each one runs with the `42` command of §15: `42 tour swap "(1, 2)"` reads
 `tour.42`, finds `swap` in it, and applies it. Python 3.12 is the only
 requirement.
 
@@ -1895,6 +2144,7 @@ requirement.
 - `rational.42` — the exact rationals of §11.8.
 - `strings.42` — the text of §12.
 - `tm.42` — the Turing machine of §13.
+- `meta.42` — the interpreter for 42 written in 42, of §14.
 - `prelude.42` — shorter, denser examples.
 - `qft.42` — a 42 program that writes *Q42* programs: a circuit family, generated.
   It uses nothing beyond §§4–9, and is the clearest example in the project of a

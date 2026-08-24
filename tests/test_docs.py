@@ -455,7 +455,7 @@ class TestReadmeCounts(unittest.TestCase):
             for f in sorted(glob.glob(str(ROOT / "*.42")))
         )
         self.assertIn(f"All {total} definitions", self.text)
-        self.assertIn(f"{total} definitions in the nine libraries", self.text)
+        self.assertIn(f"{total} definitions in the ten libraries", self.text)
 
     def test_the_per_suite_and_total_test_counts(self):
         # Counted by loading each module, not by running it: this file is one of

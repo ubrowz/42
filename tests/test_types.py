@@ -5,7 +5,7 @@ and its unfoldings are genuinely interchangeable, which is the whole content of
 the equirecursive choice.  `TestDaggerReversesType` checks the type-level shadow
 of the defining law -- inversion swaps the two sides and does nothing else --
 over every definition in every library.  And `TestLibrariesAreWellTyped` asserts
-the result that justified the pass: all 166 definitions across the nine .42 files
+the result that justified the pass: all 263 definitions across the ten .42 files
 type, with no annotation added to any of them.
 """
 
@@ -268,12 +268,27 @@ class TestDaggerReversesType(unittest.TestCase):
                 # alone (that is what makes `ctrl! m` equal `ctrl m!`), so the
                 # expected scheme keeps its parameters and swaps only the ends.
                 with self.subTest(lib=os.path.basename(path), name=name):
-                    self.assertEqual(
-                        show_scheme(Scheme(s.cod, s.dom, params=s.params)),
-                        show_scheme(d),
-                    )
+                    want = Scheme(s.cod, s.dom, params=s.params)
+                    if show_scheme(want) != show_scheme(d):
+                        # Equirecursive types have no canonical syntactic form,
+                        # so two presentations of the same infinite tree can
+                        # print differently -- `meta.42`'s states nest a `mu`
+                        # inside a `mu` deeply enough to reach that.  Falling
+                        # back to the unifier tests the property rather than the
+                        # printer; the string comparison stays first because it
+                        # is the stronger check where it applies.
+                        self.assertSameType(want, d)
                 checked += 1
-        self.assertEqual(checked, 166)
+        self.assertEqual(checked, 263)
+
+    def assertSameType(self, want: Scheme, got: Scheme) -> None:
+        inf = Inference()
+        a, b = inf.instantiate(want), inf.instantiate(got)
+        try:
+            inf.unify(a.dom, b.dom, "dom")
+            inf.unify(a.cod, b.cod, "cod")
+        except Rel42Error as exc:  # pragma: no cover -- a real failure
+            self.fail(f"dagger did not reverse the type: {exc}")
 
     def test_double_dagger_is_the_original_type(self):
         for src in ["dist", "copy ; swapprod", "inl ; swapsum", "id + copy", "inr!^"]:
@@ -356,11 +371,11 @@ class TestPrinter(unittest.TestCase):
 class TestLibrariesAreWellTyped(unittest.TestCase):
     """Every definition in every .42 file types.
 
-    166 definitions written with no type system in sight, no annotation added to
+    263 definitions written with no type system in sight, no annotation added to
     any of them, and nothing left over.
     """
 
-    def test_all_166_definitions_type(self):
+    def test_all_263_definitions_type(self):
         total = 0
         for path in LIBS:
             with open(path, encoding="utf-8") as fh:
@@ -370,7 +385,7 @@ class TestLibrariesAreWellTyped(unittest.TestCase):
                 self.assertEqual(errors, {}, f"failures: {list(errors)}")
                 self.assertEqual(set(schemes), set(defs))
             total += len(defs)
-        self.assertEqual(total, 166)
+        self.assertEqual(total, 263)
 
     def test_the_plumbing_layer(self):
         schemes, _ = infer_program(lib("prelude.42"))

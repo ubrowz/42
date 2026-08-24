@@ -220,7 +220,7 @@ A term denotes a relation, so its type has two sides: `t : A ↔ B` means
 `μX. F(X)` for the recursive ones. The primitive schemes are therefore just the
 semiring axioms read as types, which is what the primitives were chosen to be.
 
-**All 166 definitions in the nine libraries typecheck**, with no annotation added
+**All 263 definitions in the ten libraries typecheck**, with no annotation added
 to any of them. Types are inferred, never written: nothing in the surface syntax
 mentions one, and there is no `fold`/`unfold`.
 
@@ -251,7 +251,7 @@ Four things fall out rather than being decided:
   identity-on-objects and contravariant, so at the level of shapes it can only
   exchange domain and codomain. Inference implements `!` by swapping a scheme,
   so `t : A ↔ B ⟹ t! : B ↔ A` holds by construction — the type-level shadow of
-  the defining law, checked over all 166 definitions.
+  the defining law, checked over all 263 definitions.
 - **Generalisation is nearly trivial, because 42 has almost no binders.** Every
   definition is a closed term, so there is no environment of monomorphic
   assumptions to avoid capturing and none of the usual machinery (levels, ranks,
@@ -448,10 +448,11 @@ strings.42        text: bytes as bit-tuples; every list program works on it
 cipher.42         a Feistel cipher in CBC mode; `decrypt = cbc!` is the whole decryptor
 tm.42             a Turing machine as `init ; step^ ; final` (MANUAL section 13)
 theorem.42        the constructions THEOREM.md's proof is assembled from
+meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7)
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
 tests/            395 tests, including the defining law checked exhaustively,
-                  every output claimed in tour.42, that all 166 library
+                  every output claimed in tour.42, that all 263 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted
 q42/emit.py       a term to gates on numbered qubits, and to OpenQASM 3
