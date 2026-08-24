@@ -478,6 +478,7 @@ sources/          README only: the papers RELATED.md quotes are third-party PDFs
                   quotation test, which skips itself when they are absent
 spike/            throwaway experiments, superseded by q42/ but kept as the
                   evidence Q42.md was written from
+tools/selfinterp.py  meta.42 interpreting meta.42; THEOREM.md 7.5's numbers
 tools/render.py   renders the manuals into docs/*.html
 tools/unquote.py  turns a generated circuit value into Q42 source text
 tools/qasm_sim.py an independent simulator over gate lists, sharing no code

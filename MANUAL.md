@@ -2016,6 +2016,13 @@ It shows that 42 can interpret 42 with nothing added to the language, and that
 the interpreter's backward direction costs nothing to obtain, because it is not
 a separate program.
 
+It also closes. `meta.42` is a 42 program, so it is one of the programs
+`meta.42` interprets — and it does, if you are patient: `eval` reading its own
+encoding takes about forty seconds to work out what `not` does to a bit, and
+about eighty to work it out backwards. `tools/selfinterp.py` runs it. That is
+useless as computation and is the whole point as a demonstration, because the
+thing being interpreted two levels down is the interpreter itself.
+
 It does not show the interpreter is *correct* — that it interprets every
 program rather than the ones tried here. That claim, the encoding in full, and
 a second one that does not follow from it are in

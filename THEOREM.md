@@ -948,10 +948,25 @@ closed under converse buys, stated at one remove.
 Three things, none of them about the semantics.
 
 **Speed.** A state is a deep tree and every object-level step is many meta-level
-steps; the overhead is around two orders of magnitude on the simplest fragment
-and worse with the environment threaded through. It shows up as stack depth as
-much as time. `eval` applied to `⌜eval⌝` therefore exists by Theorem 14 and by
-the encoding above, and does not run.
+steps; the overhead is around two orders of magnitude on a term with no
+definitions, and three to four once an environment is encoded alongside it. It
+shows up as stack depth as much as time.
+
+The self-application is the measurement worth quoting, since it is the one the
+section is named for. `meta.42`'s own definitions encode to 21,512 nodes, and
+`eval` carries that environment through every step — so `eval` applied to
+`⌜eval⌝` is slow, and it runs. Interpreting `⌜swapsum⌝` at `L ()` two levels
+down takes about 40 seconds forwards and about 80 backwards, and Theorem 19
+checked at that depth takes about two and a half minutes; in each case the two
+levels agree with one, and the outer state comes back with its environment and
+term intact. `tools/selfinterp.py` is the script, kept out of the test suite
+because a run takes minutes — `TestSelfInterpretation` checks the same claims
+one level down, where they are cheap.
+
+None of that is a way to compute anything. It is the observation that the
+construction closes: `eval` is a 42 program like any other, so it is one of the
+programs it interprets, and Theorem 19 does not stop holding when the program
+being reversed is the reverser.
 
 **One place the written form matters and the denotation does not.** Environment
 lookup is `nthp`, defined by recursion, rather than the shorter `copy ; (id *
