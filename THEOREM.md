@@ -995,8 +995,8 @@ type meta` reports `85/85` — and `eval` comes out with the state type of §7.1
 both sides. But `42 run` infers over the *expanded* environment (§2.4), and
 inlining `condinv` thirteen times destroys the sharing that keeps an inferred
 type small; inference on that form does not finish in any usable time — the
-source form types in 0.46 s, the expanded one was still running when abandoned
-at ninety times that. Hence `--untyped` in the transcripts above, and note that
+source form types in 0.46 s, and the expanded one was still running after
+twenty-five minutes, three thousand times longer, when it was stopped. Hence `--untyped` in the transcripts above, and note that
 `42 quote` needs no such thing: what it type-checks is the interpreted program
 against the file it came from, which is an ordinary check on an ordinary file.
 This is a limitation of the tool, not of the language.
