@@ -463,7 +463,10 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
     switch = "".join(tab(h, l) for h, l in tabs)
     return PAGE.format(
         title=title, heading=heading, blurb=blurb, body=relink(body),
-        blurb_plain=html.escape(re.sub(r"&[a-z]+;", "", blurb), quote=True),
+        # Resolve entities to their characters rather than deleting them:
+        # the old `&[a-z]+;` missed capitalised ones, so `&Pi;` survived
+        # into the attribute and was escaped to a visible `&amp;Pi;`.
+        blurb_plain=html.escape(html.unescape(blurb), quote=True),
         toc=items, switch=switch, css=CSS, script=SCRIPT,
     )
 
@@ -497,9 +500,10 @@ DOCS = [
     (
         "RELATED.md", "related.html", "42 Related Work",
         "42 &mdash; Related Work",
-        "Where 42 sits in the literature on reversible programming: what it "
-        "shares with Inv, PisoLang and the &Pi; branch, what in it is new, and "
-        "what the others have that it does not.",
+        "Where 42 comes from and where it sits. It is the second instantiation "
+        "of 4\u2082, specified in a 1993 thesis; this page traces what was "
+        "already there, what it shares with Inv, PisoLang and the &Pi; branch, "
+        "what in it is new, and what the others have that it does not.",
     ),
     (
         "THEOREM.md", "theorem.html", "42 Expressiveness Theorem",
@@ -665,9 +669,10 @@ hh |0&gt;
       <a href="theorem.html"><b>What 42 can compute</b>
         <span>A proof that the relations 42 can denote are the recursively
         enumerable ones.</span></a>
-      <a href="related.html"><b>Related work</b>
-        <span>Where 42 sits among Inv, PisoLang, Janus, RFUN and the
-        &Pi; branch.</span></a>
+      <a href="related.html"><b>Related work, and where 42 comes from</b>
+        <span>Where it sits among Inv, PisoLang, Janus, RFUN and the
+        &Pi; branch &mdash; and where it began: 4<sub>2</sub>, specified in
+        1993, of which this is the second instantiation.</span></a>
     </div>
 
     <p class="eyebrow">Running it</p>
