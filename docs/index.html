@@ -189,6 +189,10 @@ body.home { font-size: 17px; }
 .card .more { display: block; margin-top: 1rem; font-family: var(--mono);
               font-size: .78rem; color: var(--accent); }
 
+.note { max-width: 64ch; }
+.note p { margin: 0 0 1.05rem; color: var(--muted); }
+.note p:last-child { margin-bottom: 0; }
+
 .minor { display: grid; gap: .55rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
 .minor a { text-decoration: none; color: inherit; border: 1px solid var(--rule);
            border-radius: 4px; padding: .85rem 1.05rem; background: var(--paper);
@@ -283,6 +287,25 @@ add!(5) =
 hh |0&gt;
   = |0&gt;</code></pre></div>
       </div>
+    </div>
+
+    <p class="eyebrow">Why now?</p>
+    <div class="note">
+      <p>I first defined 42 in 1991 at the Philips Research Labs in Eindhoven,
+      as part of the Rosetta machine translation project. In 1993 the language
+      was set as the subject of a master's thesis by Paul Jansen. After that it
+      was never taken any further. I left the Rosetta project soon afterwards,
+      but I never forgot 42.</p>
+      <p>Thirty-three years later, retired by then, I picked up what
+      documentation was left to see whether I could finish the work with the
+      help of Anthropic's Claude. That worked out very well. Along the way I
+      came across the conferences on reversible computation and found that it
+      had become a research field with its own community, which did not exist
+      in the early 1990s. I was also surprised to find a real connection with
+      quantum computing. That led to Q42, the same language over the complex
+      numbers, for programming quantum computers.</p>
+      <p>The result is this site, and the source is
+      <a href="https://github.com/ubrowz/42">on GitHub</a>.</p>
     </div>
 
     <p class="eyebrow">Going deeper</p>
