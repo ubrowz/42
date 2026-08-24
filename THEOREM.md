@@ -842,12 +842,24 @@ a singleton in the interpreted language still traces back to one primitive, and
 it is the same one.
 
 **No branch needs a predicate to separate it from its sibling.** The union case
-is `onleft | onright`, and there is nothing to assert. A reversible language
-whose conditional must be undone has to carry an exit assertion so the backward
-run can tell which branch it came from, and Yokoyama & Glück's invertible
-self-interpreter for Janus is built around supplying them. Here the requirement
-does not arise, because §1's class is closed under converse and the syntax
-therefore needs no side conditions to stay inside it.
+is `onleft | onright`, and there is nothing to assert. In Janus a conditional
+carries an exit assertion — `if e₁ then s₁ else s₂ fi e₂`, where `e₂` is the
+assertion — precisely so that the backward run can tell which branch it came
+from, so an interpreter for Janus must evaluate and check one wherever it
+interprets a conditional.
+
+Yokoyama & Glück's self-interpreter is the closest prior work to this section,
+and it is worth being accurate about what they report as the hard part, which
+is not that. Their difficulty is that the interpreter must interpret
+expressions that are *not* backward deterministic, and must do so without a
+global computation history — an irreversible operation to be performed by a
+language with none. That is the same shortage seen from the other side: theirs
+is a language of injections, in which the interpreter's own steps must be
+undoable one by one.
+
+Neither difficulty arises here. §1's class is closed under converse, so the
+syntax needs no side conditions to stay inside it, and where Janus must
+separate two branches, 42 simply keeps both.
 
 ### 7.3 It is an interpreter
 
@@ -982,9 +994,12 @@ this document of the gap §8 insists on.
 type meta` reports `85/85` — and `eval` comes out with the state type of §7.1 on
 both sides. But `42 run` infers over the *expanded* environment (§2.4), and
 inlining `condinv` thirteen times destroys the sharing that keeps an inferred
-type small; inference on that form does not finish. Hence `--untyped` in the
-transcripts above. This is a limitation of the tool, and the source form
-type-checks in under a second.
+type small; inference on that form does not finish in any usable time — the
+source form types in 0.46 s, the expanded one was still running when abandoned
+at ninety times that. Hence `--untyped` in the transcripts above, and note that
+`42 quote` needs no such thing: what it type-checks is the interpreted program
+against the file it came from, which is an ordinary check on an ordinary file.
+This is a limitation of the tool, not of the language.
 
 One consequence worth recording. `TestDaggerReversesType` compares *printed*
 schemes, and `meta.42`'s states nest a `μ` inside a `μ` deeply enough that
