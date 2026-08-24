@@ -16,8 +16,14 @@ from rel42 import (  # noqa: E402
     Inl,
     Inr,
     Pair,
+    Prim,
+    Prod,
     Ref,
+    Seq,
+    Star,
+    Sum,
     UNIT,
+    Union,
     dagger,
     from_nat,
     parse_program,
@@ -25,6 +31,7 @@ from rel42 import (  # noqa: E402
     parse_value,
     run,
     show,
+    show_term,
 )
 
 PRELUDE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prelude.42")
@@ -1153,6 +1160,221 @@ class TestTheoremGadgets(unittest.TestCase):
         prefix = Inr(Pair(Inr(UNIT), Inr(Pair(Inr(UNIT), Inl(UNIT)))))
         self.assertEqual(self.go("unnat", prefix), set())
 
+
+
+class TestSelfInterpretation(unittest.TestCase):
+    """`meta.42` -- the core of 42, interpreted by a 42 program.
+
+    THEOREM.md section 7, MANUAL.md section 14.  Three claims are checked, and
+    they are independent of one another:
+
+    * **Proposition 17**, that `eval` denotes what the term it is handed
+      denotes -- and that it leaves the environment and the term alone, which
+      is what makes the other two sayable;
+    * **Corollary 18**, that `eval!` denotes the dagger of that term.  This
+      follows from 17 and the defining law, and is checked anyway;
+    * **Theorem 19**, that `eval!` agrees with daggering the *encoded* term
+      using `dag`.  This does not follow from anything, and is the only place a
+      wrong `dag` would be caught -- the defining law holds of `eval` because
+      `eval` is a term, not because it is that term.
+
+    The oracle throughout is `rel42.run` on the same term, so what is compared
+    is the interpreter against the implementation it is a model of.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from rel42.core import expand_env
+
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "meta.42"), encoding="utf-8") as fh:
+            cls.M = expand_env(parse_program(fh.read()))
+        cls.OBJ = parse_program(
+            "def add    = dist ; (unitprod + (add ; inr)) ; join\n"
+            "def double = copy ; add\n"
+            "def dn     = inr!^\n"
+        )
+        cls.NAMES = sorted(cls.OBJ)
+
+    # -- the encoding of section 7.1, mirroring meta.42's constructors -----
+    PRIMS = ["id", "zero", "swapsum", "assocsum", "unitsum", "swapprod",
+             "assocprod", "unitprod", "dist", "inl", "inr", "copy", "join"]
+
+    @staticmethod
+    def case(k, n, x):
+        """The k-th of n right-nested summands, 1-indexed."""
+        v = x if k == n else Inl(x)
+        for _ in range(k - 1):
+            v = Inr(v)
+        return v
+
+    @classmethod
+    def encv(cls, v):
+        if isinstance(v, Pair):
+            return Inr(Inr(Inr(Pair(cls.encv(v.a), cls.encv(v.b)))))
+        if isinstance(v, Inl):
+            return Inr(Inl(cls.encv(v.v)))
+        if isinstance(v, Inr):
+            return Inr(Inr(Inl(cls.encv(v.v))))
+        return Inl(UNIT)
+
+    @classmethod
+    def decv(cls, v):
+        if isinstance(v, Inl):
+            return UNIT
+        w = v.v
+        if isinstance(w, Inl):
+            return Inl(cls.decv(w.v))
+        w = w.v
+        if isinstance(w, Inl):
+            return Inr(cls.decv(w.v))
+        return Pair(cls.decv(w.v.a), cls.decv(w.v.b))
+
+    @classmethod
+    def enct(cls, t):
+        flag = lambda i: Inr(UNIT) if i else Inl(UNIT)
+        both = lambda k, s, u: cls.case(k, 7, Pair(cls.enct(s), cls.enct(u)))
+        if isinstance(t, Prim):
+            n = cls.case(cls.PRIMS.index(t.name) + 1, 13, UNIT)
+            return cls.case(1, 7, Pair(n, flag(t.inv)))
+        if isinstance(t, Ref):
+            return cls.case(2, 7, Pair(from_nat(cls.NAMES.index(t.name)), flag(t.inv)))
+        if isinstance(t, Seq):
+            return both(3, t.s, t.t)
+        if isinstance(t, Union):
+            return both(4, t.s, t.t)
+        if isinstance(t, Sum):
+            return both(5, t.s, t.t)
+        if isinstance(t, Prod):
+            return both(6, t.s, t.t)
+        return cls.case(7, 7, cls.enct(t.s))
+
+    @classmethod
+    def state(cls, t, v):
+        env = Inl(UNIT)
+        for n in reversed(cls.NAMES):
+            env = Inr(Pair(cls.enct(cls.OBJ[n]), env))
+        return Pair(env, Pair(cls.enct(t), cls.encv(v)))
+
+    def meta(self, t, v, inv=False):
+        term = dagger(Ref("eval")) if inv else Ref("eval")
+        out = run(term, self.state(t, v), self.M, max_depth=8000, max_orbit=400)
+        return {self.decv(s.b.b) for s in out}
+
+    #: `dn!` is `succ^`, which does not saturate -- README's "a relation can be
+    #: computable in one direction and not the other".  It belongs in the
+    #: forward corpus and cannot be in a backward one, because the *oracle*
+    #: diverges there, not the interpreter.  It gets its own test below.
+    ONE_WAY = {"dn"}
+
+    def corpus(self, backward=False):
+        """Every constructor, both directions, and recursion through `Ref`."""
+        P = Prim
+        terms = [
+            P("id"), P("swapsum"), P("copy"), P("join"), P("dist"), P("inl"),
+            P("inr", True), P("unitsum"), P("assocprod"), P("zero"),
+            Seq(P("copy"), P("swapprod")), Seq(P("copy"), P("copy", True)),
+            Seq(P("join"), P("inl")), Union(P("inl"), P("inr")),
+            Union(P("id"), P("zero")), Sum(P("id"), P("swapsum")),
+            Prod(P("inl"), P("inr")), Star(P("swapsum")),
+            Star(Union(P("id"), P("swapsum"))),
+            Seq(P("dist"), Sum(P("unitprod"), P("unitprod"))),
+            Ref("add"), Ref("add", True), Ref("double"), Ref("dn"),
+            Sum(Ref("add"), P("id")), Seq(Ref("double"), P("inl")),
+        ]
+        values = [
+            UNIT, Inl(UNIT), Inr(UNIT), Pair(UNIT, UNIT), from_nat(2),
+            Pair(from_nat(1), from_nat(1)), Pair(Inl(UNIT), from_nat(1)),
+            Inl(Pair(UNIT, UNIT)), Inr(Inl(UNIT)),
+        ]
+        if backward:
+            terms = [t for t in terms
+                     if not (isinstance(t, Ref) and t.name in self.ONE_WAY)]
+        return [(t, v) for t in terms for v in values]
+
+    def test_proposition_17_eval_denotes_what_the_encoded_term_denotes(self):
+        for t, v in self.corpus():
+            with self.subTest(term=show_term(t), value=show(v)):
+                want = run(t, v, self.OBJ, max_depth=400, max_orbit=400)
+                self.assertEqual(self.meta(t, v), want)
+
+    def test_proposition_17_eval_leaves_the_environment_and_the_term_alone(self):
+        """What makes `eval!` mean anything: a state carries its own program."""
+        for t, v in self.corpus(backward=True):
+            st = self.state(t, v)
+            with self.subTest(term=show_term(t), value=show(v)):
+                for inv in (False, True):
+                    term = dagger(Ref("eval")) if inv else Ref("eval")
+                    for s in run(term, st, self.M, max_depth=8000, max_orbit=400):
+                        self.assertEqual(s.a, st.a)
+                        self.assertEqual(s.b.a, st.b.a)
+
+    def test_corollary_18_eval_backwards_denotes_the_dagger_of_that_term(self):
+        """No second definition anywhere in `meta.42` produces this."""
+        for t, v in self.corpus(backward=True):
+            with self.subTest(term=show_term(t), value=show(v)):
+                want = run(dagger(t), v, self.OBJ, max_depth=400, max_orbit=400)
+                self.assertEqual(self.meta(t, v, inv=True), want)
+
+    def test_the_syntactic_dagger_written_in_42_is_rel42s_dagger(self):
+        """`dag` on an encoding is the encoding of `dagger`, on the nose."""
+        for t, _ in self.corpus():
+            with self.subTest(term=show_term(t)):
+                got = run(Ref("dag"), self.enct(t), self.M, max_depth=8000)
+                self.assertEqual(got, {self.enct(dagger(t))})
+
+    def test_theorem_19_the_two_ways_of_reversing_the_interpreter_agree(self):
+        """`eval!` == `(id * (dag * id)) ; eval ; (id * (dag * id))`.
+
+        The claim that does not follow from the defining law, and the only one
+        a wrong `dag` would fail.
+        """
+        for t, v in self.corpus(backward=True):
+            with self.subTest(term=show_term(t), value=show(v)):
+                st = self.state(t, v)
+                lhs = run(dagger(Ref("eval")), st, self.M, 8000, 400)
+                rhs = run(Ref("conj"), st, self.M, 8000, 400)
+                self.assertEqual(lhs, rhs)
+
+    def test_one_directional_computability_survives_interpretation(self):
+        """`dn = inr!^` runs forwards and does not saturate backwards.
+
+        README lists this as an honest limitation of the language, not of the
+        tool: in Rel a relation can be computable in one direction and not the
+        other.  What is checked here is that interpreting it changes nothing --
+        the interpreted program runs forwards, and backwards the interpreter
+        reports non-saturation about `eval!` exactly as `rel42` reports it
+        about `inr`.
+        """
+        v = from_nat(1)
+        want = run(Ref("dn"), v, self.OBJ, max_depth=400, max_orbit=400)
+        self.assertEqual(self.meta(Ref("dn"), v), want)
+        with self.assertRaises(DepthExceeded):
+            run(dagger(Ref("dn")), v, self.OBJ, max_depth=400, max_orbit=400)
+        # Which of the two is raised depends on the recursion limit: a state is
+        # a deep tree, so under a low one CPython's stack gives out before the
+        # orbit counter does.  `__main__` below raises it; pytest does not.
+        with self.assertRaises((DepthExceeded, RecursionError)):
+            run(dagger(Ref("eval")), self.state(Ref("dn"), v), self.M, 8000, 400)
+
+    def test_the_wrappers_the_manual_runs(self):
+        """MANUAL.md section 14's transcripts, as unit tests."""
+        F, T = Inl(UNIT), Inr(UNIT)
+        go = lambda n, v: run(Ref(n), v, self.M, max_depth=8000, max_orbit=400)
+        back = lambda n, v: run(dagger(Ref(n)), v, self.M, 8000, 400)
+        self.assertEqual(go("metanot", F), {T})
+        self.assertEqual(back("metanot", T), {F})
+        self.assertEqual(go("metanotnot", F), {F})
+        self.assertEqual(go("metatoggle", F), {F, T})
+        self.assertEqual(go("metaalt", F), {F, T})
+        self.assertEqual(go("metaeq", F), {F})
+        # `join ; inl` -- none, one and many, at the interpreted level
+        self.assertEqual(go("metasink", F), {F})
+        self.assertEqual(go("metasink", T), {F})
+        self.assertEqual(back("metasink", F), {F, T})
+        self.assertEqual(back("metasink", T), set())
+        # a different encoder, same interpreter
+        self.assertEqual(go("metaswap", Pair(F, T)), {Pair(T, F)})
 
 
 if __name__ == "__main__":

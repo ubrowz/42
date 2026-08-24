@@ -360,9 +360,9 @@ Flags: `--raw` disables nat/list sugar, `--limit` bounds call depth, `--orbit`
 bounds how large a `Star` closure may grow before being declared infinite, and
 `--untyped` skips the type check that `run` and `law` otherwise apply.
 
-Tests: `python3 tests/test_rel42.py` (121), `python3 tests/test_types.py` (123),
+Tests: `python3 tests/test_rel42.py` (128), `python3 tests/test_types.py` (123),
 `python3 tests/test_q42.py` (93), `python3 tests/test_docs.py` (31) and
-`python3 tests/test_emit.py` (27) — 395 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
+`python3 tests/test_emit.py` (27) — 402 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
 itself, including these counts.
 
 ## Q42 — the same language over ℂ
@@ -451,7 +451,7 @@ theorem.42        the constructions THEOREM.md's proof is assembled from
 meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7)
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
-tests/            395 tests, including the defining law checked exhaustively,
+tests/            402 tests, including the defining law checked exhaustively,
                   every output claimed in tour.42, that all 263 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted
