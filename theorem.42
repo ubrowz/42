@@ -18,7 +18,7 @@ type list a = mu X. 1 + (a x X)
 
 
 -- ---------------------------------------------------------------------------
--- Lemma 2 (Discard).  For every type C there is `drop : C <-> 1`.
+-- Lemma 5 (Discard).  For every type C there is `drop : C <-> 1`.
 --
 --   drop_0        = zero                     drop_1        = id
 --   drop_{A+B}    = (drop_A + drop_B) ; join
@@ -37,7 +37,7 @@ def dropbits = (id + ((dropbool * dropbits) ; unitprod)) ; join
 
 
 -- ---------------------------------------------------------------------------
--- Lemma 3 (Universal relation).  `drop_A ; drop_B!` relates every value of A
+-- Lemma 6 (Universal relation).  `drop_A ; drop_B!` relates every value of A
 -- to every value of B.  Shown at a finite type, because at an infinite one it
 -- is an infinite answer.
 -- ---------------------------------------------------------------------------
@@ -46,7 +46,7 @@ def univbool = dropbool ; dropbool!
 
 
 -- ---------------------------------------------------------------------------
--- Lemma 4 (Filter).  A test `t : C <-> 1` becomes the partial identity on the
+-- Lemma 7 (Filter).  A test `t : C <-> 1` becomes the partial identity on the
 -- values where it succeeds.  `iseven` is a test only in the semi-decision
 -- sense: `double!` is defined on the even numbers and nowhere else.
 -- ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ def onlyeven = copy ; (testeven * id) ; unitprod -- nat <-> nat
 
 
 -- ---------------------------------------------------------------------------
--- Lemma 5 (Serialisation).  `ser_C : C <-> bits` is injective, because the
+-- Lemma 8 (Serialisation).  `ser_C : C <-> bits` is injective, because the
 -- code it produces is prefix-free:
 --
 --   ser_1       = inl                                  ()  |-> []
@@ -117,7 +117,7 @@ def collapse4 = (id + ((id + join) ; join)) ; join
 -- forwards.  It proposed restricting tests to symmetrical programs and left the
 -- cost of that restriction open.
 --
--- Here the filter is not a construct but the composite of Lemma 5, so the
+-- Here the filter is not a construct but the composite of Lemma 7, so the
 -- question can just be asked: `keep!` is `keep`, for any test whatever, and no
 -- restriction was needed.  `inter` is 4_2's intersection operator `&`, likewise
 -- a composite rather than a primitive.
