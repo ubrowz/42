@@ -1146,7 +1146,42 @@ the choice. Whether the two can be separated — the relation derived, the choic
 supplied on top — is the obvious question from here, and this document does not
 know the answer.
 
-### 9.4 The complement, which 42 carries structurally
+### 9.4 Where the set is the answer
+
+The mismatch above is with these applications, not a deficiency in general.
+There is a domain in which the set is what you want, and 42 came out of it.
+
+A sentence in a natural language is ambiguous. *I saw the man with the
+telescope* has two readings, and that is a fact about the sentence rather than a
+defect in whatever parsed it. Generation is many-valued in the same way: one
+meaning admits many surface forms. So both directions are many-valued at once,
+which is §1's bottom row and nothing above it. An injective language can of
+course *return* a list of readings — but then the alternatives are a data
+structure the programmer threads by hand, and every later stage has to be
+written to consume a list. In 42 they are the denotation: composition unions
+over them, and `!` still applies. Rosetta's M-rules had to work in exactly that
+setting (§0), and it is the requirement 4₂ was answering. The choice is not the
+grammar's to make; it belongs downstream, where there is context to make it
+well.
+
+This also explains the shape of §9.3's complaint. A lens must decide early,
+because a calendar synchroniser has to write one calendar. A grammar must decide
+late, or not at all. The two requirements pull in opposite directions, and 42
+was built to the second while the field standardised on the first.
+
+**It is not a live application, though.** Machine translation left that road
+entirely — statistical, then neural, then large language models — and none of
+them keeps a grammar to run backwards. Ambiguity is resolved inside continuous
+representations rather than surfaced as a set of readings, and the bidirectional
+grammar is not a component of any current system. So 42 has no more of a
+foothold in machine translation than the lens does. The requirement that shaped
+it in 1991 is not how the problem is approached now.
+
+What survives is the distinction rather than the domain: some problems want a
+chosen source, and some want the preimage. The lens literature is built for the
+first. 42 is the only entry in §1's table whose semantics is the second.
+
+### 9.5 The complement, which 42 carries structurally
 
 The sharper connection is older than lenses. Bancilhon & Spyratos (1981)
 answered view update by pairing the user's view with a second one:
@@ -1168,7 +1203,7 @@ act rather than a derivation:
 
 That is §9.2's choice again, stated at the origin of the subject and a quarter
 of a century before lenses. It recurs: §9.2 has the lens paper saying it of
-`put`, and §9.5 has the putback line saying it once more. Going backwards leaves
+`put`, and §9.6 has the putback line saying it once more. Going backwards leaves
 a set, and the work is in choosing from it.
 
 Matsuda, Hu, Nakano, Hamana & Takeichi (ICFP 2007) give the same device in
@@ -1201,7 +1236,7 @@ the backward direction is exact rather than derived: `divexact` is `mul!`, and
 Foster et al. place the same idea in the lens lineage, as one of the ancestors
 their own laws generalise — "update translation under a constant complement".
 
-### 9.5 The fork, and who took which branch
+### 9.6 The fork, and who took which branch
 
 Worth recording, because §2 has already named them. *Inv* — Mu, Hu & Takeichi,
 MPC 2004 — is called 42's nearest relative there. Hu and Takeichi are also
