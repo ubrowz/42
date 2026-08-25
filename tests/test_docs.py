@@ -504,12 +504,24 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         "janus": "sources/janus.pdf",
         "qeffect": "sources/quantum-effect.pdf",
         "onerig": "sources/one-rig.pdf",
+        "lenses": "sources/lenses.pdf",
+        "matsuda": "sources/matsuda-icfp2007.pdf",
+        "bigul": "sources/bigul.pdf",
     }
 
     #: (source, the quoted fragment).  Short, distinctive substrings rather than
     #: whole sentences, so that line-wrapping in the PDF cannot cause a spurious
     #: failure.
     QUOTES = [
+        ("lenses", "the putback function must capture all of the information"),
+        ("lenses", "there are many ways to equip a given get function with a putback"),
+        ("lenses", "we need some means of specifying which putback is intended"),
+        ("lenses", "onerous proof obligations or checking of side conditions"),
+        ("lenses", "update translation under a constant complement"),
+        ("matsuda", "Bancilhon and Spyratos proposed the concept of view complement"),
+        ("matsuda", "a view complement function of f is a function from the source to"),
+        ("bigul", "uniquely determines its get component"),
+        ("bigul", "ensuring the well-behavedness of a put"),
         ("inv", "we require not only the domains, but the ranges of"),
         ("inv", "may be checked by a type system, but we have not explored"),
         ("inv", "lets it go through only if the two components are equal"),

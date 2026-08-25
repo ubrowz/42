@@ -1,7 +1,7 @@
 # Sources
 
-The papers `RELATED.md` marks **[read]**, so that the verbatim quotations in it
-can be checked rather than trusted.
+The papers `RELATED.md` quotes, so that its verbatim quotations can be checked
+rather than trusted.
 `tests/test_docs.py::TestRelatedWorkQuotations` extracts the text with
 `pdftotext` and asserts every quotation still appears in its source.
 
@@ -22,9 +22,17 @@ way.
 | `quantum-effect.pdf` | Carette, Heunen, Kaarsgaard & Sabry, *The Quantum Effect: A Recipe for QuantumΠ*, arXiv:2302.01885, 2023. |
 | `one-rig.pdf` | Heunen, Kaarsgaard & Lemonnier, *One rig to control them all*, arXiv:2510.05032, 2025. |
 | `chardonnet-fscd2024.pdf` | Chardonnet, Lemonnier & Valiron, *Semantics for a Turing-Complete Reversible Programming Language with Inductive Types*, FSCD 2024 (LIPIcs, open access). |
+| `lenses.pdf` | Foster, Greenwald, Moore, Pierce & Schmitt, *Combinators for Bidirectional Tree Transformations*, TOPLAS 29(3), 2007. <https://www.cis.upenn.edu/~bcpierce/papers/lenses-toplas-final.pdf> |
+| `matsuda-icfp2007.pdf` | Matsuda, Hu, Nakano, Hamana & Takeichi, *Bidirectionalization Transformation Based on Automatic Derivation of View Complement Functions*, ICFP 2007. <https://zhenjiang888.github.io/pub/icfp07.pdf> |
+| `bigul.pdf` | Ko, Zan & Hu, *BiGUL: A Formally Verified Core Language for Putback-Based Bidirectional Programming*, PEPM 2016. <https://zhenjiang888.github.io/pub/pepm16.pdf> |
 
 All are freely available from their authors' pages or from open-access
 proceedings.
+
+Bancilhon & Spyratos's *Update Semantics of Relational Views* (TODS 1981) is
+cited in §9.4 but is not here: it is behind the ACM paywall with no open copy.
+Nothing is quoted from it — §9.4 attributes the constant-complement idea through
+Matsuda et al., who state it, and says so.
 
 **Not here, and not checkable.** RELATED.md §0 quotes a 1993 Master's thesis that
 exists on paper only. Its quotations were transcribed by hand from page images,

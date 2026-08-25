@@ -1074,13 +1074,6 @@ had to parse one way and generate the other, and reversible computation was the
 frame applied afterwards. That requirement did not go away when Rosetta closed.
 It became a field.
 
-**A note on sources.** None of the work named below is in `sources/`, so nothing
-here is quoted and `tests/test_docs.py::TestRelatedWorkQuotations` does not
-cover any of it. The comparisons are structural, drawn from the shape of the
-definitions rather than from the text of the papers, and the citations are
-pointers to check rather than evidence already checked. §0.5 applies the same
-standard to the 1993 thesis.
-
 ### 9.1 What a lens asks of you
 
 A **lens** between a source type `S` and a view type `V` is a pair of functions
@@ -1090,24 +1083,27 @@ A **lens** between a source type `S` and a view type `V` is a pair of functions
     put : V x S -> S
 ```
 
-subject to two laws:
+subject to two laws, which Foster, Greenwald, Moore, Pierce & Schmitt (TOPLAS
+2007) name `GetPut` and `PutGet`:
 
 ```
     GetPut:   put (get s) s  =  s
     PutGet:   get (put v s)  =  v
 ```
 
-Foster, Greenwald, Moore, Pierce & Schmitt (POPL 2005) introduced them for the
-view-update problem. Note `put`'s second argument. Going backwards is ambiguous,
-and the original source is what resolves the ambiguity: it is the thing you edit
-*towards*.
+Note `put`'s second argument. Going backwards is ambiguous, and the original
+source is what resolves the ambiguity: it is the state you edit *towards*, not
+merely a value you reconstruct. `PutGet` is what forces the edit to take:
 
-You write both directions, and the laws are proof obligations.
+> the putback function must capture all of the information contained in the
+> abstract view
+
+You write both directions, and the laws are obligations on the pair.
 
 ### 9.2 A lens is the dagger plus a choice
 
-Read the two laws with §1's vocabulary and they say something exact. Take `get`
-as a 42 program.
+Read the two laws in §1's vocabulary and they say something exact. Take `get` as
+a 42 program.
 
 > **PutGet says `put` selects from the dagger.** `get (put v s) = v` means
 > `put v s` is a source whose view is `v` — that is, `put v s ∈ ⟦get!⟧(v)`.
@@ -1119,73 +1115,97 @@ So a lens is not an alternative to what 42 computes. It is what 42 computes
 **plus a choice function**, and its two laws are precisely the statements that
 the choice is a choice *from the converse* and that it is reflexive.
 
-That is the whole relationship, and the useful part is that it cuts both ways.
-42 gets the converse for free, totally, with no obligation to discharge, because
-§1's class is closed under converse. What it does not get is the choice.
+That is not a reading imposed from outside. The lens paper says the same thing
+when it explains why a language was needed at all:
+
+> there are many ways to equip a given get function with a putback function to
+> form a well-behaved and total lens; we need some means of specifying which
+> putback is intended
+
+A `get` underdetermines its `put`. What it determines is the *set*, and the set
+is `⟦get!⟧`. Their linguistic approach is a way of writing down which element of
+it you meant.
 
 ### 9.3 The half 42 does not do
+
+42 gets that set for free, totally, with no obligation to discharge, because
+§1's class is closed under converse. What it does not get is the choice.
 
 For most of what bidirectional transformation is used for — view update, model
 synchronisation, data migration — you must produce *a* source, not a set of
 candidates. `append!` gives four ways to split `[1, 2, 3]`; a lens must return
 one. 42 hands over all four and has nothing to say about which.
 
-Two honest readings, and this document does not know which is right.
+The two fields therefore paid opposite prices for the same difficulty. The lens
+design goal was a language in which the choice could be stated without cost:
 
-- **Against.** 42 does the easy half. The hard part of BX is choosing *well*:
-  least change, alignment, matching, stability under repeated editing. None of
-  that is a converse, and none of it is in 42.
-- **For.** The languages in that field entangle the two halves. The choice is
-  written into the syntax, and well-behavedness is then re-established per
-  program — by proof, by type system, or by construction. Deriving the relation
-  totally and supplying the choice separately is a factorisation the field does
-  not appear to have tried, and 42 is evidence that the first half is free.
+> does not involve onerous proof obligations or checking of side conditions
 
-The second is a conjecture. It is recorded as one.
+42 removes exactly those obligations from the *converse*, and says nothing about
+the choice. Whether the two can be separated — the relation derived, the choice
+supplied on top — is the obvious question from here, and this document does not
+know the answer.
 
 ### 9.4 The complement, which 42 carries structurally
 
-The sharper connection is older than lenses. Bancilhon & Spyratos (1981)
-answered view update with a **complement**: hold a complementary view fixed and
-the update becomes determined. Matsuda, Hu, Nakano, Hamana & Takeichi (ICFP
-2007) bidirectionalize a `get` by deriving such a complement automatically.
+The sharper connection is older than lenses. The database answer to backward
+ambiguity was to hold a **complement** fixed, and Matsuda, Hu, Nakano, Hamana &
+Takeichi (ICFP 2007) record its origin — the 1981 paper is not among the sources
+read here, so the attribution is theirs, not this document's:
 
-42 arrives at the same device from the other end. `discard : a <-> 1` is not a
-primitive, because its converse must generate every value of a type and that is
-not finitary — though THEOREM.md's Lemma 5 shows `drop` is *definable*, so the
-restriction is on what computes rather than on what exists. The consequence is
-that `mul : (m, n) -> m x n` is not what you write. MANUAL §11.3 puts it that
-the base case `0 x n = 0` "must discard `n` outright", and that unlike `add` it
-cannot even be recovered as a set, since `mul` would have to work for every `n`
-and the base case has nowhere to put it. What you write is
+> Bancilhon and Spyratos proposed the concept of view complement function and
+> the method of view updating under constant complement
+
+and give the condition it must satisfy:
+
+> a view complement function of f is a function from the source to another view
+> (called a complement view) `g : S -> V'` such that the tupled function
+> `(f △ g) : S -> (V × V')` is injective
+
+That condition is 42's `mul`. MANUAL §11.3 explains that
+`mul : (m, n) -> m x n` is not writable, because the base case `0 x n = 0`
+discards `n` and cannot even recover it as a set. What is written instead is
 
 ```
     mul : (m, n) -> (n, m x n)
 ```
 
-which keeps the multiplier, and that is the complement discipline in other
-words: one component carried so that the backward direction is determined.
+which is the tupled function `⟨complement, view⟩`, injective by construction —
+and `mul!` is the inverse of it that the method needs. Matsuda et al. derive a
+complement per view function and then invert the tupling. 42 cannot express the
+un-tupled version at all, so every program is already in that form, and `!` is
+the inversion.
 
-**What the BX literature derives per transformation, 42 makes a precondition of
-writing the transformation at all.** The cost is that a genuinely discarding
-program cannot be written usefully. The return is that no complement has to be
-inferred and the backward direction is exact rather than heuristic:
-`divexact` is `mul!`, and `arith.42` contains no division algorithm.
+**What that literature derives per transformation, 42 makes a precondition of
+writing the transformation.** The cost is that a genuinely discarding program is
+not usefully writable. The return is that no complement has to be inferred and
+the backward direction is exact rather than derived: `divexact` is `mul!`, and
+`arith.42` contains no division algorithm.
+
+Foster et al. place the same idea in the lens lineage, as one of the ancestors
+their own laws generalise — "update translation under a constant complement".
 
 ### 9.5 The fork, and who took which branch
 
-Worth recording, because §2 has already named them. *Inv* — Mu, Hu &
-Takeichi, MPC 2004 — is called 42's nearest relative there. Hu and Takeichi are
-also central to bidirectional transformation, including the ICFP 2007
-bidirectionalization above and the later putback-based line, of which BiGUL is
-the formally verified core.
+Worth recording, because §2 has already named them. *Inv* — Mu, Hu & Takeichi,
+MPC 2004 — is called 42's nearest relative there. Hu and Takeichi are also
+central to bidirectional transformation, including the ICFP 2007
+bidirectionalization above and the later **putback-based** line, whose rationale
+Ko, Zan & Hu (PEPM 2016) state directly:
 
-So the two roads out of one problem were taken in part by the same people, and
-Inv is where they diverge. The putback line is the one that reads oddest from
-here: it asks the programmer to write `put` and derives `get`, on the argument
-that `put` is where the information actually is. §9.2 says why that argument is
-sound — `put` carries a choice that `get!` does not — and it is the same gap
-§9.3 declines to close, seen from the other side.
+> the put component of a bidirectional transformation uniquely determines its
+> get component
+
+That is §9.2 from the other side. `put` carries a choice that `get!` does not,
+so `put` is the more informative of the two, and a language may reasonably ask
+you to write it and derive `get`. BiGUL is that language, and the cost shows up
+where the asymmetry predicts — not every `put` is one, so the work becomes
+
+> ensuring the well-behavedness of a put
+
+42 answers "write either and get the other", which is true of the *relation* and
+silent about the choice. That silence is the same gap §9.3 declines to close,
+and it is why 42 is not a lens language and does not become one by rearrangement.
 
 ## References
 
@@ -1210,7 +1230,6 @@ sound — `put` carries a choice that `get!` does not — and it is the same gap
 - A. Bohannon, J. N. Foster, B. C. Pierce, A. Pilkiewicz, A. Schmitt.
   *Boomerang: Resourceful Lenses for String Data.* POPL 2008.
 - M. Hofmann, B. C. Pierce, D. Wagner. *Symmetric Lenses.* POPL 2011.
-  (§9: none of these is in `sources/`; see the note there.)
 - S.-C. Mu, Z. Hu, M. Takeichi. *An Injective Language for Reversible
   Computation.* MPC 2004, LNCS 3125, 289–313.
   <https://takeichi.ipl-lab.org/~scm/pub/reversible.pdf>
