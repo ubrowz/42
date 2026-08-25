@@ -1282,15 +1282,18 @@ family*:
 > one can check if a logic solver can be considered as a Prolog system or not
 > via the following test
 
-The test is that `append/3` can be written in two clauses and then
+The test is that `append/3` — Prolog names a predicate by its arity as well as
+its name, so this is the three-argument one — can be written in two clauses and
+then
 
 > deconstruct a list as in: `append(A, B, [1, 2])`
 
-which is `append!([1, 2])`, and Prolog has done it since 1972. It is worth being
-plain about this. 42's flagship demonstration is not a new capability; it is a
-familiar one reached by a different route, and a reader who knows Prolog will not
-be impressed by the demonstration alone. What is different is everything about
-how it is obtained.
+which is `append!([1, 2])`, with `A` and `B` the arguments left unbound for the
+query to solve. Prolog has done it since 1972. It is worth being plain about
+this. 42's flagship demonstration is not a new capability; it is a familiar one
+reached by a different route, and a reader who knows Prolog will not be
+impressed by the demonstration alone. What is different is everything about how
+it is obtained.
 
 ### 10.2 Search at run time, or a term at parse time
 
@@ -1310,9 +1313,8 @@ The consequences are the whole difference. `P!` is a *term*: `42 show` prints
 it, the checker types it, and THEOREM.md §2.5's proposition says the type is
 `P`'s with the sides swapped. It composes with other terms. `dagger(dagger(t)) =
 t` holds on the nose, syntactically, which is not a statement one can make about
-a query
-strategy. And the cost of the backward direction is the cost of running a
-program, not of a search whose shape depends on which arguments were bound.
+a query strategy. And the cost of the backward direction is the cost of running
+a program, not of a search whose shape depends on which arguments were bound.
 
 ### 10.3 Two directions, not one per argument
 
@@ -1343,9 +1345,8 @@ that coroutining exists partly to recover it —
 languages making per construct. In 42 there is nothing to recover, because
 `dagger` is total on the syntax (THEOREM.md §2.3) and there is no construct it
 can fail on. That is the property §6 claims as new, and it is new against this
-family too:
-not that programs can run backwards, but that *every* program can, without the
-programmer arranging it.
+family too: not that programs can run backwards, but that *every* program can,
+without the programmer arranging it.
 
 ### 10.5 The relational interpreter, done there first
 
@@ -1371,10 +1372,9 @@ encoding with the term dropped — and it does not run. Theirs does.
 The second difference is the one this document is about. Their backward
 direction is the search strategy applied to a relation; 42's is `eval!`, the
 dagger of a term, which is why THEOREM.md §7.4's Theorem 19 is sayable at all:
-there are two syntactic objects to compare, `eval!` and `dag`, and the theorem is
-that they
-agree. There is no corresponding statement to make about a miniKanren program,
-because there is no second object.
+there are two syntactic objects to compare, `eval!` and `dag`, and the theorem
+is that they agree. There is no corresponding statement to make about a
+miniKanren program, because there is no second object.
 
 ### 10.6 What is left
 
