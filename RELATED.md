@@ -219,13 +219,13 @@ work, joint authorship, submitted nowhere. It did not appear.
 
 ### 0.5 A note on citing this
 
-The thesis exists on paper only. The quotations in §0 were transcribed from page
-images. The pages were read in full, but unlike `inv.pdf` and `pisolang.pdf`
-the scan carries no text layer, so
-`tests/test_docs.py::TestRelatedWorkQuotations` cannot check them mechanically.
-Treat them as hand-transcribed. What has been read is the preface, chapters 2 and
-3.1–3.5, and the bibliography; chapters 4 and 5, which carry the formal syntax
-and semantics, have not.
+The thesis exists on paper only. Every other quotation in this document is
+checked against a machine-readable copy of its source; the ones in §0 cannot be,
+because there is no such copy. They were transcribed by hand from page images,
+and should be treated as hand-transcribed.
+
+What has been read is the preface, chapters 2 and 3.1–3.5, and the bibliography.
+Chapters 4 and 5, which carry the formal syntax and semantics, have not.
 
 ---
 
