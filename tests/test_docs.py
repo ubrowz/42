@@ -509,12 +509,21 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         "bigul": "sources/bigul.pdf",
         "bancilhon": "sources/bancilhon.pdf",
         "silq": "sources/silq.pdf",
+        "prolog": "sources/prolog-fifty-years.pdf",
+        "minikanren": "sources/minikanren-quines.pdf",
     }
 
     #: (source, the quoted fragment).  Short, distinctive substrings rather than
     #: whole sentences, so that line-wrapping in the PDF cannot cause a spurious
     #: failure.
     QUOTES = [
+        ("prolog", "one can check if a logic solver can be considered as a Prolog system"),
+        ("prolog", "deconstruct a list as in"),
+        ("prolog", "with any arbitrary instantiation of the arguments"),
+        ("prolog", "allowing programmers to write truly reversible predicates"),
+        ("minikanren", "We present relational interpreters for several subsets of"),
+        ("minikanren", "generating programs that evaluate"),
+        ("minikanren", "trivially generate quines"),
         ("silq", "the first quantum language that addresses this challenge"),
         ("silq", "safe, automatic uncomputation"),
         ("bancilhon", "the database could be computed from the view and its complement"),

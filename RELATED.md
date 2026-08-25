@@ -1263,6 +1263,138 @@ where the asymmetry predicts — not every `put` is one, so the work becomes
 silent about the choice. That silence is the same gap §9.3 declines to close,
 and it is why 42 is not a lens language and does not become one by rearrangement.
 
+## 10. Logic and relational programming
+
+Every section up to §9 compares 42 to a language built for reversibility. This
+one compares it to the family that agrees with 42 about the *semantics* —
+programs denote relations, and running one backwards is an ordinary thing to ask
+— and disagrees about nearly everything else. It is the comparison a reader who
+has written Prolog will reach for first, and §6 already concedes half of it: the
+relational setting is not what is new here.
+
+### 10.1 The same demonstration, forty years earlier
+
+This document and the manual both lead with `append` run backwards: one list in,
+every way of splitting it out. Körner, Barbosa et al.'s survey of fifty years of
+Prolog uses the same program as its *membership test for the whole language
+family*:
+
+> one can check if a logic solver can be considered as a Prolog system or not
+> via the following test
+
+The test is that `append/3` can be written in two clauses and then
+
+> deconstruct a list as in: `append(A, B, [1, 2])`
+
+which is `append!([1, 2])`, and Prolog has done it since 1972. It is worth being
+plain about this. 42's flagship demonstration is not a new capability; it is a
+familiar one reached by a different route, and a reader who knows Prolog will not
+be impressed by the demonstration alone. What is different is everything about
+how it is obtained.
+
+### 10.2 Search at run time, or a term at parse time
+
+Prolog and miniKanren get their multi-directionality from unification and
+backtracking, at the moment a query is asked. Nothing in the program text
+distinguishes the forward reading from the backward one, because there is no
+backward reading — there is one relation and many ways to query it.
+
+42 has no unification, no logic variables, and no search. `!` is a syntactic
+transformation of the term, applied by the parser (README):
+
+```
+parse("(copy ; join)!")  ==  parse("join! ; copy!")
+```
+
+The consequences are the whole difference. `P!` is a *term*: `42 show` prints
+it, the checker types it, and THEOREM.md §2.5's proposition says the type is
+`P`'s with the sides swapped. It composes with other terms. `dagger(dagger(t)) =
+t` holds on the nose, syntactically, which is not a statement one can make about
+a query
+strategy. And the cost of the backward direction is the cost of running a
+program, not of a search whose shape depends on which arguments were bound.
+
+### 10.3 Two directions, not one per argument
+
+The honest side of that trade. The survey's test asks for `append/3` to work
+
+> with any arbitrary instantiation of the arguments
+
+which is one mode per subset of the arguments, chosen at the query. A 42 program
+`P : A <-> B` has exactly two directions, fixed when it is written. The
+arguments are packed into one value (MANUAL §4), so there is no notion of
+binding some of them and leaving others free: to ask 42 what `add` does given
+the first summand and the total, you run `add!` and filter, which enumerates
+where Prolog would constrain.
+
+That is a real expressive gap in *querying*, and it is not closed by anything in
+§1's setting. It is the price of having the inverse be a program rather than a
+search.
+
+### 10.4 A property of some predicates, or of every term
+
+Prolog's reversibility is a property a predicate may or may not have. `append/3`
+has it; a predicate using arithmetic, cut, or I/O does not, and the survey notes
+that coroutining exists partly to recover it —
+
+> allowing programmers to write truly reversible predicates
+
+— which is the same repair, made per predicate, that §3 records the reversible
+languages making per construct. In 42 there is nothing to recover, because
+`dagger` is total on the syntax (THEOREM.md §2.3) and there is no construct it
+can fail on. That is the property §6 claims as new, and it is new against this
+family too:
+not that programs can run backwards, but that *every* program can, without the
+programmer arranging it.
+
+### 10.5 The relational interpreter, done there first
+
+§7 of THEOREM.md interprets 42 in 42 and runs the interpreter backwards. That
+idea is not new either, and the prior art is precise. Byrd, Holk & Friedman
+(Scheme Workshop 2012):
+
+> We present relational interpreters for several subsets of Scheme, written in
+> the pure logic programming language miniKanren. We demonstrate these
+> interpreters running "backwards" — that is, generating programs that evaluate
+> to a specified value
+
+and they use it to
+
+> trivially generate quines
+
+Two differences, and the first favours them. Their interpreter leaves the
+*program* slot free and searches for programs; THEOREM.md §7's `eval` fixes the
+encoded term and inverts only the value, so it runs a given program backwards
+rather than synthesising one. 42 can state the stronger relation — §7.1's
+encoding with the term dropped — and it does not run. Theirs does.
+
+The second difference is the one this document is about. Their backward
+direction is the search strategy applied to a relation; 42's is `eval!`, the
+dagger of a term, which is why THEOREM.md §7.4's Theorem 19 is sayable at all:
+there are two syntactic objects to compare, `eval!` and `dag`, and the theorem is
+that they
+agree. There is no corresponding statement to make about a miniKanren program,
+because there is no second object.
+
+### 10.6 What is left
+
+Set the two families side by side.
+
+| | semantics | how the other direction is obtained |
+|---|---|---|
+| Janus, RFUN, Theseus, Inv, PisoLang (§§2–4) | injective | syntactic, with side conditions |
+| Prolog, miniKanren, Curry | relational | search, at query time |
+| **42** | **relational** | **syntactic, without side conditions** |
+
+The reversible family takes the mechanism 42 takes and pays for it by giving up
+many-valuedness. The logic family keeps many-valuedness and pays for it by
+giving up the mechanism. The claim of this document is the third row, and §1's
+observation is why it is available: the class of r.e. relations is closed under
+converse, so a language that denotes exactly that class can inherit a total
+dagger without restricting anything.
+
+What 42 gives up to occupy it is in §10.3, and it is not small.
+
 ## References
 
 - P. G. M. Jansen. *Reversible Programming in 4₂.* Master's thesis, University
@@ -1355,6 +1487,11 @@ and it is why 42 is not a lens language and does not become one by rearrangement
   (Pendulum / PISA.)
 - A. S. Green, P. LeFanu Lumsdaine, N. J. Ross, P. Selinger, B. Valiron.
   *Quipper: a scalable quantum programming language.* PLDI 2013.
+- P. Körner, J. Barbosa, et al. *Fifty Years of Prolog and Beyond.* Theory and
+  Practice of Logic Programming, 2022. <https://arxiv.org/abs/2201.10816>
+- W. E. Byrd, E. Holk, D. P. Friedman. *miniKanren, Live and Untagged: Quine
+  Generation via Relational Interpreters.* Scheme Workshop 2012.
+  <http://webyrd.net/quines/quines.pdf>
 - B. Bichsel, M. Baader, T. Gehr, M. Vechev. *Silq.* PLDI 2020.
 - F. Voichick, L. Li, R. Rand, M. Hicks. *Qunity: A Unified Language for
   Quantum and Classical Computing.* POPL 2023.
