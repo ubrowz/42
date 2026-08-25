@@ -322,7 +322,10 @@ swap  : a x b &lt;-&gt; b x a</code></pre></div>
       |    `- ...or a head, which is one a, beside...
       `- either nothing at all, which is the empty list...</code></pre></div>
 <p><code>mu X.</code> means "call this shape <code>X</code> while I describe it", and the <code>X</code> inside is where the shape refers back to itself. Compare it to the English and it is the same sentence. A number, <em>zero or one-more-than a number</em>, is <code>mu X. 1 + X</code>.</p>
-<p>That is correct and unreadable. A list of numbers is a list whose heads are themselves <code>mu</code>, and comes out as <code>mu X. 1 + (mu Y. 1 + Y) x X</code>, so a file may give its shapes names:</p>
+<p>If you know the lambda calculus, <code>mu X.</code> binds <code>X</code> the way <code>λx.</code> binds <code>x</code>: the name is local, it means nothing outside the shape it heads, and renaming it changes nothing — which is why the report below can come back with <code>X</code> on one side and <code>Y</code> on the other and mean the same shape.</p>
+<p>The resemblance stops there. <code>λ</code> builds a function you can apply; <code>mu</code> does not. <code>mu X. 1 + X</code> is not a function from shapes to shapes, it is the shape that <em>is</em> <code>1 + X</code> once you put itself back in for the <code>X</code> — a fixed point rather than an abstraction.</p>
+<p>Note also which half of the language this is. Section 4 says 42 has no names, and that stands: <code>mu</code> binds a <em>shape</em>, never a value. There is still no way to name the <code>3</code> inside a pair.</p>
+<p><code>mu X. 1 + X</code> is correct and unreadable. A list of numbers is a list whose heads are themselves <code>mu</code>, and comes out as <code>mu X. 1 + (mu Y. 1 + Y) x X</code>, so a file may give its shapes names:</p>
 <div class="code"><pre><code>type nat    = mu X. 1 + X
 type list a = mu X. 1 + (a x X)</code></pre></div>
 <p>after which reports use the names:</p>

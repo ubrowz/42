@@ -449,9 +449,23 @@ mu X. 1 + (a x X)
 where the shape refers back to itself. Compare it to the English and it is the
 same sentence. A number, *zero or one-more-than a number*, is `mu X. 1 + X`.
 
-That is correct and unreadable. A list of numbers is a list whose heads are
-themselves `mu`, and comes out as `mu X. 1 + (mu Y. 1 + Y) x X`, so a file may
-give its shapes names:
+If you know the lambda calculus, `mu X.` binds `X` the way `λx.` binds `x`: the
+name is local, it means nothing outside the shape it heads, and renaming it
+changes nothing — which is why the report below can come back with `X` on one
+side and `Y` on the other and mean the same shape.
+
+The resemblance stops there. `λ` builds a function you can apply; `mu` does not.
+`mu X. 1 + X` is not a function from shapes to shapes, it is the shape that *is*
+`1 + X` once you put itself back in for the `X` — a fixed point rather than an
+abstraction.
+
+Note also which half of the language this is. Section 4 says 42 has no names,
+and that stands: `mu` binds a *shape*, never a value. There is still no way to
+name the `3` inside a pair.
+
+`mu X. 1 + X` is correct and unreadable. A list of numbers is a list whose
+heads are themselves `mu`, and comes out as `mu X. 1 + (mu Y. 1 + Y) x X`, so a
+file may give its shapes names:
 
 ```
 type nat    = mu X. 1 + X
