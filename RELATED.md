@@ -1148,15 +1148,31 @@ know the answer.
 
 ### 9.4 The complement, which 42 carries structurally
 
-The sharper connection is older than lenses. The database answer to backward
-ambiguity was to hold a **complement** fixed, and Matsuda, Hu, Nakano, Hamana &
-Takeichi (ICFP 2007) record its origin — the 1981 paper is not among the sources
-read here, so the attribution is theirs, not this document's:
+The sharper connection is older than lenses. Bancilhon & Spyratos (1981)
+answered view update by pairing the user's view with a second one:
 
-> Bancilhon and Spyratos proposed the concept of view complement function and
-> the method of view updating under constant complement
+> Together with the user-defined view, we define a "complementary" view such
+> that the database could be computed from the view and its complement
 
-and give the condition it must satisfy:
+Hold that complement fixed and the backward direction is determined —
+*translation under constant complement*. Their main result is that this is not
+one technique among several:
+
+> translation under constant complement is the only method of translation
+
+The complement itself, however, is not unique, and settling on one is a design
+act rather than a derivation:
+
+> a view can have many different complements and that the choice of a complement
+> determines an update policy
+
+That is §9.2's choice again, stated at the origin of the subject and a quarter
+of a century before lenses. It recurs: §9.2 has the lens paper saying it of
+`put`, and §9.5 has the putback line saying it once more. Going backwards leaves
+a set, and the work is in choosing from it.
+
+Matsuda, Hu, Nakano, Hamana & Takeichi (ICFP 2007) give the same device in
+functional form:
 
 > a view complement function of f is a function from the source to another view
 > (called a complement view) `g : S -> V'` such that the tupled function

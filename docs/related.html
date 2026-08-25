@@ -445,9 +445,14 @@ b1 + (b2 × b3)   ↮   (b1 + b2) × (b1 + b3)</code></pre></div></blockquote>
 <blockquote><p>does not involve onerous proof obligations or checking of side conditions</p></blockquote>
 <p>42 removes exactly those obligations from the <em>converse</em>, and says nothing about the choice. Whether the two can be separated — the relation derived, the choice supplied on top — is the obvious question from here, and this document does not know the answer.</p>
 <h3 id="94-the-complement-which-42-carries-structurally"><a class="anchor" href="#94-the-complement-which-42-carries-structurally" aria-label="Link to this section">#</a>9.4 The complement, which 42 carries structurally</h3>
-<p>The sharper connection is older than lenses. The database answer to backward ambiguity was to hold a <strong>complement</strong> fixed, and Matsuda, Hu, Nakano, Hamana &amp; Takeichi (ICFP 2007) record its origin — the 1981 paper is not among the sources read here, so the attribution is theirs, not this document's:</p>
-<blockquote><p>Bancilhon and Spyratos proposed the concept of view complement function and the method of view updating under constant complement</p></blockquote>
-<p>and give the condition it must satisfy:</p>
+<p>The sharper connection is older than lenses. Bancilhon &amp; Spyratos (1981) answered view update by pairing the user's view with a second one:</p>
+<blockquote><p>Together with the user-defined view, we define a "complementary" view such that the database could be computed from the view and its complement</p></blockquote>
+<p>Hold that complement fixed and the backward direction is determined — <em>translation under constant complement</em>. Their main result is that this is not one technique among several:</p>
+<blockquote><p>translation under constant complement is the only method of translation</p></blockquote>
+<p>The complement itself, however, is not unique, and settling on one is a design act rather than a derivation:</p>
+<blockquote><p>a view can have many different complements and that the choice of a complement determines an update policy</p></blockquote>
+<p>That is §9.2's choice again, stated at the origin of the subject and a quarter of a century before lenses. It recurs: §9.2 has the lens paper saying it of <code>put</code>, and §9.5 has the putback line saying it once more. Going backwards leaves a set, and the work is in choosing from it.</p>
+<p>Matsuda, Hu, Nakano, Hamana &amp; Takeichi (ICFP 2007) give the same device in functional form:</p>
 <blockquote><p>a view complement function of f is a function from the source to another view (called a complement view) <code>g : S -&gt; V'</code> such that the tupled function <code>(f △ g) : S -&gt; (V × V')</code> is injective</p></blockquote>
 <p>That condition is 42's <code>mul</code>. MANUAL §11.3 explains that <code>mul : (m, n) -&gt; m x n</code> is not writable, because the base case <code>0 x n = 0</code> discards <code>n</code> and cannot even recover it as a set. What is written instead is</p>
 <div class="code"><pre><code>    mul : (m, n) -&gt; (n, m x n)</code></pre></div>
