@@ -1970,8 +1970,9 @@ eval sub(5, 2) =
   -- 1 result
 ```
 
-It reaches `prelude.42` too, which means the example this manual opens with can
-be run through an interpreter written in the language it is interpreting:
+`42 quote` reaches `prelude.42` too, which means the example this manual opens
+with can be run through an interpreter written in the language it is
+interpreting:
 
 ```
 $ 42 quote prelude add 5 --backward
@@ -2009,8 +2010,9 @@ a tenth of a millisecond run directly and about two thirds of a second through
 `42 quote`, and `divmod (7, 2)` about a millisecond against about eight
 seconds. This is an interpreter to think with, not one to compute with.
 
-**Pass `--untyped`.** Every transcript above has it, and the reason is worth a
-sentence. `meta.42` type-checks perfectly well —
+**Pass `--untyped` when running `meta.42` itself.** Every `42 meta` transcript
+above carries it, and the reason is worth a sentence. `meta.42` type-checks
+perfectly well —
 
 ```
 $ 42 type meta

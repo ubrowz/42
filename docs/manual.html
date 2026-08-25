@@ -886,7 +886,7 @@ $ 42 quote arith sub "(5, 2)"
 eval sub(5, 2) =
   (3, 2)
   -- 1 result</code></pre></div>
-<p>It reaches <code>prelude.42</code> too, which means the example this manual opens with can be run through an interpreter written in the language it is interpreting:</p>
+<p><code>42 quote</code> reaches <code>prelude.42</code> too, which means the example this manual opens with can be run through an interpreter written in the language it is interpreting:</p>
 <div class="code"><pre><code>$ 42 quote prelude add 5 --backward
 eval! add(5) =
   (0, 5)
@@ -903,7 +903,7 @@ mul, as a value meta.42 can read:</code></pre></div>
 <p>which prints 174 nodes of <code>L</code>s, <code>R</code>s and pairs, read against an environment of nine definitions. That is what "a program is a value" means when you cash it out.</p>
 <h3 id="147-two-things-it-costs"><a class="anchor" href="#147-two-things-it-costs" aria-label="Link to this section">#</a>14.7 Two things it costs</h3>
 <p><strong>It is slow.</strong> Every step of the interpreted program is many steps of the interpreter, and the state it carries is a deep tree. For a quotation with no definitions in it, reckon on about a hundredfold. Once a file's definitions are encoded too, it is three to four orders of magnitude: <code>mul (3, 4)</code> takes about a tenth of a millisecond run directly and about two thirds of a second through <code>42 quote</code>, and <code>divmod (7, 2)</code> about a millisecond against about eight seconds. This is an interpreter to think with, not one to compute with.</p>
-<p><strong>Pass <code>--untyped</code>.</strong> Every transcript above has it, and the reason is worth a sentence. <code>meta.42</code> type-checks perfectly well —</p>
+<p><strong>Pass <code>--untyped</code> when running <code>meta.42</code> itself.</strong> Every <code>42 meta</code> transcript above carries it, and the reason is worth a sentence. <code>meta.42</code> type-checks perfectly well —</p>
 <div class="code"><pre><code>$ 42 type meta
 -- 97/97 typed</code></pre></div>
 <p>— but <code>42 run</code> infers types over the program <em>after</em> combinators have been substituted away, and <code>meta.42</code> substitutes one combinator in thirteen places. The types it then has to solve get very large. The check is skipped, not failed; section 15 has the flag. <code>42 quote</code> needs no such thing — it checks the <em>interpreted</em> program against the file it came from, which is an ordinary type check on an ordinary file.</p>
