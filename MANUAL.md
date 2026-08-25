@@ -521,6 +521,23 @@ unitprod! ; swapprod ; (id * inl) ; inr
 `;` is the pipe. At every point in that pipeline **exactly one value is in
 flight**, and each stage rewrites the whole of it.
 
+That style has a name of its own: **point-free**. "Point" is the mathematician's
+word for an argument — a point of the domain — so a definition that names its
+argument, `f(x) = …`, is *pointwise*, and one that never does is *point-free*.
+The pipeline above is the everyday example: nothing in `cat file | sort | uniq`
+names the lines passing between the stages, and nothing needs to.
+
+In most languages going point-free is a style you may adopt. In 42 it is the
+only option, because the language has no way to bind a name to a value at all.
+Sections 5 and 6 are what you use instead, and section 8 is how to read the
+result.
+
+It is also part of why `!` works on every program without exception. There is no
+conditional whose branches would have to be told apart when the program runs
+backwards — branching is `+`, and both branches are simply kept — and there is
+no variable whose value has to be tracked in reverse. Nothing was named, so
+nothing has to be un-named.
+
 So how do you write a program that takes *two* inputs? You don't. The two
 inputs arrive packed into one pair `(x, y)`, and it is the program's job to
 take the pair apart.
