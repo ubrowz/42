@@ -1034,8 +1034,13 @@ The nearest thing to a bridge is **Qunity** (Voichick, Li, Rand & Hicks, POPL
 language built on sums and products, and which describes a compilation procedure
 down to circuits. How far the implementation goes is not something this document
 can assert, none of §8 having been read at first hand. **Silq** (Bichsel, Baader,
-Gehr & Vechev, PLDI 2020) is likewise simulator-centred; its contribution is the
-uncomputation inference, not a path to a device.
+Gehr & Vechev, PLDI 2020) is likewise simulator-centred. Its contribution is what
+it says it is:
+
+> the first quantum language that addresses this challenge by supporting safe,
+> automatic uncomputation
+
+which is a language-design result, not a path to a device.
 
 So the position 42 and Q42 are in is the *normal* position for this family, not
 an unusual deficit. What is unusual is how little would close it.

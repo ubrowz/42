@@ -508,12 +508,15 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         "matsuda": "sources/matsuda-icfp2007.pdf",
         "bigul": "sources/bigul.pdf",
         "bancilhon": "sources/bancilhon.pdf",
+        "silq": "sources/silq.pdf",
     }
 
     #: (source, the quoted fragment).  Short, distinctive substrings rather than
     #: whole sentences, so that line-wrapping in the PDF cannot cause a spurious
     #: failure.
     QUOTES = [
+        ("silq", "the first quantum language that addresses this challenge"),
+        ("silq", "safe, automatic uncomputation"),
         ("bancilhon", "the database could be computed from the view and its complement"),
         ("bancilhon", "a view can have many different complements"),
         ("bancilhon", "the choice of a complement determines an update policy"),

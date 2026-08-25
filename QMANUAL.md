@@ -247,8 +247,9 @@ backwards.
 The pattern is `P ; Q ; P!`: do the work, use it, undo the work. In Q42 that
 is an ordinary term, because `!` is part of the language, and because every Q42
 term is invertible `P!` really is `P`'s inverse. Languages like Silq spend
-considerable machinery on *inferring* where to insert this; here you write it,
-and it is three characters.
+considerable machinery on *inferring* where this goes, so that the programmer
+never has to decide. Q42 does not infer: you decide, and then writing it costs
+three characters. What the language gives you is that what you wrote is exact.
 
 ---
 
@@ -1036,10 +1037,18 @@ see why the first qubit is certainly `|1>`. A real machine gives you only the
 right-hand column, and for learning or debugging a circuit, having both is worth
 more than either.
 
-**Uncomputation as a term rather than an inference problem.** It is `P ; Q ; P!`,
-and `P!` really is `P`'s inverse, so it is exact. Silq spends substantial machinery
-*inferring* where to insert this; here it is three characters, because `!` is part
-of the language.
+**Uncomputation as a term.** It is `P ; Q ; P!`, and because every Q42 term is
+invertible, `P!` really is `P`'s inverse — the undo is derived from the forward
+term rather than written a second time and trusted to match.
+
+Be accurate about the comparison, though, because it is easy to overstate. Silq's
+contribution is *safe, automatic* uncomputation: its point is that the programmer
+never decides where the undo goes. Q42 is in the category Silq set out to improve
+on, the one where you trigger it yourself — as Quipper's `with_computed` and Q#'s
+`ApplyWith` do. What Q42 adds within that category is that the inverse is a
+syntactic consequence of the forward term instead of a second definition to keep
+in step, and that invoking it costs three characters. That is a smaller claim
+than Silq's, and a different one.
 
 **Evidence for a claim about language design.** `q42/` shares `Value`, `Term`,
 the parser and the whole type checker with `rel42/`, and `q42.dagger is
@@ -1047,6 +1056,15 @@ rel42.dagger`, the same function object. The claim being
 demonstrated is that 42's primitives are not a curated set but a forced one, so
 that reaching quantum computing is a change of number system rather than a new
 language. Q42 existing, and being this small, is the argument.
+
+**What the change of semiring costs.** Worth saying beside the claims it
+qualifies. 42's unusual property is the one §5 removed: its programs denote
+relations and may give many answers, in both directions at once. Unitaries are
+bijections, so Q42 does not have it — §4 puts Q42 where Π is, and the property
+that separated 42 from the other reversible languages is exactly the one the
+change of number system gives up. Nothing above depends on it. The case for Q42
+is the paragraphs above; it is not that Q42 inherited what made 42 unusual,
+because it did not.
 
 ### 9.2 Where the language stops
 

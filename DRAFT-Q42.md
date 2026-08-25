@@ -812,10 +812,12 @@ Among implemented languages, Quipper is the closest in ambition — an embedded
 circuit-generating toolchain aimed at resource estimation, and, like Qiskit, a
 circuit generator hosted in a general-purpose classical language, which §4.2.1
 does with 42. Silq is the closest in spirit: its headline feature is *inferring*
-where to insert uncomputation, which here is three characters, `P ; Q ; P!`,
-because `!` is part of the language and is exact rather than inferred. Neither
-shares an implementation with a classical reversible language, which is the
-specific claim of this paper.
+where to insert uncomputation, so that the programmer never decides. Q42 does
+not infer, and should not be read as answering that problem: the pattern is
+written, `P ; Q ; P!`. What differs is that the inverse is derived from the
+forward term rather than supplied alongside it, so the two cannot drift apart.
+Neither shares an implementation with a classical reversible language, which is
+the specific claim of this paper.
 
 **Q#, on adjoints.** The closest comparison for this paper's central claim is Q#,
 which has `Adjoint` and `Controlled` as first-class functors. `gsum.42` puts the

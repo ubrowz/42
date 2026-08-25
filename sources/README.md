@@ -22,6 +22,7 @@ way.
 | `quantum-effect.pdf` | Carette, Heunen, Kaarsgaard & Sabry, *The Quantum Effect: A Recipe for QuantumΠ*, arXiv:2302.01885, 2023. |
 | `one-rig.pdf` | Heunen, Kaarsgaard & Lemonnier, *One rig to control them all*, arXiv:2510.05032, 2025. |
 | `chardonnet-fscd2024.pdf` | Chardonnet, Lemonnier & Valiron, *Semantics for a Turing-Complete Reversible Programming Language with Inductive Types*, FSCD 2024 (LIPIcs, open access). |
+| `silq.pdf` | Bichsel, Baader, Gehr & Vechev, *Silq: A High-Level Quantum Language with Safe Uncomputation and Intuitive Semantics*, PLDI 2020. <https://files.sri.inf.ethz.ch/website/papers/pldi20-silq.pdf> |
 | `bancilhon.pdf` | Bancilhon & Spyratos, *Update Semantics of Relational Views*, ACM TODS 6(4), 1981. |
 | `lenses.pdf` | Foster, Greenwald, Moore, Pierce & Schmitt, *Combinators for Bidirectional Tree Transformations*, TOPLAS 29(3), 2007. <https://www.cis.upenn.edu/~bcpierce/papers/lenses-toplas-final.pdf> |
 | `matsuda-icfp2007.pdf` | Matsuda, Hu, Nakano, Hamana & Takeichi, *Bidirectionalization Transformation Based on Automatic Derivation of View Complement Functions*, ICFP 2007. <https://zhenjiang888.github.io/pub/icfp07.pdf> |
