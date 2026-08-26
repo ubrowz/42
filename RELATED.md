@@ -1032,10 +1032,9 @@ a code generator.
 The nearest thing to a bridge is **Qunity** (Voichick, Li, Rand & Hicks, POPL
 2023), which is close to Q42 in spirit, being a unified quantum/classical
 language built on sums and products, and which describes a compilation procedure
-down to circuits. How far the implementation goes is not something this document
-can assert, none of §8 having been read at first hand. **Silq** (Bichsel, Baader,
-Gehr & Vechev, PLDI 2020) is likewise simulator-centred. Its contribution is what
-it says it is:
+down to circuits — which is the closest any of them comes. **Silq** (Bichsel,
+Baader, Gehr & Vechev, PLDI 2020) is aimed elsewhere. Its contribution is what it
+says it is:
 
 > the first quantum language that addresses this challenge by supporting safe,
 > automatic uncomputation
