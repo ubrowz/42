@@ -55,14 +55,22 @@
 -- past it.  Squared, for readers who define fidelity that way, four qubits gives
 -- 0.9619.
 --
--- This is the phase group arriving as a number: pi/8 is the angle `omega` cannot
--- name, and the table is what not naming it costs.  Note what it is *not*.
--- Coppersmith's AQFT keeps rotations down to R_m with m growing like log n, the
--- cutoff being a design parameter chosen to keep the fidelity bounded as the
--- register grows.  This cutoff is fixed at R_3 and cannot move, because it is
--- not a choice -- it is where the gate set ends.  So the family generated here
--- is that recursion with a cutoff that cannot grow, and it means something up to
--- about six qubits.
+-- WHOSE DECISION THE CUTOFF IS.  Coppersmith's AQFT keeps rotations down to R_m
+-- with m growing like log n, the cutoff being a design parameter chosen to keep
+-- fidelity bounded as the register grows.  This one is fixed at R_3, and it is
+-- worth being exact about why, because the short version is wrong.
+--
+-- Q42 cannot name R_4 *as one gate*: that needs a 16th root and `omega` is an
+-- 8th.  But Clifford+T is approximately universal, and Ross & Selinger
+-- synthesise any z-rotation to precision e in about 3.log2(1/e) T gates -- so an
+-- R_4 good to 1e-10 is an ordinary Q42 term about a hundred gates long.  `rk`
+-- above maps k >= 4 to `qid`, the identity.  *That* is the cutoff: a decision
+-- taken in this file, not a wall in the language.
+--
+-- So the six-qubit bound is a property of this generator.  What the gate set
+-- forces is only the alternative's price: a synthesis pass written in 42, and
+-- terms two orders of magnitude longer.  Which is the same rotation synthesis
+-- QMANUAL section 9.4 says a downstream compiler does, met from the other end.
 --
 -- The generator is itself reversible.  `aqft!` reads a circuit back to the
 -- width that produced it, which no other host can do.

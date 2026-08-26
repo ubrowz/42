@@ -628,14 +628,22 @@ the worst case over basis inputs coincides at four qubits and is larger
 afterwards. At eight the arc passes `π`, which is to say some input is sent to a
 state orthogonal to the right one.
 
-The comparison this invites should be made rather than avoided. Coppersmith's
-AQFT keeps rotations down to `R_m` with `m` growing like `log n`, the cutoff
-being a design parameter chosen so that fidelity stays bounded as the register
-grows. Ours is fixed at `R₃` and cannot move, because it is not a choice: it is
-where `ω` runs out. What this section generates is therefore that recursion with
-a cutoff that cannot grow, faithful to about six qubits — a statement about the
-gate set of §4 rather than about the generator, and the sharpest form the
-eighth-root restriction takes anywhere in this paper.
+The comparison this invites should be made rather than avoided, and made
+carefully, because the short version of it is wrong. Coppersmith's AQFT keeps
+rotations down to `R_m` with `m` growing like `log n`, the cutoff being a design
+parameter chosen so that fidelity stays bounded as the register grows. Ours is
+fixed at `R₃`. What fixes it is *not* that `R₄` is inexpressible: `ω` cannot name
+it as a single gate, but Clifford+T is approximately universal, and Ross &
+Selinger synthesise any `z`-rotation to precision `ε` in about `3log₂(1/ε)` T
+gates, so an `R₄` good to `10⁻¹⁰` is an ordinary Q42 term roughly a hundred gates
+long. The generator's `rk` sends `k ≥ 4` to the identity, and that decision —
+taken in `qft.42`, not forced by §4 — is the cutoff.
+
+So the six-qubit bound belongs to this generator rather than to the language.
+What the gate set contributes is the price of the alternative: a synthesis pass
+written in 42, and terms two orders of magnitude longer. That is the same
+rotation synthesis §9.4 assigns to a downstream compiler, arriving from the other
+end, and it is the honest statement of what the eighth root costs here.
 
 One property of this arrangement has no counterpart elsewhere: **the generator is
 reversible**, because it is a 42 program and `dagger` is total. Running `aqft`

@@ -926,7 +926,10 @@ class TestGeneratedQFT(unittest.TestCase):
         which is why `cos(pi/16)` is a fact about *four* qubits and not about
         the truncation: past about six the generated member stops meaning
         anything.  Coppersmith's cutoff grows with the register to avoid exactly
-        this; Q42's cannot, being where `omega` runs out rather than a choice.
+        that.  This one does not grow, but note whose decision that is: `rk` in
+        `qft.42` sends `k >= 4` to the identity.  Clifford+T can approximate
+        `R_4` to any precision, so the cutoff is the generator's and not the
+        language's.
         """
         for qubits in (3, 4, 5, 6, 7):
             with self.subTest(qubits=qubits):
