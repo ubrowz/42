@@ -363,8 +363,8 @@ bounds how large a `Star` closure may grow before being declared infinite, and
 `--untyped` skips the type check that `run` and `law` otherwise apply.
 
 Tests: `python3 tests/test_rel42.py` (132), `python3 tests/test_types.py` (123),
-`python3 tests/test_q42.py` (93), `python3 tests/test_docs.py` (31) and
-`python3 tests/test_emit.py` (27) — 406 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
+`python3 tests/test_q42.py` (102), `python3 tests/test_docs.py` (31) and
+`python3 tests/test_emit.py` (27) — 415 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
 itself, including these counts.
 
 ## Q42 — the same language over ℂ
@@ -455,11 +455,13 @@ meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7,
                   MANUAL §14).  `42 quote arith mul "(3, 4)"`
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
-tests/            406 tests, including the defining law checked exhaustively,
+tests/            415 tests, including the defining law checked exhaustively,
                   every output claimed in tour.42, that all 263 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted
 q42/emit.py       a term to gates on numbered qubits, and to OpenQASM 3
+q42/exact.py      amplitudes as elements of Z[1/sqrt2, i] rather than as
+                  doubles, so that equality of two terms is decided
 q42/              Q42 -- the same language over C instead of the Booleans.
                   Shares Value, Term, dagger, the parser and the type engine
                   with rel42; forks the primitive table and the evaluator.

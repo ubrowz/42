@@ -617,11 +617,13 @@ prove equal do denote the same matrix. They are *complete* — every true equati
 provable — only in fragments, namely Clifford, Clifford+T on at most two qubits,
 and Gaussian Clifford+T. Beyond those, `ccz` for one, two Q42 terms can denote
 the same matrix with nothing derivable from (E1)–(E3) saying so. What the
-language offers in place of a proof is evaluation: `42q matrix` prints either
-term's matrix, and since the generators are discrete the entries lie in
-`Z[1/√2, i]`, where equality is decidable. RELATED §11 sets that against the
-ZX-calculus, which has a complete axiomatisation of all of Clifford+T and makes
-the opposite trade to get it.
+language offers in place of a proof is evaluation. Because the generators are
+discrete, every amplitude lies in the ring `Z[1/√2, i]`, and `q42/exact.py`
+evaluates in that ring rather than in floating point — so comparing two terms
+*decides*, and does not approximate. `h ; h` and `id` are the same matrix, not
+the same to twelve places, and the amplitude that cancels is absent rather than
+small. RELATED §11 sets this against the ZX-calculus, which has a complete
+axiomatisation of all of Clifford+T and makes the opposite trade to get it.
 
 ### 6.2 Phases are the sum functor
 

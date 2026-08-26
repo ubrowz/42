@@ -40,6 +40,7 @@ from q42 import (  # noqa: E402
     parse_term,
     show_ket,
 )
+from q42.exact import Exact, ROOT2  # noqa: E402
 from q42.types import free_vars, ground, infer, infer_all, qubits  # noqa: E402
 from rel42.core import (  # noqa: E402
     Inl,
@@ -966,6 +967,106 @@ class TestGeneratedQFT(unittest.TestCase):
         finally:
             sys.setrecursionlimit(old)
         self.assertEqual(back, {from_nat(2)})
+
+
+class TestExactAmplitudes(unittest.TestCase):
+    """Amplitudes are elements of `Z[1/sqrt2, i]`, not doubles that resemble them.
+
+    Every amplitude a Q42 program can produce is built from 0, 1, `omega` and
+    `v`, so all of them lie in that ring, which is countable and has decidable
+    equality.  These tests are the difference between saying so and doing it.
+    """
+
+    def test_the_ring_agrees_with_complex_arithmetic(self):
+        """Randomised, because the reduction step is where a bug would hide."""
+        import random
+
+        rng = random.Random(20260826)
+        w = cmath.exp(1j * cmath.pi / 4)
+
+        def rand():
+            return Exact(*[rng.randint(-6, 6) for _ in range(4)],
+                         k=rng.randint(0, 5))
+
+        for _ in range(2000):
+            x, y = rand(), rand()
+            cx, cy = complex(x), complex(y)
+            for got, want in ((x + y, cx + cy), (x - y, cx - cy),
+                              (x * y, cx * cy),
+                              (x.conjugate(), cx.conjugate())):
+                self.assertAlmostEqual(complex(got), want, places=9)
+
+    def test_the_reduced_form_is_canonical(self):
+        """Equal values have equal representations, which is why `==` decides."""
+        import random
+
+        rng = random.Random(11)
+        for _ in range(2000):
+            n = [rng.randint(-4, 4) for _ in range(4)]
+            k = rng.randint(0, 4)
+            x = Exact(*n, k=k)
+            # The same number written with a bigger denominator: multiply the
+            # numerator by sqrt2 = w - w^3 and add one to k.
+            a, b, c, d = n
+            y = Exact(b - d, a + c, b + d, c - a, k=k + 1)
+            self.assertEqual(x, y)
+            self.assertEqual((x.n, x.k), (y.n, y.k))
+
+    def test_omega_has_order_exactly_eight(self):
+        """QMANUAL section 6.1's claim, decided rather than approximated."""
+        powers = [OMEGA ** i for i in range(1, 9)]
+        self.assertEqual(powers[-1], 1)
+        for i, p in enumerate(powers[:-1], start=1):
+            self.assertNotEqual(p, 1, f"omega^{i} should not be the identity")
+
+    def test_root_two_squares_to_two(self):
+        self.assertEqual(ROOT2 * ROOT2, 2)
+
+    def test_v_is_the_matrix_it_always_was(self):
+        want = [[(-1 + 1j) / 2, (-1 - 1j) / 2], [(-1 - 1j) / 2, (-1 + 1j) / 2]]
+        for i in range(2):
+            for j in range(2):
+                self.assertIsInstance(V_MATRIX[i][j], Exact)
+                self.assertAlmostEqual(complex(V_MATRIX[i][j]), want[i][j],
+                                       places=12)
+
+    def test_no_float_reaches_the_evaluator(self):
+        """The claim that makes the rest of this class worth anything.
+
+        If any primitive still handed back a `complex`, one product would drag a
+        whole matrix out of the ring and nothing above would be checking the
+        thing it says it checks.
+        """
+        schemes, _ = infer_all(ENV)
+        for name in sorted(schemes):
+            try:
+                b = basis_of(ground(schemes[name], 3).dom)
+            except Rel42Error:
+                continue  # a combinator, or not a gate at this width
+            with self.subTest(gate=name):
+                for row in matrix(Ref(name), b, ENV):
+                    for z in row:
+                        self.assertIsInstance(z, (Exact, int), f"{name} leaked {z!r}")
+
+    def test_interference_cancels_to_nothing_at_all(self):
+        """`h ; h = id`: the |1> amplitude is absent, not 1e-17."""
+        col = column(parse_term("h ; h"), ZERO, ENV)
+        self.assertEqual(col, {ZERO: 1})
+        self.assertEqual(list(col.values()), [Exact(1)])
+
+    def test_equality_of_two_spellings_is_decided(self):
+        """Two terms, one matrix, and no tolerance anywhere in the comparison."""
+        for left, right in [("z", "s ; s"), ("s", "t ; t"), ("x", "v ; v"),
+                            ("h ; h", "id"), ("z ; z", "id")]:
+            with self.subTest(claim=f"{left} = {right}"):
+                b = basis_of(QUBIT)
+                a = matrix(parse_term(left), b, ENV)
+                c = matrix(parse_term(right), b, ENV)
+                self.assertEqual(a, c)
+
+    def test_the_ring_is_not_a_field(self):
+        """Division leaves it, and `Exact` says so by handing back a complex."""
+        self.assertIsInstance(OMEGA / 2, complex)
 
 
 if __name__ == "__main__":

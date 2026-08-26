@@ -30,7 +30,6 @@ comes from applying `v` to a basis state, not from a choice construct.
 
 from __future__ import annotations
 
-import cmath
 from typing import Callable, Dict, Tuple
 
 from rel42.core import (
@@ -54,7 +53,10 @@ from rel42.core import (
     dagger,
 )
 
+from .exact import ONE as ONE_AMP, OMEGA as _OMEGA, Exact, is_zero, norm2
+
 __all__ = [
+    "Exact",
     "PRIMS",
     "Q42Error",
     "Vec",
@@ -78,8 +80,10 @@ class Q42Error(Rel42Error):
     pass
 
 
-# A vector: basis value -> amplitude.  Absent keys are zero.
-Vec = Dict[Value, complex]
+# A vector: basis value -> amplitude.  Amplitudes are `Exact` (the ring
+# `Z[1/sqrt2, i]`, see `q42.exact`); `complex` is accepted so that a caller who
+# has chosen to work numerically still can.  Absent keys are zero.
+Vec = Dict[Value, "Exact | complex"]
 
 TOL = 1e-12
 
@@ -89,8 +93,15 @@ BIT = [ZERO, ONE]
 
 
 def normalise(v: Vec) -> Vec:
-    """Drop amplitudes that are zero to within tolerance."""
-    return {k: z for k, z in v.items() if abs(z) > TOL}
+    """Drop the amplitudes that are zero.
+
+    Exactly zero for an `Exact`, which is the whole point of the ring: an
+    interference that cancels does so on the nose, and nothing survives here
+    because it happened to land 1e-17 away from the origin.  A `complex`
+    amplitude, which only a caller working numerically can introduce, still
+    falls back to a tolerance.
+    """
+    return {k: z for k, z in v.items() if not is_zero(z)}
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +118,7 @@ def _prim(name: str, fwd, bwd) -> None:
 
 
 def _one(v: Value) -> Vec:
-    return {v: 1 + 0j}
+    return {v: ONE_AMP}
 
 
 _prim("id", _one, _one)
@@ -117,9 +128,9 @@ _prim("id", _one, _one)
 def _swapsum(v: Value) -> Vec:
     match v:
         case Inl(x):
-            return {Inr(x): 1 + 0j}
+            return {Inr(x): ONE_AMP}
         case Inr(x):
-            return {Inl(x): 1 + 0j}
+            return {Inl(x): ONE_AMP}
     return {}
 
 
@@ -129,22 +140,22 @@ _prim("swapsum", _swapsum, _swapsum)  # self-inverse; this is Pauli X
 def _assocsum(v: Value) -> Vec:  # a + (b + c)  ->  (a + b) + c
     match v:
         case Inl(x):
-            return {Inl(Inl(x)): 1 + 0j}
+            return {Inl(Inl(x)): ONE_AMP}
         case Inr(Inl(x)):
-            return {Inl(Inr(x)): 1 + 0j}
+            return {Inl(Inr(x)): ONE_AMP}
         case Inr(Inr(x)):
-            return {Inr(x): 1 + 0j}
+            return {Inr(x): ONE_AMP}
     return {}
 
 
 def _assocsum_b(v: Value) -> Vec:
     match v:
         case Inl(Inl(x)):
-            return {Inl(x): 1 + 0j}
+            return {Inl(x): ONE_AMP}
         case Inl(Inr(x)):
-            return {Inr(Inl(x)): 1 + 0j}
+            return {Inr(Inl(x)): ONE_AMP}
         case Inr(x):
-            return {Inr(Inr(x)): 1 + 0j}
+            return {Inr(Inr(x)): ONE_AMP}
     return {}
 
 
@@ -152,14 +163,14 @@ _prim("assocsum", _assocsum, _assocsum_b)
 
 _prim(
     "unitsum",  # 0 + a  <->  a;  the 0 side is uninhabited
-    lambda v: {v.v: 1 + 0j} if isinstance(v, Inr) else {},
-    lambda v: {Inr(v): 1 + 0j},
+    lambda v: {v.v: ONE_AMP} if isinstance(v, Inr) else {},
+    lambda v: {Inr(v): ONE_AMP},
 )
 
 
 # multiplicative structure --------------------------------------------------
 def _swapprod(v: Value) -> Vec:
-    return {Pair(v.b, v.a): 1 + 0j} if isinstance(v, Pair) else {}
+    return {Pair(v.b, v.a): ONE_AMP} if isinstance(v, Pair) else {}
 
 
 _prim("swapprod", _swapprod, _swapprod)  # self-inverse; this is SWAP
@@ -168,14 +179,14 @@ _prim("swapprod", _swapprod, _swapprod)  # self-inverse; this is SWAP
 def _assocprod(v: Value) -> Vec:  # (a, (b, c))  ->  ((a, b), c)
     match v:
         case Pair(a, Pair(b, c)):
-            return {Pair(Pair(a, b), c): 1 + 0j}
+            return {Pair(Pair(a, b), c): ONE_AMP}
     return {}
 
 
 def _assocprod_b(v: Value) -> Vec:
     match v:
         case Pair(Pair(a, b), c):
-            return {Pair(a, Pair(b, c)): 1 + 0j}
+            return {Pair(a, Pair(b, c)): ONE_AMP}
     return {}
 
 
@@ -183,8 +194,8 @@ _prim("assocprod", _assocprod, _assocprod_b)
 
 _prim(
     "unitprod",  # 1 x a  <->  a
-    lambda v: {v.b: 1 + 0j} if isinstance(v, Pair) and v.a == UNIT else {},
-    lambda v: {Pair(UNIT, v): 1 + 0j},
+    lambda v: {v.b: ONE_AMP} if isinstance(v, Pair) and v.a == UNIT else {},
+    lambda v: {Pair(UNIT, v): ONE_AMP},
 )
 
 
@@ -192,18 +203,18 @@ _prim(
 def _dist(v: Value) -> Vec:  # (a + b) x c  ->  (a x c) + (b x c)
     match v:
         case Pair(Inl(a), c):
-            return {Inl(Pair(a, c)): 1 + 0j}
+            return {Inl(Pair(a, c)): ONE_AMP}
         case Pair(Inr(b), c):
-            return {Inr(Pair(b, c)): 1 + 0j}
+            return {Inr(Pair(b, c)): ONE_AMP}
     return {}
 
 
 def _dist_b(v: Value) -> Vec:
     match v:
         case Inl(Pair(a, c)):
-            return {Pair(Inl(a), c): 1 + 0j}
+            return {Pair(Inl(a), c): ONE_AMP}
         case Inr(Pair(b, c)):
-            return {Pair(Inr(b), c): 1 + 0j}
+            return {Pair(Inr(b), c): ONE_AMP}
     return {}
 
 
@@ -224,7 +235,9 @@ _prim("dist", _dist, _dist_b)
 # which is the Euler decomposition of the Hadamard gate.
 # ---------------------------------------------------------------------------
 
-OMEGA = cmath.exp(1j * cmath.pi / 4)  # a primitive 8th root of unity
+#: A primitive 8th root of unity, exactly -- see `q42.exact`.  Every amplitude
+#: below is built from this and from 0 and 1, so every amplitude is exact.
+OMEGA = _OMEGA
 
 _prim(
     "omega",
@@ -234,9 +247,10 @@ _prim(
 
 # V = H . diag(-1, i) . H, in the basis |0> = Inl (), |1> = Inr ().  Any square
 # root of X satisfies (E2); this is the one that also satisfies (E3).
+#: `(-1+i)/2` is `w^3/sqrt2` and `(-1-i)/2` is `-w/sqrt2`, so this is exact too.
 V_MATRIX = [
-    [(-1 + 1j) / 2, (-1 - 1j) / 2],
-    [(-1 - 1j) / 2, (-1 + 1j) / 2],
+    [Exact(0, 0, 0, 1, 1), Exact(0, -1, 0, 0, 1)],
+    [Exact(0, -1, 0, 0, 1), Exact(0, 0, 0, 1, 1)],
 ]
 
 
@@ -417,7 +431,7 @@ def probabilities(state: Vec) -> Dict[Value, float]:
     and every Q42 term is unitary -- so a total that is *not* 1 is evidence of a
     bug rather than something to paper over.
     """
-    return {v: abs(z) ** 2 for v, z in state.items() if abs(z) > TOL}
+    return {v: norm2(z) for v, z in state.items() if not is_zero(z)}
 
 
 def marginal(weights: Dict[Value, float], keep, label) -> Dict[str, float]:

@@ -18,6 +18,8 @@ import sys
 from rel42.core import NotARelation, Rel42Error, Ref, dagger, expand_env, is_combinator
 
 from .core import (
+    ONE_AMP,
+    Exact,
     Q42Error,
     apply_vec,
     column,
@@ -110,7 +112,7 @@ def _state(args, scheme, env):
                 f"that state is not in the domain of `{args.main}`\n"
                 f"  expects : "
                 f"{show_type(scheme.dom, names, abbrevs=getattr(env, 'types', ()))}\n"
-                f"  given   : {show_ket({v: 1 + 0j})}"
+                f"  given   : {show_ket({v: ONE_AMP})}"
             )
     return psi
 
@@ -119,9 +121,23 @@ def _identity(n):
     return [[1 if i == j else 0 for j in range(n)] for i in range(n)]
 
 
+def _same(x, y) -> bool:
+    """Are two amplitudes the same one?
+
+    Exactly, when both are `Exact` -- which since `q42.exact` is the ordinary
+    case, and it is what turns `P ; P! = id` from a numerical observation into a
+    decision.  An `int` counts as exact, so the identity matrix below needs no
+    special handling.  Anything else falls back to a tolerance.
+    """
+    exact = (Exact, int)
+    if isinstance(x, exact) and isinstance(y, exact):
+        return x == y
+    return abs(x - y) < TOL
+
+
 def _close(a, b) -> bool:
     return all(
-        abs(a[i][j] - b[i][j]) < TOL for i in range(len(a)) for j in range(len(a))
+        _same(a[i][j], b[i][j]) for i in range(len(a)) for j in range(len(a))
     )
 
 
@@ -189,7 +205,7 @@ def cmd_sample(args) -> int:
         drawn = drawn_bits
         label = {k: f"|{k}>" for k in exact}
     else:
-        label = {v: show_ket({v: 1 + 0j}) for v in exact}
+        label = {v: show_ket({v: ONE_AMP}) for v in exact}
     shotw = max(len(str(args.shots)), 5)
     width = max(len(x) for x in label.values())
     print(f"{args.main}{'!' if args.backward else ''} {show_ket(psi)}")
@@ -227,10 +243,10 @@ def cmd_law(args) -> int:
     ok = True
     for y, amp in sorted(image.items(), key=lambda kv: show_ket({kv[0]: 1})):
         back = column(bwd, y, env).get(x, 0)
-        held = abs(back - amp.conjugate()) < TOL
+        held = _same(back, amp.conjugate())
         ok &= held
         print(
-            f"  [{'ok ' if held else 'FAIL'}] {show_ket({y: 1 + 0j})}: "
+            f"  [{'ok ' if held else 'FAIL'}] {show_ket({y: ONE_AMP})}: "
             f"<y|P|x> = {show_amplitude(amp)}, "
             f"<x|P!|y> = {show_amplitude(back)}"
         )
@@ -323,7 +339,7 @@ def cmd_matrix(args) -> int:
             print(f"{name}: {e}")
             continue
         m = matrix(term, dom, env)
-        labels = [show_ket({v: 1 + 0j}) for v in cod]
+        labels = [show_ket({v: ONE_AMP}) for v in cod]
         width = max((len(show_amplitude(z)) for row in m for z in row), default=1)
         print(f"{name} : {show_scheme(at, abbrevs)}")
         for i, row in enumerate(m):

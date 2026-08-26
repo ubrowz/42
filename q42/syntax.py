@@ -23,7 +23,7 @@ from rel42.syntax import show as _show_raw
 from rel42.syntax import show_term
 from rel42.types import TMu, TOne, TProd, TSum, TVar, Type
 
-from .core import ONE, PRIMS, Vec, ZERO, Q42Error, normalise
+from .core import ONE, ONE_AMP, PRIMS, Vec, ZERO, Q42Error, normalise
 
 __all__ = [
     "ParseError",
@@ -68,10 +68,10 @@ def parse_state(src: str) -> Vec:
     src = src.strip()
     m = _KET.match(src)
     if m:
-        return {ket(m.group(1)): 1 + 0j}
+        return {ket(m.group(1)): ONE_AMP}
     if re.fullmatch(r"[01]+", src):  # bare bits, for convenience
-        return {ket(src): 1 + 0j}
-    return {_parse_value(src, PRIMS): 1 + 0j}
+        return {ket(src): ONE_AMP}
+    return {_parse_value(src, PRIMS): ONE_AMP}
 
 
 def bits_of(v: Value) -> str | None:

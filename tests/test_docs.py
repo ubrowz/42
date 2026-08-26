@@ -511,6 +511,8 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         "silq": "sources/silq.pdf",
         "prolog": "sources/prolog-fifty-years.pdf",
         "minikanren": "sources/minikanren-quines.pdf",
+        "backens": "sources/backens.pdf",
+        "jeandel": "sources/jeandel.pdf",
     }
 
     #: (source, the quoted fragment).  Short, distinctive substrings rather than
@@ -579,6 +581,12 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         ("onerig", "only controlled computation"),
         ("onerig", "implied by the control equations"),
         ("onerig", "where the unitary is a black box"),
+        # ZX -- what it was built to avoid, and how far its completeness reaches
+        ("backens", "The only way to simplify or compare quantum circuit diagrams"),
+        ("backens", "can also be derived pictorially"),
+        ("jeandel", "one of the main open questions in categorical quantum mechanics"),
+        ("jeandel", "by adding two new axioms to the language"),
+        ("jeandel", "of the ring of dyadic rationals"),
     ]
 
     @classmethod

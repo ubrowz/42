@@ -1426,17 +1426,30 @@ axiomatisation literature will hear it. §6 says which.
 Where an axiomatisation proves two terms equal by rewriting one into the other,
 Q42 decides it by *evaluating both*: `42q matrix` computes the matrix of a term,
 and two terms are equal exactly when their matrices are. That is a decision
-procedure in principle, and it is one because the generators are discrete: every
-entry lies in `Z[1/√2, i]`, a countable ring with decidable equality, so "are
-these two matrices the same" is a question with an exact answer.
+procedure, and it is one because the generators are discrete. Every amplitude a
+Q42 program can produce is built from 0, 1, `omega` and `v`, so every amplitude
+lies in `Z[1/√2, i]`, a countable ring with decidable equality — and `q42/exact.py`
+evaluates in that ring rather than in floating point. An amplitude is
+`(a + bω + cω² + dω³)/√2^k` over the integers; reduced, that quadruple is unique,
+because `ω` has minimal polynomial `x⁴ + 1` and the four powers are therefore
+independent. So `omega^8 = id` and `h ; h = id` are not observed to twelve
+decimal places. The cancelled amplitude is absent.
 
-In practice it is weaker than that, and the gap should be recorded. `q42/core.py`
-evaluates into Python's `complex`, which is a pair of doubles, so what the
-implementation actually delivers is agreement to a numerical tolerance rather
-than a decision. Nothing in the design forbids the exact version — the entries
-are `a + b√2 + ci + di√2` over the integers, scaled by a power of two — it simply
-has not been written. That is the smallest gap named anywhere in this document
-between what Q42 is and what Q42 does.
+Backens states plainly the disadvantage of circuit notation that ZX was built to
+remove:
+
+> The only way to simplify or compare quantum circuit diagrams is by translating
+> them back into matrices, thereby losing the advantages of the graphical
+> notation.
+
+Q42 does exactly that, deliberately, and the ring is what stops it costing any
+precision. What it costs instead is time: the matrix is `2ⁿ × 2ⁿ`, so the
+decision is exponential, which QMANUAL §9.3 concedes for simulation and which
+applies here for the same reason. The alternative is not obviously cheaper —
+deciding the equality of two ZX diagrams by rewriting is not a polynomial
+procedure either — but the difference between them is real, and it is not about
+cost. One method yields a proof and the other yields a computation, and only the
+first produces an argument a reader can check by hand.
 
 It costs exponential time and memory in the number of qubits, which QMANUAL §9.3
 concedes for simulation and which applies here for the same reason. What is worth
@@ -1450,9 +1463,33 @@ computation, and only the first produces an argument a reader can check by hand.
 The ZX-calculus (Coecke & Duncan, 2008) writes a circuit as a diagram of two
 families of nodes carrying phase angles, and reasons by rewriting diagrams into
 one another. Its completeness results are the ones §11.1's should be measured
-against: Backens (2014) for the stabiliser fragment, Jeandel, Perdrix & Vilmart
-(LICS 2018) for **Clifford+T at every arity**, and later rule sets complete for
-universal ZX.
+against. Backens (2014) proved the stabiliser fragment complete, in the sense
+that
+
+> any equality that can be derived using matrices can also be derived pictorially
+
+and Jeandel, Perdrix & Vilmart (LICS 2018) settled what they call
+
+> one of the main open questions in categorical quantum mechanics
+
+by making the language
+
+> complete for the so-called Clifford+T quantum mechanics by adding two new
+> axioms to the language
+
+which gives, in their own description, **the first complete and approximatively
+universal diagrammatic language** for quantum mechanics. Later rule sets are
+complete for universal ZX.
+
+The two formalisms even characterise their reach in the same shape. Of the
+Clifford+T fragment the same paper proves that it
+
+> represents exactly all the matrices over some finite dimensional extension of
+> the ring of dyadic rationals
+
+which is the statement §11.2 makes about Q42, with `Z[1/√2, i]` in the place of
+the dyadic rationals. Two calculi, two decision procedures, and in both cases
+the answer to "what can be written down" is a ring.
 
 That is a real concession and this document should make it plainly: **on the axis
 §6 sits on, ZX is ahead.** ZX has a complete axiomatisation of the whole of
@@ -1521,10 +1558,12 @@ equality is computed rather than argued. Nothing else in this document's
 comparisons occupies that square, and what makes it reachable is what QMANUAL
 §9.4 says makes the alphabet coarse. Discreteness bought both.
 
-**A note on sources.** Unlike §§2–5 and §§9–10, none of the ZX literature has
-been read at first hand for this document; §11.3's attributions are given from
-the standard account rather than checked against the papers, and the section
-quotes nothing. The quotation discipline of §0.5 is not in force in it.
+**A note on sources.** Backens (2014) and Jeandel, Perdrix & Vilmart (2018) are
+in `sources/` and quoted from directly, so §0.5's discipline is in force for
+them as for the rest of this document. The rule sets said above to be complete
+for *universal* ZX are the exception: those are given from the standard account
+and have not been read at first hand, which is why no claim here rests on their
+details.
 
 ## References
 
