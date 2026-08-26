@@ -1055,6 +1055,47 @@ class TestShellWrappers(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("unitary", out)
 
+    def test_equal_decides_rather_than_denies(self):
+        """`42q equal` is the command form of QMANUAL §6.1's decidability claim.
+
+        Three outcomes matter: agreement, disagreement with the offending cell
+        named, and a type mismatch that is refused before any matrix is built.
+        """
+        code, out = self.sh("42q equal gates x x")
+        self.assertEqual(code, 0, out)
+        self.assertIn("equal on 2 dimension(s)", out)
+        # and no hedging: an exact comparison must not describe itself as one
+        # made to within a tolerance
+        self.assertNotIn("tolerance", out)
+
+        code, out = self.sh("42q equal gates s t")
+        self.assertEqual(code, 1, out)
+        self.assertIn("differ at", out)
+
+        code, out = self.sh("42q equal gates cx x")
+        self.assertEqual(code, 1, out)
+        self.assertIn("different types", out)
+
+    def test_equal_decides_a_derived_identity(self):
+        """`s ; s` and `z` are the same gate, and nothing here rounds."""
+        # Written into a scratch file so the test does not depend on the gate
+        # library happening to carry two spellings of the same thing.
+        import tempfile, os as _os
+
+        src = ("type qubit = 1 + 1\n"
+               "def ss = (id + (omega;omega)) ; (id + (omega;omega))\n"
+               "def zz = id + (omega;omega;omega;omega)\n")
+        with tempfile.NamedTemporaryFile("w", suffix=".42", delete=False) as fh:
+            fh.write(src)
+            path = fh.name
+        try:
+            code, out = self.sh(f"42q equal {path} ss zz")
+            self.assertEqual(code, 0, out)
+            self.assertIn("equal on 2 dimension(s)", out)
+            self.assertNotIn("tolerance", out)
+        finally:
+            _os.unlink(path)
+
     def test_an_unknown_file_still_reports_itself(self):
         # No match, so the argument is passed through untouched and the Python
         # layer gives its own message rather than the wrapper inventing one.

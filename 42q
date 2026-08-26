@@ -20,7 +20,7 @@ if [ $# -eq 0 ]; then
 fi
 
 case $1 in
-    run | sample | law | show | type | unitary | matrix | emit)
+    run | sample | law | show | type | unitary | matrix | emit | equal)
         cmd=$1
         shift
         ;;

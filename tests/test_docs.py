@@ -33,6 +33,9 @@ EXPECTED_TO_FAIL = {
     "42 prelude swap 5",
     "42 q42/classical ctrl 3",
     '42q rejected bad "|0>"',
+    # Not an error: `equal` answers "no" the way diff(1) does, with a nonzero
+    # status, so that a shell can branch on the decision.
+    "42q equal gates s t",
 }
 
 

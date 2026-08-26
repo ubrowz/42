@@ -622,7 +622,21 @@ discrete, every amplitude lies in the ring `Z[1/√2, i]`, and `q42/exact.py`
 evaluates in that ring rather than in floating point — so comparing two terms
 *decides*, and does not approximate. `h ; h` and `id` are the same matrix, not
 the same to twelve places, and the amplitude that cancels is absent rather than
-small. RELATED §11 sets this against the ZX-calculus, which has a complete
+small. That is what `42q equal` does:
+
+```
+$ 42q equal gates x x
+x : qubit <-> qubit
+x : qubit <-> qubit
+  equal on 2 dimension(s)
+
+$ 42q equal gates s t
+s : qubit <-> qubit
+t : qubit <-> qubit
+  differ at row |1>, column |1>: 1i vs (0.707107+0.707107i)
+```
+
+RELATED §11 sets this against the ZX-calculus, which has a complete
 axiomatisation of all of Clifford+T and makes the opposite trade to get it.
 
 ### 6.2 Phases are the sum functor
@@ -776,6 +790,7 @@ superpositions by applying a gate.
 42q law     FILE GATE STATE  check that `!` really is the adjoint
 42q unitary FILE [GATE]      check `t ; t! = id` over the whole basis
 42q matrix  FILE [GATE]      print the matrix
+42q equal   FILE GATE GATE   decide whether two gates are the same -- 6.1
 42q emit    FILE [GATE]      write it out as OpenQASM 3 -- see section 9.4
 42q type    FILE [GATE]      infer the type
 42q show    FILE [GATE]      print a definition and its adjoint
@@ -1205,7 +1220,10 @@ There is one genuine nuance. By the **Gottesman–Knill theorem**, circuits buil
 only from Clifford gates (`h`, `s`, `cx`) are efficiently simulable classically,
 despite looking thoroughly quantum, entanglement and interference included. So
 "quantum-looking" and "hard to simulate" are not the same property. It is `t`
-that takes a circuit beyond Clifford, and Q42 has `t`.
+that takes a circuit beyond Clifford, and Q42 has `t`. §6.2 says the same thing
+as a fact about groups rather than about simulation: `s` generates the
+order-four phase group and `t` the order-eight one, and the boundary
+Gottesman–Knill draws falls between them.
 
 In summary: Q42 is a language and a proof-checker for the unitary
 layer of quantum computing, complete for that layer, with measurement at its
@@ -1374,6 +1392,17 @@ a continuum of angles, loses exactness itself, and with it the property that a Q
 program *has* a matrix rather than an approximation to one. That last trade is the
 one the language is made of.
 
+Read beside §6.2, the three arguments this section has made turn out to be one.
+The phases of Q42 form `Z₈`, a finite subgroup of the circle. A cyclotomic Q42 is
+a larger finite subgroup, `Z₁₆` or `Z₃₂`. The continuum is the circle itself. And
+Eastin–Knill is the statement that no machine which corrects its errors can offer
+you the circle: its cheap alphabet is finite, so it sits somewhere on that ladder
+and never at the top. So *why eight*, *what would lifting cost*, and *why is the
+restriction not an artefact of one architecture* are one question asked three
+times — **which finite subgroup of the phase group do you take, and what does the
+choice buy** — and Q42's answer is the smallest rung at which the language is
+universal at all, with `v` and the plumbing held fixed.
+
 ---
 
 ## 10. Reference
@@ -1423,6 +1452,7 @@ Absent, with reasons in §5: `zero`, `inl`, `inr`, `copy`, `join`, `|`, `^`.
 | `42q law FILE GATE STATE` | check that `!` is the adjoint |
 | `42q unitary FILE [GATE]` | check `t ; t! = id` over the basis |
 | `42q matrix FILE [GATE]` | print the matrix; `--qubits N` to fix a width |
+| `42q equal FILE GATE GATE` | decide whether two definitions are the same gate |
 | `42q type FILE [GATE]` | infer the type |
 | `42q show FILE [GATE]` | print a definition and its adjoint |
 

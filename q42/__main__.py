@@ -349,6 +349,65 @@ def cmd_matrix(args) -> int:
     return 0
 
 
+def cmd_equal(args) -> int:
+    """Decide whether two definitions denote the same matrix.
+
+    This is a *decision*, not a comparison to a tolerance, and it is one for the
+    reason QMANUAL §6.1 gives: `omega` and `v` are discrete, so every amplitude
+    lies in `Z[1/sqrt2, i]` and `q42.exact` evaluates in that ring.  Where a
+    complete axiomatisation would prove the two equal by rewriting one into the
+    other, Q42 computes both and looks.  The cost is the size of the matrix,
+    which is exponential; see QMANUAL §9.3.
+    """
+    env = _load_reduced(args.file)
+    abbrevs = getattr(env, "types", ())
+
+    terms, schemes = {}, {}
+    for name in (args.main, args.other):
+        terms[name] = _resolve(env, name)
+        schemes[name] = _typed(env, name, terms[name])
+
+    try:
+        at = {n: ground(schemes[n], args.qubits) for n in terms}
+    except Rel42Error as e:
+        print(f"no matrix to compare: {e}")
+        return 2
+
+    left, right = args.main, args.other
+    if show_scheme(at[left], abbrevs) != show_scheme(at[right], abbrevs):
+        print(f"{left} : {show_scheme(at[left], abbrevs)}")
+        print(f"{right} : {show_scheme(at[right], abbrevs)}")
+        print("different types, so not the same matrix")
+        return 1
+
+    dom = basis_of(at[left].dom)
+    a = matrix(terms[left], dom, env)
+    b = matrix(terms[right], dom, env)
+    held = _close(a, b)
+
+    exact = all(isinstance(z, (Exact, int)) for m in (a, b) for row in m for z in row)
+    print(f"{left} : {show_scheme(at[left], abbrevs)}")
+    print(f"{right} : {show_scheme(at[right], abbrevs)}")
+    if held:
+        print(f"  equal on {len(dom)} dimension(s)"
+              + ("" if exact else "  (to within a tolerance: not every amplitude "
+                                 "is exact)"))
+        return 0
+
+    # Name the first disagreement rather than only denying the equality: on a
+    # 2^n matrix "they differ" is not a useful answer on its own.
+    for i in range(len(a)):
+        for j in range(len(a)):
+            if not _same(a[i][j], b[i][j]):
+                cod = basis_of(at[left].cod)
+                print(f"  differ at row {show_ket({cod[i]: ONE_AMP})}, "
+                      f"column {show_ket({dom[j]: ONE_AMP})}: "
+                      f"{show_amplitude(complex(a[i][j]))} "
+                      f"vs {show_amplitude(complex(b[i][j]))}")
+                return 1
+    return 1
+
+
 def cmd_type(args) -> int:
     env = _load(args.file)
     if args.main and args.main not in env:
@@ -436,6 +495,14 @@ def main(argv=None) -> int:
     p.add_argument("--gates", action="store_true",
                    help="list the gates and wires instead of writing QASM")
     p.set_defaults(fn=cmd_emit)
+
+    p = sub.add_parser("equal", help="decide whether two definitions agree")
+    p.add_argument("file")
+    p.add_argument("main")
+    p.add_argument("other")
+    p.add_argument("-q", "--qubits", type=int,
+                   help="width to ground a polymorphic type at")
+    p.set_defaults(fn=cmd_equal)
 
     p = sub.add_parser("type", help="infer the type of each definition")
     p.add_argument("file")
