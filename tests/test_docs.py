@@ -513,6 +513,11 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         "minikanren": "sources/minikanren-quines.pdf",
         "backens": "sources/backens.pdf",
         "jeandel": "sources/jeandel.pdf",
+        "coecke": "sources/coecke-duncan.pdf",
+        "ngwang": "sources/ngwang.pdf",
+        "hadzi": "sources/hadzihasanovic.pdf",
+        "vilmart": "sources/vilmart.pdf",
+        "wetering": "sources/wetering.pdf",
     }
 
     #: (source, the quoted fragment).  Short, distinctive substrings rather than
@@ -587,6 +592,12 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         ("jeandel", "one of the main open questions in categorical quantum mechanics"),
         ("jeandel", "by adding two new axioms to the language"),
         ("jeandel", "of the ring of dyadic rationals"),
+        ("coecke", "intuitive and universal graphical calculus for multi-qubit systems"),
+        ("ngwang", "a universal completion of the ZX-calculus for the whole of pure"),
+        ("hadzi", "show their completeness for pure-state qubit theory"),
+        ("wetering", "all reasoning about quantum computation can be done inside"),
+        ("vilmart", "were numerous, tedious to manipulate and lacked a physical"),
+        ("vilmart", "all their equations are necessary"),
     ]
 
     @classmethod

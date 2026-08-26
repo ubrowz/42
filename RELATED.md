@@ -1460,11 +1460,14 @@ computation, and only the first produces an argument a reader can check by hand.
 
 ### 11.3 ZX, and the opposite bet
 
-The ZX-calculus (Coecke & Duncan, 2008) writes a circuit as a diagram of two
-families of nodes carrying phase angles, and reasons by rewriting diagrams into
-one another. Its completeness results are the ones §11.1's should be measured
-against. Backens (2014) proved the stabiliser fragment complete, in the sense
-that
+The ZX-calculus began as Coecke & Duncan's
+
+> intuitive and universal graphical calculus for multi-qubit systems
+
+which writes a circuit as a diagram of two families of nodes carrying phase
+angles, and reasons by rewriting one diagram into another. Its completeness
+results are the ones §11.1's should be measured against. Backens (2014) proved
+the stabiliser fragment complete, in the sense that
 
 > any equality that can be derived using matrices can also be derived pictorially
 
@@ -1478,20 +1481,22 @@ by making the language
 > axioms to the language
 
 which gives, in their own description, **the first complete and approximatively
-universal diagrammatic language** for quantum mechanics. Completeness for the
-whole of pure-state qubit quantum mechanics followed (Ng & Wang, 2017;
-Hadzihasanovic, Ng & Wang, LICS 2018), and Vilmart (LICS 2019) cut the rule set
-down to a near-minimal one.
+universal diagrammatic language** for quantum mechanics. Ng & Wang (2017) then
+gave
 
-The two formalisms even characterise their reach in the same shape. Of the
-Clifford+T fragment the same paper proves that it
+> a universal completion of the ZX-calculus for the whole of pure qubit quantum
+> mechanics
 
-> represents exactly all the matrices over some finite dimensional extension of
-> the ring of dyadic rationals
+and Hadzihasanovic, Ng & Wang (LICS 2018) extended both ZW and ZX and did the
+same, in their words to
 
-which is the statement §11.2 makes about Q42, with `Z[1/√2, i]` in the place of
-the dyadic rationals. Two calculi, two decision procedures, and in both cases
-the answer to "what can be written down" is a ring.
+> show their completeness for pure-state qubit theory
+
+which each paper describes as settling a long-standing open problem of the
+field. The consequence, as van de Wetering's survey states it, is that
+
+> in principle all reasoning about quantum computation can be done inside the
+> ZX-calculus.
 
 That is a real concession and this document should make it plainly: **on the axis
 §6 sits on, ZX is ahead.** ZX has a complete axiomatisation of the whole of
@@ -1502,13 +1507,34 @@ The two are making opposite bets, and it is the trade QMANUAL §9.4 ends on, see
 from the other side.
 
 - **ZX takes the continuum.** A node carries an arbitrary angle, so the calculus
-  covers every rotation the hardware has, and pays for it by needing a rule set
-  to decide equality — one that grows markedly as the fragment widens.
+  covers every rotation the hardware has, and pays for it in the rule set that
+  decides equality. That price is not this document's estimate but Vilmart's,
+  writing of the axioms that the completeness results above had to add:
+
+  > The main drawbacks were that the axioms that were added to achieve
+  > completeness were numerous, tedious to manipulate and lacked a physical
+  > interpretation.
+
+  His near-minimal axiomatisations (LICS 2019) answer exactly that, and are
+  offered as optimal in the sense that
+
+  > all their equations are necessary
+
 - **√Π and Q42 take the discrete generators.** Angles are eighth roots and
   nothing finer — read as an equation in `omega`, √Π's (E3) has exactly four
   solutions — so equality is decidable by evaluation and no rule set is needed to
   get an answer. The price is completeness holding only in fragments, and the
   coarse alphabet QMANUAL §9.4 accounts for.
+
+For all that, the two characterise their reach in the same shape. Of the
+Clifford+T fragment Jeandel, Perdrix & Vilmart prove that it
+
+> represents exactly all the matrices over some finite dimensional extension of
+> the ring of dyadic rationals
+
+which is the statement §11.2 makes about Q42, with `Z[1/√2, i]` in the place of
+the dyadic rationals. Two calculi that agree about very little, and in both the
+answer to "what can be written down" turns out to be a ring.
 
 ### 11.4 The difference that is not about equations
 
@@ -1661,6 +1687,10 @@ comparisons occupies that square, and what makes it reachable is what QMANUAL
 - B. Coecke, R. Duncan. *Interacting Quantum Observables.* ICALP 2008; expanded
   as *Interacting quantum observables: categorical algebra and diagrammatics*,
   New Journal of Physics 13, 2011. (The ZX-calculus.)
+  <https://arxiv.org/abs/0906.4725>
+- J. van de Wetering. *ZX-calculus for the working quantum computer scientist.*
+  arXiv:2012.13966, 2020. — the survey §11.3 takes its summary of the
+  completeness results from.
 - M. Backens. *The ZX-calculus is complete for stabilizer quantum mechanics.*
   New Journal of Physics 16, 2014.
 - E. Jeandel, S. Perdrix, R. Vilmart. *A Complete Axiomatisation of the
