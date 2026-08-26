@@ -917,6 +917,24 @@ class TestGeneratedQFT(unittest.TestCase):
             basis = [Pair(b, rest) for b in (ZERO, ONE) for rest in basis]
         return matrix(env["main"], basis, env)
 
+    def test_the_cutoff_costs_more_at_every_extra_qubit(self):
+        """`(n-3)(n-2)/2` rotations are dropped, so the error grows with width.
+
+        `R_k` occurs `n-k+1` times in the n-qubit transform and everything past
+        `R_3` is dropped, so the count is quadratic in the width.  The total
+        dropped angle is what sets the fidelity, and it grows roughly linearly,
+        which is why `cos(pi/16)` is a fact about *four* qubits and not about
+        the truncation: past about six the generated member stops meaning
+        anything.  Coppersmith's cutoff grows with the register to avoid exactly
+        this; Q42's cannot, being where `omega` runs out rather than a choice.
+        """
+        for qubits in (3, 4, 5, 6, 7):
+            with self.subTest(qubits=qubits):
+                self.assertEqual(
+                    dropped_rotations(self.emit(qubits - 1)),
+                    (qubits - 3) * (qubits - 2) // 2 if qubits > 3 else 0,
+                )
+
     def test_the_generated_text_is_what_the_recursion_says(self):
         self.assertEqual(self.emit(0), "h")
         self.assertEqual(self.emit(1), "((h * id) ; (ctrl (s) ; (id * h)))")
@@ -977,6 +995,29 @@ class TestGeneratedQFT(unittest.TestCase):
         finally:
             sys.setrecursionlimit(old)
         self.assertEqual(back, {from_nat(2)})
+
+
+def dropped_rotations(src: str) -> int:
+    """`id` occurrences inside the `ctrl (...)` fan-outs of a generated QFT.
+
+    Each one is a rotation the gate set could not name, left as the identity.
+    Counted from the emitted text rather than the term, because `expand_env`
+    inlines `ctrl` and the shape is gone by then.
+    """
+    total, i = 0, 0
+    while (i := src.find("ctrl (", i)) != -1:
+        j, depth = i + 5, 0
+        while True:
+            if src[j] == "(":
+                depth += 1
+            elif src[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        total += src.count("id", i, j)
+        i = j
+    return total
 
 
 class TestExactAmplitudes(unittest.TestCase):

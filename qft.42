@@ -30,14 +30,39 @@
 -- there is no exact R_4.  Q42's exact gate set is Clifford+T, which is
 -- universal only in the approximate sense, so rotations past R_3 are dropped --
 -- which is what hardware does anyway.  For three qubits nothing is dropped and
--- the output is the exact QFT.  For four, exactly one rotation goes -- R_4
--- occurs once, between the first qubit and the last -- and dropping it replaces
--- a phase of pi/8 by nothing, so `U_exact^dag U_approx` has its eigenvalues
--- spread over an arc of pi/8 and the overlap |<exact|approx>| is cos(pi/16) =
--- 0.9808 at worst.  Not a measurement: pi/8 is the angle `omega` cannot name,
--- and cos(pi/16) is what that costs here.  (Worst case over all states, which
--- for this circuit coincides with the worst case over basis inputs.  Squared,
--- for readers who define fidelity that way, it is 0.9619.)
+-- the output is the exact QFT.
+--
+-- WHAT THE CUTOFF COSTS, AND WHY IT GETS WORSE.  R_k occurs (n-k+1) times in
+-- the n-qubit transform, so dropping everything past R_3 drops (n-3)(n-2)/2
+-- rotations.  The arc over which `U_exact^dag U_approx` spreads its eigenvalues
+-- is exactly the sum of the dropped angles, and a unitary whose eigenvalues span
+-- an arc `a` has worst-case overlap cos(a/2).  So
+--
+--     arc(n) = sum over k = 4..n of (n-k+1) * pi/2^(k-1)
+--     worst-case |<exact|approx>| = cos(arc(n)/2)
+--
+--   qubits   dropped   arc/pi   fidelity
+--        3         0   0.0000   1.000000     exact
+--        4         1   0.1250   0.980785
+--        5         3   0.3125   0.881921
+--        6         6   0.5312   0.671559
+--        7        10   0.7656   0.359895
+--        8        15   1.0078   0.000000     an input goes to an orthogonal state
+--
+-- The first four rows are computed from the interpreter's own matrices; the rest
+-- from the formula, which reproduces them.  Worst case over all states -- which
+-- coincides with the worst case over basis inputs at four qubits only, and not
+-- past it.  Squared, for readers who define fidelity that way, four qubits gives
+-- 0.9619.
+--
+-- This is the phase group arriving as a number: pi/8 is the angle `omega` cannot
+-- name, and the table is what not naming it costs.  Note what it is *not*.
+-- Coppersmith's AQFT keeps rotations down to R_m with m growing like log n, the
+-- cutoff being a design parameter chosen to keep the fidelity bounded as the
+-- register grows.  This cutoff is fixed at R_3 and cannot move, because it is
+-- not a choice -- it is where the gate set ends.  So the family generated here
+-- is that recursion with a cutoff that cannot grow, and it means something up to
+-- about six qubits.
 --
 -- The generator is itself reversible.  `aqft!` reads a circuit back to the
 -- width that produced it, which no other host can do.

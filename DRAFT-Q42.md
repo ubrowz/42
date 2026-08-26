@@ -111,8 +111,9 @@ to be idempotent (§3.2). Same casualty, different cause.
    loop, so `n ↦ Cₙ` must be written in a host; the host is 42, and the ingredients
    are an ordinary `μ` type, an ordinary recursive definition, and a twenty-line
    bridge. We generate the approximate Fourier transform, exact at three qubits
-   and `cos(π/16)`-faithful at four, that angle being the one the gate set cannot
-   name. Because the generator is a 42 program and `dagger`
+   and `cos(π/16)`-faithful at four — that angle being the one the gate set
+   cannot name, and the fidelity falling to zero by eight, since the cutoff is
+   fixed where Coppersmith's grows. Because the generator is a 42 program and `dagger`
    is total, the generator *inverts*: it reads a circuit back to the width that
    produced it, which a host written in Python or Haskell cannot do.
 4. **Measurement at the edge, and a compilation pass to undo the deferral**
@@ -603,13 +604,38 @@ hardware does anyway, and the `id` in `(s * (t * id))` above *is* that cutoff �
 the approximation appears in the generated text at exactly the index where the
 gate set ends. Below four qubits nothing is dropped and the three-qubit member is
 the exact transform, its matrix agreeing with `ω^{jk}/√8` (output in reversed bit
-order) to `1.7 × 10⁻¹⁵`. At four qubits exactly one rotation is dropped, `R₄`
-occurring once, and since that replaces a phase of `π/8` by nothing the overlap
-`|⟨exact|approx⟩|` is `cos(π/16) = 0.9808` at worst — over all states, which here
-coincides with the worst case over basis inputs. The number is therefore not
-measured but forced: `π/8` is the angle `ω` cannot express, and `cos(π/16)` is
-its price on this algorithm at this width. `42q unitary` confirms the result is
-still unitary.
+order) to `1.7 × 10⁻¹⁵`. `42q unitary` confirms every member is still unitary.
+
+The cost of the cutoff is not a measurement but a closed form, and it is not
+constant. `R_k` occurs `n − k + 1` times in the `n`-qubit transform, so dropping
+everything past `R₃` drops `(n−3)(n−2)/2` rotations; the eigenvalues of
+`U_exact† U_approx` spread over an arc equal to the sum of the dropped angles,
+and a unitary whose eigenvalues span an arc `a` has worst-case overlap
+`cos(a/2)`. So
+
+| qubits | dropped | arc/π | worst-case `\|⟨exact\|approx⟩\|` |
+|---|---|---|---|
+| 3 | 0 | 0 | 1.000000 (exact) |
+| 4 | 1 | 0.1250 | 0.980785 |
+| 5 | 3 | 0.3125 | 0.881921 |
+| 6 | 6 | 0.5312 | 0.671559 |
+| 7 | 10 | 0.7656 | 0.359895 |
+| 8 | 15 | 1.0078 | 0.000000 |
+
+with the first four rows computed from the evaluator's matrices and the rest
+from the formula, which reproduces them. These are worst cases over *all* states;
+the worst case over basis inputs coincides at four qubits and is larger
+afterwards. At eight the arc passes `π`, which is to say some input is sent to a
+state orthogonal to the right one.
+
+The comparison this invites should be made rather than avoided. Coppersmith's
+AQFT keeps rotations down to `R_m` with `m` growing like `log n`, the cutoff
+being a design parameter chosen so that fidelity stays bounded as the register
+grows. Ours is fixed at `R₃` and cannot move, because it is not a choice: it is
+where `ω` runs out. What this section generates is therefore that recursion with
+a cutoff that cannot grow, faithful to about six qubits — a statement about the
+gate set of §4 rather than about the generator, and the sharpest form the
+eighth-root restriction takes anywhere in this paper.
 
 One property of this arrangement has no counterpart elsewhere: **the generator is
 reversible**, because it is a 42 program and `dagger` is total. Running `aqft`
