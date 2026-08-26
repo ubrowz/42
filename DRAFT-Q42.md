@@ -111,7 +111,8 @@ to be idempotent (§3.2). Same casualty, different cause.
    loop, so `n ↦ Cₙ` must be written in a host; the host is 42, and the ingredients
    are an ordinary `μ` type, an ordinary recursive definition, and a twenty-line
    bridge. We generate the approximate Fourier transform, exact at three qubits
-   and 0.981-faithful at four. Because the generator is a 42 program and `dagger`
+   and `cos(π/16)`-faithful at four, that angle being the one the gate set cannot
+   name. Because the generator is a 42 program and `dagger`
    is total, the generator *inverts*: it reads a circuit back to the width that
    produced it, which a host written in Python or Haskell cannot do.
 4. **Measurement at the edge, and a compilation pass to undo the deferral**
@@ -602,8 +603,13 @@ hardware does anyway, and the `id` in `(s * (t * id))` above *is* that cutoff �
 the approximation appears in the generated text at exactly the index where the
 gate set ends. Below four qubits nothing is dropped and the three-qubit member is
 the exact transform, its matrix agreeing with `ω^{jk}/√8` (output in reversed bit
-order) to `1.7 × 10⁻¹⁵`; at four qubits the worst-case state fidelity is `0.981`,
-and `42q unitary` confirms the result is still unitary.
+order) to `1.7 × 10⁻¹⁵`. At four qubits exactly one rotation is dropped, `R₄`
+occurring once, and since that replaces a phase of `π/8` by nothing the overlap
+`|⟨exact|approx⟩|` is `cos(π/16) = 0.9808` at worst — over all states, which here
+coincides with the worst case over basis inputs. The number is therefore not
+measured but forced: `π/8` is the angle `ω` cannot express, and `cos(π/16)` is
+its price on this algorithm at this width. `42q unitary` confirms the result is
+still unitary.
 
 One property of this arrangement has no counterpart elsewhere: **the generator is
 reversible**, because it is a 42 program and `dagger` is total. Running `aqft`

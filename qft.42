@@ -30,7 +30,14 @@
 -- there is no exact R_4.  Q42's exact gate set is Clifford+T, which is
 -- universal only in the approximate sense, so rotations past R_3 are dropped --
 -- which is what hardware does anyway.  For three qubits nothing is dropped and
--- the output is the exact QFT; for four the state fidelity is 0.98.
+-- the output is the exact QFT.  For four, exactly one rotation goes -- R_4
+-- occurs once, between the first qubit and the last -- and dropping it replaces
+-- a phase of pi/8 by nothing, so `U_exact^dag U_approx` has its eigenvalues
+-- spread over an arc of pi/8 and the overlap |<exact|approx>| is cos(pi/16) =
+-- 0.9808 at worst.  Not a measurement: pi/8 is the angle `omega` cannot name,
+-- and cos(pi/16) is what that costs here.  (Worst case over all states, which
+-- for this circuit coincides with the worst case over basis inputs.  Squared,
+-- for readers who define fidelity that way, it is 0.9619.)
 --
 -- The generator is itself reversible.  `aqft!` reads a circuit back to the
 -- width that produced it, which no other host can do.

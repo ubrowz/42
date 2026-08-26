@@ -940,6 +940,16 @@ class TestGeneratedQFT(unittest.TestCase):
         self.assertLess(worst, 1e-12)
 
     def test_four_qubits_is_the_approximation_and_still_unitary(self):
+        """The fidelity is `cos(pi/16)`, and that is forced rather than measured.
+
+        `R_4` occurs once in the four-qubit transform and is the one rotation
+        dropped, so the approximation replaces a phase of `pi/8` by nothing.  A
+        unitary whose eigenvalues span an arc `theta` has worst-case overlap
+        `cos(theta/2)`, so the answer is `cos(pi/16)` exactly -- `pi/8` being the
+        angle `omega` cannot name.  Asserting the closed form rather than a bound
+        of 0.98 is the difference between checking the number and checking the
+        reason: a change to the truncation rule would still clear the bound.
+        """
         m = self.matrix_on(4)
         w = cmath.exp(2j * cmath.pi / 16)
         rev = [int(format(k, "04b")[::-1], 2) for k in range(16)]
@@ -947,7 +957,7 @@ class TestGeneratedQFT(unittest.TestCase):
             abs(sum(m[i][j].conjugate() * w ** (rev[i] * j) / 4 for i in range(16)))
             for j in range(16)
         )
-        self.assertGreater(fidelity, 0.98)
+        self.assertAlmostEqual(fidelity, cmath.cos(cmath.pi / 16).real, places=12)
         self.assertLess(fidelity, 1.0)                  # it really is approximate
         for j in range(16):                             # and still an isometry
             self.assertAlmostEqual(
