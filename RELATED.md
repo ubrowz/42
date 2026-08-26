@@ -1687,7 +1687,171 @@ theory in §6's sense.
 So the axis is nearly empty where Q42 sits. The languages have the safety and no
 equational theory; ZX has the equational theory and is not a language.
 
-### 11.6 What is left
+### 11.6 The family problem, and who has a metalanguage
+
+A circuit is a finite object, and every quantum algorithm worth the name is a
+*family* of them, one per input width. Shor's is a family; Grover's is a family;
+`qft` on three qubits is not the quantum Fourier transform but a member of it. So
+any formalism that describes circuits needs something *outside* the circuits to
+say how the family is generated — and on that question the formalisms compared
+above differ more sharply than on anything in §§11.1–11.5.
+
+**Quipper's answer is its whole design.** It is a circuit-generating
+metalanguage: you write Haskell, the Haskell runs, and what it produces is a
+circuit. Recursion, arithmetic on the width, and everything else a family needs
+belong to the host language rather than to the circuit language, because a
+circuit has no room for them. §8.2 calls Quipper a real circuit-generating
+toolchain; this is what the generating consists of.
+
+**ZX has no answer, and needs none for what it is.** A diagram is a diagram, and
+a family is handled in the surrounding mathematics, by an induction conducted in
+the prose rather than in the calculus. That is entirely reasonable for a proof calculus,
+and it is §11.4's observation — no types, no names, no recursion — in its
+practical form.
+
+**The Π lineage meets a wall, and says so.** `Πo` has `mu` and a trace, so a
+reversible *classical* language of this family can iterate; the quantum branch
+cannot follow it there. §5.2 records QuantumΠ's own judgement that extending from
+finite Π to `Πo` with a trace would require answering fundamental open questions
+about the nature of infinite-dimensional quantum computation, and Q42 meets the
+same wall from the other side, closure being a least fixed point that wants
+`1 + 1 = 1`.
+
+**Q42's answer is Quipper's, with an unusual host.** `qft.42` is a Q42 circuit
+family written in 42. It declares `qterm` — Q42's syntax as an ordinary 42
+datatype, five atoms with `ctrl` and the two binary constructors — and defines
+`aqft`, a recursive 42 program taking a width `n` to the `qterm` *value*
+describing Coppersmith's approximate quantum Fourier transform on `n + 1` qubits.
+`tools/unquote.py` turns that value into Q42 source, and `42q type` and
+`42q unitary` check the result exactly as they check a handwritten library. The
+generation is recursive; the thing generated is a finite term. The file states
+the position itself: every other quantum language writes its families in a
+classical host, Qiskit in Python and Quipper in Haskell, and this one's host is
+42.
+
+What is unusual is not the architecture but the distance to the host. Quipper's
+metalanguage is Haskell, a general-purpose language chosen for the job. Q42's is
+42: the same language over a different semiring, sharing the parser, the type
+engine and `dagger`, which is why the bridge is twenty lines rather than a
+compiler. It was not designed that way. 42 was built for bidirectional grammars
+in machine translation and had no quantum computing in view (§0), and the
+metalanguage relation is a consequence of the two languages differing in exactly
+one thing.
+
+**Why it generates the *approximate* transform is §11.3 over again.** The quantum
+Fourier transform wants `R_k = diag(1, e^{2πi/2^k})` at every `k`. Q42 has `R₁`,
+`R₂` and `R₃` — they are `z`, `s` and `t` — and no exact `R₄`, because the phase
+group is `Z₈` and stops there. So `aqft` drops the rotations past `R₃`, which is
+what hardware does anyway: at three qubits nothing is dropped and the output is
+the exact transform.
+
+Past three the cost has a closed form, and it is not constant. `R_k` occurs
+`n − k + 1` times in the `n`-qubit transform, so dropping everything past `R₃`
+drops `(n−3)(n−2)/2` rotations; the eigenvalues of `U_exact† U_approx` spread
+over an arc equal to the sum of the dropped angles, and a unitary whose
+eigenvalues span an arc `a` has worst-case overlap `cos(a/2)`:
+
+| qubits | dropped | worst-case overlap |
+|---|---|---|
+| 3 | 0 | 1.0000, the exact transform |
+| 4 | 1 | 0.9808 |
+| 5 | 3 | 0.8819 |
+| 6 | 6 | 0.6716 |
+| 7 | 10 | 0.3599 |
+| 8 | 15 | 0.0000 |
+
+At eight qubits the arc passes `π`: some input is sent to a state orthogonal to
+the right one. So the four-qubit figure so often quoted, `cos(π/16)`, is a fact
+about four qubits and not about the truncation.
+
+The comparison this invites is worth making, and worth making carefully, because
+the short version of it is wrong. Coppersmith's AQFT keeps rotations down to
+`R_m` with `m` growing like `log n` — the cutoff is a design parameter, chosen so
+that fidelity stays bounded as the register grows. Q42's is fixed at `R₃`, and
+what fixes it is *not* that `R₄` cannot be expressed. `omega` cannot name `R₄` as
+a single gate, but Clifford+T is approximately universal, and Ross & Selinger
+synthesise any `z`-rotation to precision `ε` in about `3log₂(1/ε)` T gates, so an
+`R₄` good to `10⁻¹⁰` is an ordinary Q42 term about a hundred gates long. The
+generator's rotation table sends `k ≥ 4` to the identity. That decision, taken in
+`qft.42`, is the cutoff.
+
+So the six-qubit bound belongs to the generator, not to the language, and §11.3's
+coarse alphabet enters one step further back than it first appears: it does not
+forbid the rotation, it makes the honest version of it cost a synthesis pass
+written in 42 and terms two orders of magnitude longer. Which is the rotation
+synthesis QMANUAL §9.4 hands to a downstream compiler, met from the other end.
+
+**The object this produces has a name.** A map from a width to a circuit
+description is a *uniform circuit family*, and uniformity is not a nicety: BQP
+and its classical siblings are defined over uniformly generated families exactly
+because a family with no generator may have undecidable information built into
+its nth member and so decide anything at all. What the arrangement above yields
+is therefore not "the recursion living somewhere else" but a uniform family,
+whose uniformity is witnessed by a 42 program.
+
+**This witness is total, and the argument is short.** `aqft` recurses on `nat`,
+which is `mu X. 1 + X`. The `+` separates zero from a successor and the recursive
+call takes the predecessor, so the argument strictly decreases and the recursion
+stops at every width. That is structural recursion and an induction on the
+argument settles it; the interpreter's depth budget guards programs that lack the
+property and is not the reason this one has it. What the *language* guarantees is
+weaker, and the two should not be run together: §7's characterisation is that 42
+denotes exactly the recursively enumerable relations, so an arbitrary generator
+need not terminate, and uniformity has to be argued per program rather than
+granted by the framework.
+
+Measured, the generated term grows quadratically in the width — 34, 73, 119 and
+172 characters at widths one to four, the second differences constant — which is
+the approximate QFT's gate count and is what one would expect. That is a
+measurement and not a bound: the family is uniform, and *polynomial-time* uniform
+is a claim nothing here has earned.
+
+QMANUAL §9.4's depth-bounding gap looks like the same question and is not: that
+one is about a *Q42* definition referring to itself, guarded in `q42/emit.py`,
+where this is a *42* definition recursing on a width. No definition in any Q42
+library is self-referential, so in the libraries as they stand that budget bounds
+nesting rather than recursion.
+
+**What it is not is a `mu` in Q42.** A recursive Q42 term would denote a single
+operator on an infinite-dimensional space, which is the open problem §5.2 quotes
+QuantumΠ naming. A uniform family denotes, for each `n`, a unitary on `ℂ^(2ⁿ)`,
+and denotes no single operator at all: nothing assembles, and no limit is taken.
+So the metalanguage does not approximate the missing `mu` — it puts a different
+mathematical object in its place. Whether that is a loss depends on what was
+wanted from it. For running algorithms it is not one, devices being finite and
+the complexity theory of quantum computing having always worked in families. For
+a semantics of unbounded reversible quantum computation it is not an answer.
+
+**The witness runs backwards.** `aqft!` reads a circuit back to the width that
+produced it, and `tests/test_q42.py` checks that it does. Nothing about
+uniformity asks for this. A uniformity witness is ordinarily a Turing machine and
+nobody enquires after its converse. This one is invertible because the host is
+42; a Haskell function has none, so Quipper's could not be.
+
+Three things it does not buy, which should be said plainly.
+
+- **"Uniform" is all that is earned.** No complexity bound on the generator has
+  been established, so the family is uniform and nothing sharper about it has
+  been shown.
+- **The seam is outside both languages.** `tools/unquote.py` says of itself that
+  values and terms are different things, in the implementation and in the
+  semantics, so something outside both has to cross between them. That something
+  is a script rather than a construct, and no result in this document covers it.
+- **It is one worked example, and a bounded one.** `qft.42` generates the
+  approximate QFT and nothing else has been put through the same route — and as
+  the table above shows, that one example is faithful only to about six qubits.
+  The generator could repair that by synthesising the rotations it now drops; it
+  does not, and nothing here shows what that would cost in practice.
+
+The comparison earns its place because the field's usual division — languages
+with a semantics on one side, toolchains that generate circuits on the other —
+puts Q42 on both sides of it. §8.3 says the Π
+lineage has no backend, and that is about *lowering*. This section is about
+*generation*. They are not the same lack, and Q42 no longer has either: it has an
+emitter (§9.4) and it has a generator. What it does not have is everything in
+between.
+
+### 11.7 What is left
 
 | | what it is | angles | equality by | complete for |
 |---|---|---|---|---|
@@ -1701,6 +1865,12 @@ the combination — a language, carrying an exact equational theory, in which
 equality is computed rather than argued. Nothing else in this document's
 comparisons occupies that square, and what makes it reachable is what QMANUAL
 §9.4 says makes the alphabet coarse. Discreteness bought both.
+
+That table is about the equational axis only, and on §11.6's the ordering comes
+out differently: there Quipper has the mature answer, ZX has none and needs none,
+and Q42's is unusual only in its host. A language can be behind on one axis and
+unaccompanied on another. Q42 is both, and saying only the second would be the
+easier document to write and the wrong one.
 
 ## References
 
@@ -1825,6 +1995,9 @@ comparisons occupies that square, and what makes it reachable is what QMANUAL
   Quantum and Classical Computing.* POPL 2023.
 - K. Hietala, R. Rand, S.-H. Hung, X. Wu, M. Hicks. *A Verified Optimizer for
   Quantum Circuits.* POPL 2021. (VOQC.)
+- N. J. Ross, P. Selinger. *Optimal ancilla-free Clifford+T approximation of
+  z-rotations.* Quantum Information & Computation 16(11–12), 2016.
+  <https://arxiv.org/abs/1403.2975>
 - A. W. Cross et al. *OpenQASM 3: A broader and deeper quantum assembly
   language.* 2022. QIR Alliance: <https://www.qir-alliance.org/>
 - R. Glück, T. Yokoyama. *A minimalist's reversible while language.* IEICE 2017.
