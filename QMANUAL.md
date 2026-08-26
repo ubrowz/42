@@ -647,6 +647,39 @@ s : qubit <-> qubit
 Nothing was added to the language to express this. `+` already meant "switch on
 the label", and a phase gate is a switch that does nothing on one branch.
 
+**The three are one group.** Look at what `t`, `s` and `z` have in common. Each
+is `id +` some power of `omega`, and by (E1) there are only eight such powers,
+which under multiplication form a cyclic group of order eight. The three gates
+above are its three nontrivial subgroups:
+
+```
+z  is  id + omega^4   generates  {1, -1}                  order 2
+s  is  id + omega^2   generates  {1, i, -1, -i}           order 4
+t  is  id + omega     generates  all eight powers         order 8
+```
+
+Nobody chose those three. They are the subgroup chain of the group `omega`
+generates, written out in the language, and there is no fourth one to write.
+
+**This is what (E3) is for.** §6.1 put its job negatively — without it `omega`
+could be `id` and the language would collapse to classical reversible computing.
+The useful way to say it is that (E3) fixes *which* group the phases form, and
+that single choice carries the physical content of the language. The phases the
+Clifford gates give you are exactly the order-four subgroup: `s`, `z`, and
+nothing finer. Circuits confined to it are efficiently simulable on an ordinary
+computer by the Gottesman–Knill theorem, entanglement and interference included
+(§9.3). Order eight is Clifford+T, and is not. **The step from `s` to `t` is the
+step from a theory a laptop can simulate to one it cannot**, and in group terms
+it is one rung of that chain.
+
+The idea has a name outside Q42. Coecke & Duncan attach to each observable the
+group of phases available to it — its *phase group* — and show the invariant is
+sharp enough to separate physical theories: the qubit stabiliser theory and
+Spekkens' toy model agree about very nearly everything and differ in this, `Z₄`
+against `Z₂ × Z₂`, and that difference is exactly where the non-locality of the
+GHZ state lives. Q42's phase group is `Z₈`. RELATED §11.4 sets the two calculi
+side by side generator for generator.
+
 ### 6.3 Hadamard, and "up to phase"
 
 ```

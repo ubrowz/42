@@ -189,6 +189,28 @@ class TestQManualNumbers(unittest.TestCase):
         back = column(Ref("hh"), ZERO, self.gates)
         self.assertEqual(len(back), 1, "hh|0> should be a single component")
 
+    def test_the_phase_gates_are_the_subgroup_chain(self):
+        """Section 6.2 says z, s and t generate the order 2, 4 and 8 subgroups.
+
+        Computed in `q42.exact`, so "comes back to the identity" is an equality
+        and not a distance under a tolerance -- which is the claim §6.2 is
+        making about a *group*, and would be a weaker claim without it.
+        """
+        from q42.exact import ONE
+
+        self.assertIn("three nontrivial subgroups", self.text)
+        one = ket("1")
+        for name, order in [("z", 2), ("s", 4), ("t", 8)]:
+            with self.subTest(gate=name):
+                # A phase gate fixes |0> and scales |1>, so the order of the
+                # gate is the order of that one amplitude.
+                phase = column(Ref(name), one, self.gates)[one]
+                self.assertEqual(phase ** order, ONE,
+                                 f"{name} should have order {order}")
+                for i in range(1, order):
+                    self.assertNotEqual(phase ** i, ONE,
+                                        f"{name}^{i} is already the identity")
+
     def test_0_707107_really_is_one_over_root_two(self):
         self.assertIn("`0.707107` is `1/√2`", self.text)
         self.assertAlmostEqual(2 ** -0.5, 0.707107, places=6)
