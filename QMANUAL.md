@@ -602,6 +602,11 @@ would collapse to classical reversible computing. (E3) says that two ways of
 decomposing a rotation, around one axis then another or the other way about,
 agree. That is the *Euler decomposition* of the Hadamard gate, and pinning it
 down is what forces `omega` to be a genuine eighth root of unity rather than 1.
+And eighth is not a choice among many. Read (E3) as an equation in `omega` and it
+has exactly four solutions, the four primitive eighth roots of unity — nothing of
+order 16, and nothing that is not a root of unity at all. A finer angle is
+therefore not a matter of relaxing a relation; it needs a further generator, which
+is the ladder §9.4 ends on.
 
 In the standard model `omega = e^{iπ/4}` and `v` is a specific square root of
 the NOT matrix. You never write a complex number in a Q42 program; you write
@@ -1292,12 +1297,29 @@ In summary, Q42 is a plausible front end and not a plausible toolchain, which is
 the shape to aim at rather than a shortfall. Its semantics are the right ones,
 its plumbing is free, its libraries all describe genuine registers, and the
 measurement it does not have is one a compiler can do without.
-It translates into a circuit format the rest of the world already compiles, so
-the remaining limit is not the emitter but the gate set: `omega`
-is an eighth root of unity, so Q42 expresses only Clifford+T and is therefore
-*more* restricted than the hardware, which does arbitrary rotations cheaply.
-Lifting that would buy device-generality and cost the exact equational theory of
-§6, which is the trade the whole language is made of.
+
+It translates into a circuit format the rest of the world already compiles, and
+the emitter's own gaps are the two small ones named above. The remaining limit
+is the gate set. `omega` is an eighth root of unity, so the unitaries Q42 can
+write down are exactly those over `Z[1/√2, i]` — Clifford+T, and nothing finer.
+That is not a limit on what Q42 can compute: Clifford+T is universal, and any
+rotation is reachable to precision ε with a T-count logarithmic in 1/ε. It is a
+limit on what Q42 can *name*. An `Rz(π/7)` must arrive already synthesised, where
+a device with native rotations would have applied it as one pulse.
+
+Against the machines this section opened with, that is not a shortfall at all:
+on a surface code arbitrary rotations are the expensive thing, and being confined
+to the distilled set is what makes T-count meaningful in the first place. It is a
+shortfall only against today's devices, which are not the target.
+
+Lifting it would buy device-generality. It would not falsify §6 — (E1), (E2) and
+(E3) go on holding — it would end their sufficiency: two constants would no longer
+generate, and phases would become an indexed family rather than a primitive. A
+cyclotomic Q42, one root of unity per level, would keep exact evaluation and
+decidable equality and lose only the finite presentation. Going the whole way, to
+a continuum of angles, loses exactness itself, and with it the property that a Q42
+program *has* a matrix rather than an approximation to one. That last trade is the
+one the language is made of.
 
 ---
 
