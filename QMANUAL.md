@@ -612,6 +612,17 @@ In the standard model `omega = e^{iπ/4}` and `v` is a specific square root of
 the NOT matrix. You never write a complex number in a Q42 program; you write
 `omega` and `v`.
 
+**What the three settle, and what they do not.** They are sound: two terms they
+prove equal do denote the same matrix. They are *complete* — every true equation
+provable — only in fragments, namely Clifford, Clifford+T on at most two qubits,
+and Gaussian Clifford+T. Beyond those, `ccz` for one, two Q42 terms can denote
+the same matrix with nothing derivable from (E1)–(E3) saying so. What the
+language offers in place of a proof is evaluation: `42q matrix` prints either
+term's matrix, and since the generators are discrete the entries lie in
+`Z[1/√2, i]`, where equality is decidable. RELATED §11 sets that against the
+ZX-calculus, which has a complete axiomatisation of all of Clifford+T and makes
+the opposite trade to get it.
+
 ### 6.2 Phases are the sum functor
 
 A phase gate multiplies `|1>` by a constant and leaves `|0>` alone. In 42's

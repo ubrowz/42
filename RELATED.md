@@ -1395,6 +1395,137 @@ dagger without restricting anything.
 
 What 42 gives up to occupy it is in §10.3, and it is not small.
 
+## 11. The equational axis
+
+Every section so far compares 42 or Q42 to another *language*. This one compares
+the three equations of QMANUAL §6 to the other thing in the literature that does
+what they do: settle when two quantum programs are the same. That axis has an
+established occupant, the **ZX-calculus**, and setting Q42 beside it is the
+sharpest way to say what §6 is for — and, more usefully, what it does not yet do.
+
+### 11.1 What the completeness theorem actually says
+
+Two claims get run together and should not be. §5.1 states the theorem
+precisely: a rig groupoid with √Π's two maps and three equations is
+**computationally universal** for quantum computing, and **sound and complete**
+for Clifford, for ≤2-qubit Clifford+T, and for Gaussian Clifford+T.
+
+Universality and completeness are different properties, and here they have
+different scopes. Universality is unrestricted: every Clifford+T circuit, at any
+arity, is expressible. Completeness is not: it holds in the three named
+fragments. Outside them — three qubits and a `t`, which is `ccz`, an entirely
+ordinary program — two Q42 terms can denote the same matrix without the equations
+of §6 proving that they do.
+
+So "Q42 has an equational theory" is true in the sense that the equations are
+sound and pin the model down, and false in the sense a reader coming from the
+axiomatisation literature will hear it. §6 says which.
+
+### 11.2 Q42's answer to the gap is not an equation
+
+Where an axiomatisation proves two terms equal by rewriting one into the other,
+Q42 decides it by *evaluating both*: `42q matrix` computes the matrix of a term,
+and two terms are equal exactly when their matrices are. That is a decision
+procedure in principle, and it is one because the generators are discrete: every
+entry lies in `Z[1/√2, i]`, a countable ring with decidable equality, so "are
+these two matrices the same" is a question with an exact answer.
+
+In practice it is weaker than that, and the gap should be recorded. `q42/core.py`
+evaluates into Python's `complex`, which is a pair of doubles, so what the
+implementation actually delivers is agreement to a numerical tolerance rather
+than a decision. Nothing in the design forbids the exact version — the entries
+are `a + b√2 + ci + di√2` over the integers, scaled by a power of two — it simply
+has not been written. That is the smallest gap named anywhere in this document
+between what Q42 is and what Q42 does.
+
+It costs exponential time and memory in the number of qubits, which QMANUAL §9.3
+concedes for simulation and which applies here for the same reason. What is worth
+noticing is that the alternative is not obviously cheaper: deciding equality of
+two ZX diagrams by rewriting is not a polynomial procedure either. The difference
+is not cost. It is that one method yields a proof and the other yields a
+computation, and only the first produces an argument a reader can check by hand.
+
+### 11.3 ZX, and the opposite bet
+
+The ZX-calculus (Coecke & Duncan, 2008) writes a circuit as a diagram of two
+families of nodes carrying phase angles, and reasons by rewriting diagrams into
+one another. Its completeness results are the ones §11.1's should be measured
+against: Backens (2014) for the stabiliser fragment, Jeandel, Perdrix & Vilmart
+(LICS 2018) for **Clifford+T at every arity**, and later rule sets complete for
+universal ZX.
+
+That is a real concession and this document should make it plainly: **on the axis
+§6 sits on, ZX is ahead.** ZX has a complete axiomatisation of the whole of
+Clifford+T; √Π has one for three fragments of it, and whether its three equations
+extend to a complete presentation at every arity is open.
+
+The two are making opposite bets, and it is the trade QMANUAL §9.4 ends on, seen
+from the other side.
+
+- **ZX takes the continuum.** A node carries an arbitrary angle, so the calculus
+  covers every rotation the hardware has, and pays for it by needing a rule set
+  to decide equality — one that grows markedly as the fragment widens.
+- **√Π and Q42 take the discrete generators.** Angles are eighth roots and
+  nothing finer — read as an equation in `omega`, √Π's (E3) has exactly four
+  solutions — so equality is decidable by evaluation and no rule set is needed to
+  get an answer. The price is completeness holding only in fragments, and the
+  coarse alphabet QMANUAL §9.4 accounts for.
+
+### 11.4 The difference that is not about equations
+
+A ZX diagram is not a program. It has no types, no names, no recursion, no notion
+of running it on an input and no inverse operator; it is a proof object for a
+circuit. Q42 is a language whose terms happen to carry an equational theory, and
+the theory is a property of the terms rather than the artefact itself.
+
+That cuts both ways and is worth stating in both directions. ZX reasons about
+circuits Q42 cannot express, having every angle. Q42 expresses programs ZX has no
+notion of: `qft.42` computes a *circuit* as 42 data, and `tools/unquote.py` turns
+that data back into a Q42 term, which is a statement about a language with a
+metalevel and not about a diagram.
+
+### 11.5 The verification languages
+
+There is a second cluster on this axis whose concerns are orthogonal enough that
+it is easily mistaken for a competitor.
+
+| language | what its types buy |
+|---|---|
+| QWIRE (Paykin, Rand & Zdancewic, POPL 2017) | linear types for wires, in Coq |
+| Silq (§8.3) | automatic, safe uncomputation |
+| Twist (Yuan, McNally & Carbin, POPL 2022) | purity, and the tracking of entanglement |
+| Qunity (§8.3) | one language for the quantum and the classical part |
+
+Every one of them is about **safety**: stopping a program from discarding a wire,
+uncomputing wrongly, or entangling something it promised was separable. Q42 does
+not have those problems to solve, which is not a virtue of its type system but of
+its semantics — there is no `discard` to misuse (§5.2), every term is unitary by
+construction, and the inverse is total. None of them, in turn, has an equational
+theory in §6's sense.
+
+So the axis is nearly empty where Q42 sits. The languages have the safety and no
+equational theory; ZX has the equational theory and is not a language.
+
+### 11.6 What is left
+
+| | what it is | angles | equality by | complete for |
+|---|---|---|---|---|
+| ZX | a diagram calculus | a continuum | rewriting | Clifford, Clifford+T, universal |
+| QWIRE, Silq, Twist, Qunity | languages | a continuum | — | — |
+| **√Π / Q42** | **a language** | **8th roots** | **evaluation** | **Clifford, ≤2-qubit Clifford+T, Gaussian Clifford+T** |
+
+The bold row is the claim, as in §10.6, and the honest cell in it is the last
+one: completeness is where Q42 is behind rather than ahead. What is unusual is
+the combination — a language, carrying an exact equational theory, in which
+equality is computed rather than argued. Nothing else in this document's
+comparisons occupies that square, and what makes it reachable is what QMANUAL
+§9.4 says makes the alphabet coarse. Discreteness bought both.
+
+**A note on sources.** Unlike §§2–5 and §§9–10, none of the ZX literature has
+been read at first hand for this document; §11.3's attributions are given from
+the standard account rather than checked against the papers, and the section
+quotes nothing. The quotation discipline of §0.5 is not in force in it.
+
 ## References
 
 - P. G. M. Jansen. *Reversible Programming in 4₂.* Master's thesis, University
@@ -1493,6 +1624,17 @@ What 42 gives up to occupy it is in §10.3, and it is not small.
   Generation via Relational Interpreters.* Scheme Workshop 2012.
   <http://webyrd.net/quines/quines.pdf>
 - B. Bichsel, M. Baader, T. Gehr, M. Vechev. *Silq.* PLDI 2020.
+- B. Coecke, R. Duncan. *Interacting Quantum Observables.* ICALP 2008; expanded
+  as *Interacting quantum observables: categorical algebra and diagrammatics*,
+  New Journal of Physics 13, 2011. (The ZX-calculus.)
+- M. Backens. *The ZX-calculus is complete for stabilizer quantum mechanics.*
+  New Journal of Physics 16, 2014.
+- E. Jeandel, S. Perdrix, R. Vilmart. *A Complete Axiomatisation of the
+  ZX-Calculus for Clifford+T Quantum Mechanics.* LICS 2018.
+- J. Paykin, R. Rand, S. Zdancewic. *QWIRE: A Core Language for Quantum
+  Circuits.* POPL 2017.
+- C. Yuan, C. McNally, M. Carbin. *Twist: Sound Reasoning for Purity and
+  Entanglement in Quantum Programs.* POPL 2022.
 - F. Voichick, L. Li, R. Rand, M. Hicks. *Qunity: A Unified Language for
   Quantum and Classical Computing.* POPL 2023.
 - K. Hietala, R. Rand, S.-H. Hung, X. Wu, M. Hicks. *A Verified Optimizer for
