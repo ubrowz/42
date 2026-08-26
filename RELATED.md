@@ -1535,18 +1535,109 @@ which is the statement §11.2 makes about Q42, with `Z[1/√2, i]` in the place 
 the dyadic rationals. Two calculi that agree about very little, and in both the
 answer to "what can be written down" turns out to be a ring.
 
-### 11.4 The difference that is not about equations
+### 11.4 The generators, side by side
 
-A ZX diagram is not a program. It has no types, no names, no recursion, no notion
-of running it on an input and no inverse operator; it is a proof object for a
-circuit. Q42 is a language whose terms happen to carry an equational theory, and
-the theory is a property of the terms rather than the artefact itself.
+§2 of Coecke & Duncan presents the calculus in the same shape QMANUAL §6 uses —
+a handful of generators, a set of equations, an interpretation into matrices, and
+a universality claim — and the two agree far enough to be worth laying out before
+saying where they part. What follows compares that section's simplified calculus,
+not the general theory the rest of their paper develops.
 
-That cuts both ways and is worth stating in both directions. ZX reasons about
-circuits Q42 cannot express, having every angle. Q42 expresses programs ZX has no
-notion of: `qft.42` computes a *circuit* as 42 data, and `tools/unquote.py` turns
-that data back into a Q42 term, which is a statement about a language with a
-metalevel and not about a diagram.
+Their generators are wires, wire crossings, cups and caps, and four kinds of
+vertex: `Z` and `X` spiders labelled by a phase `α ∈ [0, 2π)`, which
+
+> can have any number of inputs or outputs (including none)
+
+an `H` box with exactly one of each, and a black diamond with neither.
+
+| ZX §2 | Q42 §6 |
+|---|---|
+| a wire | `id` |
+| a wire crossing | `swapprod` |
+| a `Z` spider with phase `α`, at arity 1 → 1 | `id + <phase>`, the sum functor (§6.2) |
+| the `H` box | `h`, derived rather than given (§6.3) |
+| the black diamond, a scalar | `omega`, "a number rather than a gate" |
+| the colour-change rule (C) | (E3), the Euler decomposition |
+| spider fusion: phases add | `omega ; omega` |
+| a `Z` spider at any other arity | `copy`, `join` — dropped (§5.2) |
+| cups, caps, and the topology rule | *nothing* |
+| the bialgebra and π-copy rules | *nothing*; `+` does that work |
+
+The third row is an identity and not an analogy: their `Z¹₁(α)` is
+`diag(1, e^{iα})`, which is what §6.2 writes as `id + <phase>`, so a spider at
+`π/4` is `t`. The fifth is a smaller agreement worth noticing — both calculi
+found they needed a generator at the unit, and both did so in order to keep their
+equations exact rather than true up to a scalar. Coecke & Duncan say why they
+cannot do without theirs:
+
+> The points in the calculus are not normalized. This is required for reasons of
+> simplicity; if we were to normalize σ_Q and η_Q, then the (T1) rule would
+> require additional scalar multipliers
+
+which is QMANUAL §6.3's decision to track the global phase of `h` exactly, made
+for the same reason and paid for in the same coin.
+
+The sixth row is the sharpest agreement of all. Both calculi need the fact that a
+rotation about one axis decomposes into rotations about the other; ZX states it as
+the rule that lets `H` commute past a coloured dot and change its colour, Q42
+states it as (E3), and in both it is the axiom that does the work.
+
+**The break is in the arity, and it is exact.** A spider is not one generator but
+a family indexed by its inputs and outputs, and Q42 keeps precisely the square
+members of it. Coecke & Duncan name the others as they introduce them: arity
+1 → 2 is
+
+> with 1 input and 2 outputs (cf. copying)
+
+and 1 → 0 is
+
+> with 1 input and no output (cf. erasing)
+
+with 0 → 1 a point. Those are the entries in Q42's dropped table (§5.2), refused
+because none of them is unitary. The two documents even read the same map the
+same way before disagreeing about what to do with it: Q42 drops `copy` on the
+ground that it copies basis states only and is therefore a measurement basis
+rather than an illegal cloner, and the thesis of the paper it is here being
+compared to is that these structures *are* observables. ZX admits the non-unitary
+generators and carves the unitary maps out of the larger category; Q42 admits
+only unitary generators and never leaves. That is why `dagger` is total here, and
+why §5.2's other comparison landed in **Contraction** rather than **Unitary**.
+
+**ZX has no sum.** One object, tensored with itself, where Q42 has a rig. The
+classical structure ZX obtains from Frobenius algebras sitting on the tensor is
+what Q42 obtains from `+`, which is §5.3's result — that control and the rig
+structure are the same thing — met from the other side. It is also why two rows
+of the table are empty: the bialgebra and π-copy rules govern how two observables
+interact, and Q42 has no rule of that kind to state, its type structure having
+already provided the answer.
+
+**Only the topology matters, and Q42 has no topology.** Their first rule is that a
+diagram may be bent, stretched or knotted freely so long as the connections hold,
+which is a rule worth stating only because there are cups and caps to bend. A Q42
+term is a tree over `;`, `+` and `×` with no way to turn an output back into an
+input, so nothing of the kind can be said, and nothing of the kind is needed.
+
+Put together, those three are the concrete form of a difference easier to assert
+than to show. A ZX diagram has no types, no names, no recursion, no notion of being run on an input and no
+inverse operator: it is a proof object for a circuit, and Q42 is a language whose
+terms happen to carry an equational theory. It cuts both ways. ZX reasons about
+circuits Q42 cannot express, having every angle; Q42 expresses programs ZX has no
+notion of, `qft.42` computing a *circuit* as 42 data and `tools/unquote.py`
+turning that data back into a Q42 term, which is a statement about a language
+with a metalevel rather than about a diagram.
+
+One last thing the table would mislead about if left unsaid. The rule set of §2
+is the original one and is not complete — the paper says so itself, that
+
+> the equational theory of the zx-calculus is strictly weaker than that of
+> Hilbert spaces
+
+and observes that this makes it *more* general, since it has models the Hilbert
+space one does not. The completeness results of §11.3 are all later, and all
+reached by adding axioms to this. So the comparison above is between Q42's three
+equations and ZX's original rules, which is the fair comparison of *presentations*;
+the comparison of what each theory can prove is §11.3's, and it goes the other
+way.
 
 ### 11.5 The verification languages
 

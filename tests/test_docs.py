@@ -598,6 +598,11 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         ("wetering", "all reasoning about quantum computation can be done inside"),
         ("vilmart", "were numerous, tedious to manipulate and lacked a physical"),
         ("vilmart", "all their equations are necessary"),
+        ("coecke", "can have any number of inputs or outputs (including none)"),
+        ("coecke", "with 1 input and 2 outputs (cf. copying)"),
+        ("coecke", "with 1 input and no output (cf. erasing)"),
+        ("coecke", "The points in the calculus are not normalized"),
+        ("coecke", "the equational theory of the zx-calculus is strictly weaker"),
     ]
 
     @classmethod
