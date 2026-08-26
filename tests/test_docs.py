@@ -625,6 +625,7 @@ class TestRelatedWorkQuotations(unittest.TestCase):
         ("coecke", "with 1 input and no output (cf. erasing)"),
         ("coecke", "The points in the calculus are not normalized"),
         ("coecke", "the equational theory of the zx-calculus is strictly weaker"),
+        ("coecke", "is therefore isomorphic to the circle"),
     ]
 
     @classmethod

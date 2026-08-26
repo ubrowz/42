@@ -1525,15 +1525,39 @@ from the other side.
   get an answer. The price is completeness holding only in fragments, and the
   coarse alphabet QMANUAL §9.4 accounts for.
 
-For all that, the two characterise their reach in the same shape. Of the
-Clifford+T fragment Jeandel, Perdrix & Vilmart prove that it
+That bet has a name, and it is a single invariant. Coecke & Duncan attach to
+each observable the group of phases available to it — the **phase group** (their
+§7.4) — and compute it for the qubit: the phase shifts are `diag(1, e^{iα})`, so
+the group
+
+> is therefore isomorphic to the circle
+
+with the group operation being addition of angles modulo 2π. ZX's spiders carry
+exactly those angles. Q42's `omega` has order eight, so its phase group is `Z₈`,
+the eight-element subgroup of that same circle
+(QMANUAL §6.2, where `z`, `s` and `t` come out as its subgroup chain). The two
+bullets above are that one difference worked out: a continuous phase group cannot
+be decided by evaluating, and needs a rule set; a finite one can be, and does not.
+
+Which makes the fragment Jeandel, Perdrix & Vilmart proved complete the
+interesting one to name. They call it the `π/4`-fragment — ZX with every angle a
+multiple of `π/4`, which is ZX with `Z₈` for a phase group, which is ZX cut down
+to precisely Q42's phases. **Q42 sits on that fragment, not merely near it.**
+Their statement of its reach,
 
 > represents exactly all the matrices over some finite dimensional extension of
 > the ring of dyadic rationals
 
-which is the statement §11.2 makes about Q42, with `Z[1/√2, i]` in the place of
-the dyadic rationals. Two calculi that agree about very little, and in both the
-answer to "what can be written down" turns out to be a ring.
+is then no coincidence beside §11.2's `Z[1/√2, i]`, but the same fact reached
+twice: two calculi with the same phase group have the same reach, and both papers
+report that reach as a ring.
+
+The invariant is sharp enough to be worth borrowing. Coecke & Duncan use it to
+separate theories that otherwise look alike: the qubit stabiliser category and
+Spekkens' toy model have, in their Example 7.23, the cyclic group of order four
+and the Klein four group respectively, and that difference is where the
+non-locality of the GHZ state sits. Read on the same scale, Q42 is one rung above
+the stabiliser theory and ZX is not on the scale at all, having all of it.
 
 ### 11.4 The generators, side by side
 
@@ -1565,7 +1589,9 @@ an `H` box with exactly one of each, and a black diamond with neither.
 
 The third row is an identity and not an analogy: their `Z¹₁(α)` is
 `diag(1, e^{iα})`, which is what §6.2 writes as `id + <phase>`, so a spider at
-`π/4` is `t`. The fifth is a smaller agreement worth noticing — both calculi
+`π/4` is `t`. It is also the row on which §11.3's whole comparison turns, that
+generator carrying the phase group of each calculus — the circle there, `Z₈`
+here. The fifth is a smaller agreement worth noticing — both calculi
 found they needed a generator at the unit, and both did so in order to keep their
 equations exact rather than true up to a scalar. Coecke & Duncan say why they
 cannot do without theirs:
