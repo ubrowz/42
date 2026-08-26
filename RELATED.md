@@ -1478,8 +1478,10 @@ by making the language
 > axioms to the language
 
 which gives, in their own description, **the first complete and approximatively
-universal diagrammatic language** for quantum mechanics. Later rule sets are
-complete for universal ZX.
+universal diagrammatic language** for quantum mechanics. Completeness for the
+whole of pure-state qubit quantum mechanics followed (Ng & Wang, 2017;
+Hadzihasanovic, Ng & Wang, LICS 2018), and Vilmart (LICS 2019) cut the rule set
+down to a near-minimal one.
 
 The two formalisms even characterise their reach in the same shape. Of the
 Clifford+T fragment the same paper proves that it
@@ -1557,13 +1559,6 @@ the combination — a language, carrying an exact equational theory, in which
 equality is computed rather than argued. Nothing else in this document's
 comparisons occupies that square, and what makes it reachable is what QMANUAL
 §9.4 says makes the alphabet coarse. Discreteness bought both.
-
-**A note on sources.** Backens (2014) and Jeandel, Perdrix & Vilmart (2018) are
-in `sources/` and quoted from directly, so §0.5's discipline is in force for
-them as for the rest of this document. The rule sets said above to be complete
-for *universal* ZX are the exception: those are given from the standard account
-and have not been read at first hand, which is why no claim here rests on their
-details.
 
 ## References
 
@@ -1670,6 +1665,12 @@ details.
   New Journal of Physics 16, 2014.
 - E. Jeandel, S. Perdrix, R. Vilmart. *A Complete Axiomatisation of the
   ZX-Calculus for Clifford+T Quantum Mechanics.* LICS 2018.
+- K. F. Ng, Q. Wang. *A universal completion of the ZX-calculus.*
+  arXiv:1706.09877, 2017.
+- A. Hadzihasanovic, K. F. Ng, Q. Wang. *Two complete axiomatisations of
+  pure-state qubit quantum computing.* LICS 2018.
+- R. Vilmart. *A Near-Minimal Axiomatisation of ZX-Calculus for Pure Qubit
+  Quantum Mechanics.* LICS 2019. <https://arxiv.org/abs/1812.09114>
 - J. Paykin, R. Rand, S. Zdancewic. *QWIRE: A Core Language for Quantum
   Circuits.* POPL 2017.
 - C. Yuan, C. McNally, M. Carbin. *Twist: Sound Reasoning for Purity and
