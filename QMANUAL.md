@@ -1312,6 +1312,13 @@ on a surface code arbitrary rotations are the expensive thing, and being confine
 to the distilled set is what makes T-count meaningful in the first place. It is a
 shortfall only against today's devices, which are not the target.
 
+Nor is that an artefact of the surface code. Eastin–Knill: for any code, the
+operations that can be applied to each physical qubit independently — the only
+ones that do not let one error breed into many — form a finite set, and a finite
+set is never enough to compute with. Every protected machine therefore has a
+limited cheap alphabet and a discrete expensive extra. A cheap continuum of
+angles belongs to the unprotected era, not the mature one.
+
 Lifting it would buy device-generality. It would not falsify §6 — (E1), (E2) and
 (E3) go on holding — it would end their sufficiency: two constants would no longer
 generate, and phases would become an indexed family rather than a primitive. A
@@ -1398,6 +1405,9 @@ reads `q42/gates.42`, finds `bell` in it, and applies it.
 - [Related work](RELATED.md) — where 42 and Q42 sit in the literature.
 - Carette, Heunen, Kaarsgaard & Sabry, *With a Few Square Roots, Quantum
   Computing is as Easy as Π*, POPL 2024 — the result §4.2 and §6 rest on.
+- Eastin & Knill, *Restrictions on Transversal Encoded Quantum Gate Sets*,
+  PRL 102 110502, 2009 — why the cheap gate set of §9.4 is finite on any
+  machine that corrects at all.
 
 ---
 
