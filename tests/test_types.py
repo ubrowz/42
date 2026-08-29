@@ -5,7 +5,7 @@ and its unfoldings are genuinely interchangeable, which is the whole content of
 the equirecursive choice.  `TestDaggerReversesType` checks the type-level shadow
 of the defining law -- inversion swaps the two sides and does nothing else --
 over every definition in every library.  And `TestLibrariesAreWellTyped` asserts
-the result that justified the pass: all 263 definitions across the ten .42 files
+the result that justified the pass: all 270 definitions across the ten .42 files
 type, with no annotation added to any of them.
 """
 
@@ -279,7 +279,7 @@ class TestDaggerReversesType(unittest.TestCase):
                         # is the stronger check where it applies.
                         self.assertSameType(want, d)
                 checked += 1
-        self.assertEqual(checked, 263)
+        self.assertEqual(checked, 270)
 
     def assertSameType(self, want: Scheme, got: Scheme) -> None:
         inf = Inference()
@@ -371,11 +371,11 @@ class TestPrinter(unittest.TestCase):
 class TestLibrariesAreWellTyped(unittest.TestCase):
     """Every definition in every .42 file types.
 
-    263 definitions written with no type system in sight, no annotation added to
+    270 definitions written with no type system in sight, no annotation added to
     any of them, and nothing left over.
     """
 
-    def test_all_263_definitions_type(self):
+    def test_all_270_definitions_type(self):
         total = 0
         for path in LIBS:
             with open(path, encoding="utf-8") as fh:
@@ -385,7 +385,7 @@ class TestLibrariesAreWellTyped(unittest.TestCase):
                 self.assertEqual(errors, {}, f"failures: {list(errors)}")
                 self.assertEqual(set(schemes), set(defs))
             total += len(defs)
-        self.assertEqual(total, 263)
+        self.assertEqual(total, 270)
 
     def test_the_plumbing_layer(self):
         schemes, _ = infer_program(lib("prelude.42"))

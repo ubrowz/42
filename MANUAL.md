@@ -2393,3 +2393,68 @@ you ran it.
 Not the inverse term, not the search, not a subtraction, not a second type, and
 not a proof that the two agree. What was written is one line of `prelude.42`;
 everything else on this page was derived from it mechanically.
+
+### A second example: Towers of Hanoi
+
+`add` loses information forwards, so its backward direction is a search. Towers
+of Hanoi loses none, and the contrast is worth seeing.
+
+The textbook Python is four lines:
+
+```python
+def hanoi(n, src=0, aux=1, dst=2):
+    if n == 0: return []
+    return (hanoi(n-1, src, dst, aux)
+            + [(src, dst)]
+            + hanoi(n-1, aux, src, dst))
+```
+
+It never transforms a value: its whole method is to hand the three pegs to each
+sub-call *in a different order*. 42 has no argument names to reorder, so that
+reordering becomes data — an explicit rewrite of every move a sub-call returns.
+A peg is `1 + (1 + 1)`, a move a pair of pegs; `swap01` and `swap12` are the two
+transpositions. `tour.42` writes it:
+
+```
+def relabelA = (inl + (((swap12 * swap12) * relabelA) ; inr)) ; join
+def relabelB = (inl + (((swap01 * swap01) * relabelB) ; inr)) ; join
+
+def hanoi = ( inl
+            + ( copy ; (hanoi * hanoi)
+              ; (relabelA * relabelB)
+              ; (id * consMid) ; append )
+            ) ; join
+```
+
+`copy` makes the two recursive calls on the same `n`; `relabelA` and `relabelB`
+are the map that replaces Python's argument reordering; `consMid` inserts the
+one move the largest disk makes.
+
+```
+$ 42 tour hanoi 3
+hanoi(3) =
+  [(0, R R ()), (0, 1), (R R (), 1), (0, R R ()), (1, 0), (1, R R ()), (0, R R ())]
+  -- 1 result
+```
+
+The seven-move solution, `0→2, 0→1, 2→1, 0→2, 1→0, 1→2, 0→2`. Read `R R ()` as
+peg 2: the printer knows the first two values of `1 + (1 + 1)` as 0 and 1 and
+has no name for the third (§3.6, §16).
+
+Backwards, `hanoi!` reads a move list and returns the number of disks it solves,
+or nothing if the list is not the optimal solution for any `n`:
+
+```
+$ 42 tour hanoi "[(0, 1), (0, R R ()), (1, R R ())]" --backward
+hanoi!([(0, 1), (0, R R ()), (1, R R ())]) =
+  2
+  -- 1 result
+
+$ 42 tour hanoi "[(0, R R ()), (1, R R ())]" --backward
+hanoi!([(0, R R ()), (1, R R ())]) =
+  {}   (empty: no result)
+```
+
+So `hanoi!` is a solution checker nobody wrote. `add!` was subtraction, a
+different algorithm; `hanoi!` is the same recursion the other way, admitting a
+list only when it is exactly what `hanoi` produces.

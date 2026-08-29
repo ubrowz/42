@@ -159,3 +159,71 @@ def split = append!
 -- the same construct here, not two.
 
 def palin = copy ; (id * rev) ; copy!
+
+
+-- ===========================================================================
+-- 8.  A bigger recursion -- Towers of Hanoi.
+-- ===========================================================================
+--
+-- The textbook Python is four lines:
+--
+--     def hanoi(n, src=0, aux=1, dst=2):
+--         if n == 0: return []
+--         return (hanoi(n-1, src, dst, aux)
+--                 + [(src, dst)]
+--                 + hanoi(n-1, aux, src, dst))
+--
+-- It never transforms a value.  Its whole method is to hand the three pegs to
+-- each sub-call in a *different order*.  42 has no argument names to reorder,
+-- so that reordering has to become data: an explicit rewrite of every move in
+-- the list a sub-call returns.
+--
+-- A peg is  1 + (1 + 1) -- three values, read as 0, 1, 2.  The printer knows
+-- the first two as the numbers 0 and 1 and has no name for the third, so peg 2
+-- prints raw, as `R R ()`.  A move is a pair of pegs.  `swap01` exchanges pegs
+-- 0 and 1; `swap12` exchanges 1 and 2.  Each is one transposition:
+--
+--   swap01   assocsum      -->  read 1 + (1 + 1) as (1 + 1) + 1
+--            swapsum + id   -->  swap 0 and 1, leave 2
+--            assocsum!      -->  back to 1 + (1 + 1)
+
+def swap01 = assocsum ; (swapsum + id) ; assocsum!
+def swap12 = id + swapsum
+
+-- `relabelA` rewrites the first sub-call's moves into our peg names: its `dst`
+-- is our `aux`, so fix 0 and swap 1 <-> 2.  `relabelB` does the second: fix 2
+-- and swap 0 <-> 1.  Both are the unary list recursion of step 5 with a
+-- move-rewrite in the step branch where `rev` had `append`.
+
+def relabelA = (inl + (((swap12 * swap12) * relabelA) ; inr)) ; join
+def relabelB = (inl + (((swap01 * swap01) * relabelB) ; inr)) ; join
+
+-- The one move the big disk makes, (0, 2), conjured from () and consed on.
+-- `mkmove02` turns () into ((), ()) and labels the halves 0 and 2.
+
+def mkmove02 = copy ; (inl * (inr ; inr))
+def consMid  = unitprod! ; (mkmove02 * id) ; inr
+
+-- `hanoi` itself.  n = 0 is the empty list.  n = m+1 is, on m:
+--
+--   copy                 -->  (m, m)
+--   hanoi * hanoi        -->  (solve m, solve m)
+--   relabelA * relabelB  -->  (A, B), each move now in our peg names
+--   id * consMid         -->  (A, (0,2) : B)
+--   append               -->  A ++ (0,2) : B
+--
+--   run tour.42 hanoi 3
+--     ->  [(0, R R ()), (0, 1), (R R (), 1), (0, R R ()), (1, 0), (1, R R ()),
+--          (0, R R ())]                      -- i.e. 0->2, 0->1, 2->1, 0->2, ...
+--
+-- Backwards, `hanoi!` reads a move list and returns the n it solves, or {} if
+-- the list is not the optimal solution for any n -- a checker nobody wrote:
+--
+--   run tour.42 hanoi "[(0, 1), (0, R R ()), (1, R R ())]" -b   ->  2
+--   run tour.42 hanoi "[(0, R R ()), (1, R R ())]"          -b   ->  {}
+
+def hanoi = ( inl
+            + ( copy ; (hanoi * hanoi)
+              ; (relabelA * relabelB)
+              ; (id * consMid) ; append )
+            ) ; join

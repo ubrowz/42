@@ -340,6 +340,23 @@ class TestTour(unittest.TestCase):
                 src,
             )
 
+    def test_hanoi(self):
+        self.check("hanoi", "3", {
+            "[(0, R R ()), (0, 1), (R R (), 1), (0, R R ()), "
+            "(1, 0), (1, R R ()), (0, R R ())]"
+        })
+        # Backwards: a move list to the number of disks it optimally solves.
+        self.check("hanoi", "[(0, 1), (0, R R ()), (1, R R ())]", {"2"}, backward=True)
+        self.check("hanoi", "[(0, R R ()), (1, R R ())]", set(), backward=True)
+
+    def test_hanoi_round_trips(self):
+        for n in ["0", "1", "2", "3", "4"]:
+            v = parse_value(n)
+            (moves,) = run(Ref("hanoi"), v, self.TOUR)
+            self.assertEqual(
+                run(dagger(Ref("hanoi")), moves, self.TOUR), {v}, n
+            )
+
 
 class TestManualSection3(unittest.TestCase):
     """Every worked example in MANUAL.md §3 (Values), checked."""
