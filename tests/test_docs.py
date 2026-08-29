@@ -31,7 +31,7 @@ DOCS = ["MANUAL.md", "QMANUAL.md", "README.md", "RELATED.md", "Q42.md", "THEOREM
 #: fail; what matters is that they still fail with the message shown.
 EXPECTED_TO_FAIL = {
     "42 prelude swap 5",
-    "42 q42/classical ctrl 3",
+    "42 prelude ctrl 3",
     '42q rejected bad "|0>"',
     # Not an error: `equal` answers "no" the way diff(1) does, with a nonzero
     # status, so that a shell can branch on the decision.

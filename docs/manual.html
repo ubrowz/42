@@ -180,10 +180,10 @@ append([1, 2], [3]) =
 
 $ 42 prelude append "[1,2,3]" --backward
 append!([1, 2, 3]) =
-  ([], [1, 2, 3])           -- backwards: every way to cut a list in two
-  ([1], [2, 3])
+  ([1, 2, 3], [])          -- backwards: every way to cut a list in two
   ([1, 2], [3])
-  ([1, 2, 3], [])</code></pre></div>
+  ([1], [2, 3])
+  ([], [1, 2, 3])</code></pre></div>
 <p>The three words after <code>42</code> are a file, a program in it, and an input:</p>
 <div class="code"><pre><code>42   prelude   append   "([1,2], [3])"
      ^^^^^^^   ^^^^^^   ^^^^^^^^^^^^^^
@@ -409,7 +409,7 @@ $ mat ; (id + not)    applied to  (L (), L ())  -&gt;  L L ()
 $ flip(L (), L ())    =  (L (), L ())</code></pre></div>
 <p>Nothing happens, because <code>id + not</code> runs <code>id</code> on the <code>L</code> branch.</p>
 <p>Two things to take from this. The middle step does the work of an if-then-else, and it is the <code>f + g</code> of a few pages back: you are not testing anything, you are acting on whichever branch the value was already in. And at no point can the label change. <code>dist</code> turns it into a tag, <code>id + not</code> can act inside a branch but cannot move a value between branches, and <code>mat!</code> puts back the tag it finds. That last fact is what the paragraphs on reversing below rest on.</p>
-<p>Application is juxtaposition, as in <code>ctrl not</code>, and it binds tighter than every operator, so <code>ctrl not ; f</code> means <code>(ctrl not) ; f</code>. <code>!</code> binds tighter still, so <code>ctrl m!</code> means <code>ctrl (m!)</code>, which is the reading you want: the argument is the thing being reversed.</p>
+<p>Application is juxtaposition, as in <code>ctrl not</code>, and it binds tighter than every <em>infix</em> operator, so <code>ctrl not ; f</code> means <code>(ctrl not) ; f</code>. The postfix <code>!</code> and <code>^</code> bind tighter still, so <code>ctrl m!</code> means <code>ctrl (m!)</code>, which is the reading you want: the argument is the thing being reversed.</p>
 <p>Reversing works through a parameter without your doing anything:</p>
 <div class="code"><pre><code>ctrl! m   is   ctrl m!</code></pre></div>
 <p>Read that carefully, because it is easy to read as something it does not say, and the something it does not say would be false.</p>
@@ -426,7 +426,7 @@ $ cdouble!(R (), 6)  =  (R (), 3)</code></pre></div>
 <p>And a parameter may be used more than once, or reversed in one place and not another:</p>
 <div class="code"><pre><code>def there_and_back m = m ; m!</code></pre></div>
 <p>Two rules. A parameter stands for a program, never for another parameterised program, so you cannot pass <code>ctrl</code> itself as an argument. And a parameterised definition is not a program until you supply the argument, so you cannot run it:</p>
-<div class="code"><pre><code>$ 42 q42/classical ctrl 3
+<div class="code"><pre><code>$ 42 prelude ctrl 3
 error: `ctrl` is a combinator, not a relation -- it takes a parameter, so there
 is nothing to apply to a value.</code></pre></div>
 <hr aria-hidden="true">
@@ -672,8 +672,8 @@ $ qsub((1,2), (1,1))  =  {}                   -- nothing, even though 4/4 = 1/1<
 <h3 id="121-there-is-no-string-type"><a class="anchor" href="#121-there-is-no-string-type" aria-label="Link to this section">#</a>12.1 There is no string type</h3>
 <p>Nothing was added to the language to support text. A string is a list, and lists already existed:</p>
 <div class="code"><pre><code>bit    = 1 + 1                    L () = 0,  R () = 1
-byte   = bit × (bit × ( … ))      eight of them, MSB first, nested right
-string = μX. 1 + (byte × X)       exactly the list type from §3.5</code></pre></div>
+byte   = bit x (bit x ( … ))      eight of them, MSB first, nested right
+string = mu X. 1 + (byte x X)     exactly the list type from §3.5</code></pre></div>
 <p>So a character is a byte, and a byte is eight booleans:</p>
 <div class="code"><pre><code>'a'  =  (0, (1, (1, (0, (0, (0, (0, 1)))))))      -- 97 = 0b01100001</code></pre></div>
 <p>Why binary and not unary? Numbers in 42 are unary (§3.5), so consistency would have made <code>'a'</code> a stack of 97 labels. Binary is faster, and it also keeps the encodings distinguishable. A byte is a nest of pairs; a number is a chain of labels. Nothing can be read as both. So unlike <code>0</code>/<code>[]</code> (§3.6), text collides with nothing:</p>
@@ -692,7 +692,7 @@ $ palin("apple")         =  {}</code></pre></div>
 <p>and <code>split</code> is not an implementation at all. It is <code>concat</code> read backwards:</p>
 <div class="code"><pre><code>def concat = append
 def split  = append!</code></pre></div>
-<div class="code"><pre><code>$ split("abc")  =  (0, "abc")  ("a", "bc")  ("ab", "c")  ("abc", 0)</code></pre></div>
+<div class="code"><pre><code>$ split("abc")  =  ("a", "bc")  ("ab", "c")  ("abc", [])  ([], "abc")</code></pre></div>
 <p>Every way to cut a string in two, and nobody wrote a string-splitting routine.</p>
 <h3 id="124-case-conversion-is-one-bit"><a class="anchor" href="#124-case-conversion-is-one-bit" aria-label="Link to this section">#</a>12.4 Case conversion is one bit</h3>
 <p>In ASCII, upper and lower case differ in one bit, the one worth 32. So changing case is not arithmetic; it is reaching into the byte and flipping a single boolean:</p>
@@ -728,6 +728,7 @@ $ swapcase("abc 123 XYZ")     =  "ABC 123 xyz"</code></pre></div>
 <div class="code"><pre><code>init ; step^ ; final</code></pre></div>
 <ul><li><code>init</code> turns the input into a starting <strong>configuration</strong>: tape, head and state, all in one value.</li><li><code>step</code> is <strong>one</strong> move of the machine: <code>configuration &lt;-&gt; configuration</code>.</li><li><code>step^</code> is section 5's "repeat any number of times", so it relates the start to <em>every</em> configuration the machine can reach.</li><li><code>final</code> is a filter that lets through only configurations that have halted, and reads the answer off the tape.</li></ul>
 <p>There is no loop construct, no counter and no test for "am I done yet". <code>^</code> does the repeating, and the machine stops on its own because the halted state has no transition. <code>step</code> is empty there, and section 7 already told you what an empty result means.</p>
+<p><code>init</code>, <code>step</code> and <code>final</code> are the roles, not the identifiers you will find in the file. <code>tm.42</code> spells the same three-part shape as <code>def inc = load ; run ; unload</code>, with <code>def run = carry ; step^ ; halt!</code>: <code>load</code> and <code>carry</code> together do the job of <code>init</code>, and <code>halt!</code> and <code>unload</code> together do the job of <code>final</code>.</p>
 <h3 id="132-the-tape-is-a-list-with-a-hole-in-it"><a class="anchor" href="#132-the-tape-is-a-list-with-a-hole-in-it" aria-label="Link to this section">#</a>13.2 The tape is a list with a hole in it</h3>
 <p>The obvious way to store a tape is a list plus a number saying where the head is. Don't: every move would then be arithmetic, and moving would have to be undone by arithmetic too.</p>
 <p>Instead split the list at the head and keep the two halves, with the left half written backwards so that the cell nearest the head is at its front:</p>
@@ -802,7 +803,7 @@ value([R (), R (), L ()]) =
 <p>There are two. One holds any 42 value at all:</p>
 <div class="code"><pre><code>type val = mu V. 1 + (V + (V + (V x V)))</code></pre></div>
 <p>Read it as "a value is a unit, or an <code>L</code> of one, or an <code>R</code> of one, or a pair of two" — which is exactly what section 3 says a value is. Four constructors, one per line, and <code>meta.42</code> gives them names: <code>vunit</code>, <code>vinl</code>, <code>vinr</code>, <code>vpair</code>.</p>
-<p>The other holds a written-down program, and it has one case per way of combining programs from section 5, plus one for the built-ins and one for naming a definition:</p>
+<p>The other holds a written-down program. It has one case for each structural way of combining programs — <code>;</code>, <code>|</code>, <code>+</code>, <code>*</code> and <code>^</code> — plus one for the built-ins and one for naming a definition. Two of section 5's seven do not need a case of their own: a <code>!</code> rides along as a flag on the built-in or the reference it was written on, and parameters are expanded away before a program is ever quoted.</p>
 <div class="scroller"><table><thead><tr><th>case</th><th>what it describes</th></tr></thead><tbody><tr><td>a primitive</td><td><code>copy</code>, <code>join</code>, <code>swapsum</code>, … and whether a <code>!</code> was written on it</td></tr><tr><td>a reference</td><td>"the definition at slot <em>n</em>", so recursion works</td></tr><tr><td><code>t ; u</code></td><td>the two parts</td></tr><tr><td><code>t | u</code></td><td>the two parts</td></tr><tr><td><code>t + u</code></td><td>the two parts</td></tr><tr><td><code>t * u</code></td><td>the two parts</td></tr><tr><td><code>t^</code></td><td>the one part</td></tr></tbody></table></div>
 <p>That is the whole language. You do not have to read the encoding to use the interpreter — sections 14.3 onwards never open it up — but it helps to know that nothing is hidden in there.</p>
 <h3 id="142-every-construct-interprets-itself"><a class="anchor" href="#142-every-construct-interprets-itself" aria-label="Link to this section">#</a>14.2 Every construct interprets itself</h3>
@@ -878,7 +879,7 @@ eval mul(3, 4) =
 eval! mul(4, 12) =
   (3, 4)
   -- 1 result</code></pre></div>
-<p>Read that one twice. It divided 12 by 4. §11.4 makes the point that <code>arith.42</code> contains no division algorithm, because <code>divexact</code> is <code>mul!</code> — and now there is no division algorithm in the <em>interpreter</em> either. <code>meta.42</code> knows thirteen built-ins and seven ways of combining them, and nothing else. The division came out of <code>!</code>.</p>
+<p>Read that one twice. It divided 12 by 4. §11.4 makes the point that <code>arith.42</code> contains no division algorithm, because <code>divexact</code> is <code>mul!</code> — and now there is no division algorithm in the <em>interpreter</em> either. <code>meta.42</code> knows thirteen built-ins and five ways of combining them, and nothing else. The division came out of <code>!</code>.</p>
 <p>The whole file is reachable the same way:</p>
 <div class="code"><pre><code>$ 42 quote arith divmod "(7, 2)"
 eval divmod(7, 2) =
@@ -922,7 +923,7 @@ mul, as a value meta.42 can read:</code></pre></div>
 <div class="scroller"><table><thead><tr><th>Syntax</th><th>Name</th><th>Meaning</th></tr></thead><tbody><tr><td><code>f ; g</code></td><td>sequence</td><td>do <code>f</code>, then <code>g</code></td></tr><tr><td><code>f * g</code></td><td>pair-wise</td><td>value is a pair: <code>f</code> on the left half, <code>g</code> on the right</td></tr><tr><td><code>f + g</code></td><td>switch</td><td>value is labelled: <code>f</code> on <code>L</code>, <code>g</code> on <code>R</code>, label kept</td></tr><tr><td><code>f | g</code></td><td>choice</td><td>do both, pool the answers</td></tr><tr><td><code>f^</code></td><td>repeat</td><td>apply <code>f</code> zero or more times, collect everything reachable</td></tr><tr><td><code>f!</code></td><td>reverse</td><td>run <code>f</code> backwards</td></tr><tr><td><code>(...)</code></td><td>grouping</td><td></td></tr></tbody></table></div>
 <p>Binding strength, loosest first: <code>|</code> then <code>;</code> then <code>+</code> then <code>*</code> then <code>!</code> <code>^</code>. So <code>a ; b + c ; d</code> means <code>a ; (b + c) ; d</code>.</p>
 <h3 id="built-in-programs"><a class="anchor" href="#built-in-programs" aria-label="Link to this section">#</a>Built-in programs</h3>
-<div class="scroller"><table><thead><tr><th>Program</th><th>In</th><th>Out</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>a</code></td><td><code>a</code></td></tr><tr><td><code>zero</code></td><td>anything</td><td>nothing</td></tr><tr><td><code>swapprod</code></td><td><code>(a, b)</code></td><td><code>(b, a)</code></td></tr><tr><td><code>assocprod</code></td><td><code>(a, (b, c))</code></td><td><code>((a, b), c)</code></td></tr><tr><td><code>unitprod</code></td><td><code>((), a)</code></td><td><code>a</code></td></tr><tr><td><code>swapsum</code></td><td><code>L a</code></td><td><code>R a</code></td></tr><tr><td><code>assocsum</code></td><td><code>L a</code>, <code>R (L b)</code>, <code>R (R c)</code></td><td><code>L (L a)</code>, <code>L (R b)</code>, <code>R c</code></td></tr><tr><td><code>unitsum</code></td><td><code>R a</code></td><td><code>a</code></td></tr><tr><td><code>inl</code></td><td><code>a</code></td><td><code>L a</code></td></tr><tr><td><code>inr</code></td><td><code>a</code></td><td><code>R a</code></td></tr><tr><td><code>join</code></td><td><code>L a</code> or <code>R a</code></td><td><code>a</code></td></tr><tr><td><code>copy</code></td><td><code>a</code></td><td><code>(a, a)</code></td></tr><tr><td><code>dist</code></td><td><code>(L a, c)</code> / <code>(R b, c)</code></td><td><code>L (a, c)</code> / <code>R (b, c)</code></td></tr></tbody></table></div>
+<div class="scroller"><table><thead><tr><th>Program</th><th>In</th><th>Out</th></tr></thead><tbody><tr><td><code>id</code></td><td><code>a</code></td><td><code>a</code></td></tr><tr><td><code>zero</code></td><td>anything</td><td>nothing</td></tr><tr><td><code>swapprod</code></td><td><code>(a, b)</code></td><td><code>(b, a)</code></td></tr><tr><td><code>assocprod</code></td><td><code>(a, (b, c))</code></td><td><code>((a, b), c)</code></td></tr><tr><td><code>unitprod</code></td><td><code>((), a)</code></td><td><code>a</code></td></tr><tr><td><code>swapsum</code></td><td><code>L a</code> / <code>R a</code></td><td><code>R a</code> / <code>L a</code></td></tr><tr><td><code>assocsum</code></td><td><code>L a</code>, <code>R (L b)</code>, <code>R (R c)</code></td><td><code>L (L a)</code>, <code>L (R b)</code>, <code>R c</code></td></tr><tr><td><code>unitsum</code></td><td><code>R a</code></td><td><code>a</code></td></tr><tr><td><code>inl</code></td><td><code>a</code></td><td><code>L a</code></td></tr><tr><td><code>inr</code></td><td><code>a</code></td><td><code>R a</code></td></tr><tr><td><code>join</code></td><td><code>L a</code> or <code>R a</code></td><td><code>a</code></td></tr><tr><td><code>copy</code></td><td><code>a</code></td><td><code>(a, a)</code></td></tr><tr><td><code>dist</code></td><td><code>(L a, c)</code> / <code>(R b, c)</code></td><td><code>L (a, c)</code> / <code>R (b, c)</code></td></tr></tbody></table></div>
 <p>Add <code>!</code> to any of them to get the reverse.</p>
 <h3 id="writing-values-on-the-command-line"><a class="anchor" href="#writing-values-on-the-command-line" aria-label="Link to this section">#</a>Writing values on the command line</h3>
 <div class="code"><pre><code>()            unit
@@ -940,7 +941,7 @@ L x   R x     labelled
 42 quote FILE NAME [VALUE]              run it through meta.42 (section 14)</code></pre></div>
 <p><code>42</code> is shorthand. It assumes <code>run</code> when you do not name a subcommand, and the <code>.42</code> on a file name is optional, so <code>42 prelude append "([1,2], [3])"</code> is the whole thing.</p>
 <p>It is a script in the repository root, so either put that directory on your <code>PATH</code> (<code>export PATH="/path/to/42:$PATH"</code>) or run it in place as <code>./42</code>. The long form <code>python3 -m rel42 run prelude.42 append "..."</code> does exactly the same and needs no setup at all.</p>
-<p>Options: <code>--raw</code> turns off number/list display sugar (useful when you are not sure what shape you actually have), <code>--limit</code> bounds recursion depth, <code>--orbit</code> bounds how far <code>^</code> will search before giving up.</p>
+<p>Options: <code>--raw</code> turns off number/list display sugar (useful when you are not sure what shape you actually have), <code>--limit</code> bounds recursion depth, <code>--orbit</code> bounds how far <code>^</code> will search before giving up, and <code>--untyped</code> skips the domain check and prints the bare relational answer (§7, §14).</p>
 <p><code>show</code> is handy for building intuition. It prints what a program's reverse is:</p>
 <div class="code"><pre><code>$ 42 show prelude double
 double   = copy ; add

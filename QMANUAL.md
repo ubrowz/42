@@ -19,7 +19,8 @@ needs it, and the parts Q42 does *not* model are named as such.
 8. [Worked examples](#8-worked-examples)
 9. [What Q42 is, and is not, for](#9-what-q42-is-and-is-not-for)
 10. [Reference](#10-reference)
-11. [Appendix: a program and its circuit](#appendix-a-program-and-its-circuit)
+
+[Appendix: a program and its circuit](#appendix-a-program-and-its-circuit)
 
 ---
 
@@ -602,11 +603,13 @@ would collapse to classical reversible computing. (E3) says that two ways of
 decomposing a rotation, around one axis then another or the other way about,
 agree. That is the *Euler decomposition* of the Hadamard gate, and pinning it
 down is what forces `omega` to be a genuine eighth root of unity rather than 1.
-And eighth is not a choice among many. Read (E3) as an equation in `omega` and it
-has exactly four solutions, the four primitive eighth roots of unity — nothing of
-order 16, and nothing that is not a root of unity at all. A finer angle is
-therefore not a matter of relaxing a relation; it needs a further generator, which
-is the ladder §9.4 ends on.
+And eighth is not a choice among many. Read (E3) as an equation in `omega`, with
+`v` the square root of `swapsum` that Q42 fixes, and it has exactly two
+solutions: `e^{iπ/4}` and `−e^{iπ/4}`, both primitive eighth roots of unity —
+nothing of order 16, and nothing that is not a root of unity at all. (The other
+two primitive eighth roots satisfy it only for the conjugate square root of
+`swapsum`.) A finer angle is therefore not a matter of relaxing a relation; it
+needs a further generator, which is the ladder §9.4 ends on.
 
 In the standard model `omega = e^{iπ/4}` and `v` is a specific square root of
 the NOT matrix. You never write a complex number in a Q42 program; you write
@@ -1091,7 +1094,7 @@ Deutsch's algorithm in six lines.
 theory*, a set of rules for proving two circuits equal, and Q42 makes it
 executable. `42q law` checks that `!` really is the adjoint; `42q unitary` checks
 `t ; t! = id` across a whole library; `42q matrix` prints the matrix so you can
-compare. The three axioms, `H ; H = id`, `H ; X ; H = Z`, `S ; S = Z`,
+compare. Gate identities like `H ; H = id`, `H ; X ; H = Z`, `S ; S = Z` and
 `(Ctrl U)† = Ctrl U†`: all of these can be run, and each is a test in
 `tests/test_q42.py`.
 
@@ -1147,7 +1150,7 @@ exactly why it costs the language nothing.
 
 **Outside the line: measuring half way through, branching on the result, and
 carrying on.** Q42 has no such term and is not going to acquire one. Measurement
-is not unitary, being neither linear, invertible nor deterministic, so a
+is not unitary, being neither invertible nor deterministic, so a
 `measure` term would be one for which `!` has no answer, and every property in
 the paragraph above would become conditional: unitary *except* where a
 measurement appears. The literature reaches the same conclusion and treats
@@ -1247,7 +1250,7 @@ by what it does to the underlying bits:
 
 | primitive | effect on the bits | on hardware |
 |---|---|---|
-| `id`, `assocprod`, `unitprod`, `unitsum`, `dist` | nothing at all | **free** |
+| `id`, `assocsum`, `assocprod`, `unitsum`, `unitprod`, `dist` | nothing at all | **free** |
 | `swapprod` | permutes them | a relabelling, or a SWAP |
 | `swapsum` | flips one | Pauli X |
 | `omega` | nothing, but multiplies by a phase | a phase gate |
@@ -1453,6 +1456,7 @@ Absent, with reasons in §5: `zero`, `inl`, `inr`, `copy`, `join`, `|`, `^`.
 | `42q unitary FILE [GATE]` | check `t ; t! = id` over the basis |
 | `42q matrix FILE [GATE]` | print the matrix; `--qubits N` to fix a width |
 | `42q equal FILE GATE GATE` | decide whether two definitions are the same gate |
+| `42q emit FILE [GATE]` | write it out as OpenQASM 3; `--qubits N`, `--gates` |
 | `42q type FILE [GATE]` | infer the type |
 | `42q show FILE [GATE]` | print a definition and its adjoint |
 

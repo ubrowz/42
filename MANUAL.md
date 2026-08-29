@@ -23,7 +23,8 @@ reversible computing is assumed, and no term is used before it is defined.
 14. [42 interpreting itself](#14-42-interpreting-itself)
 15. [Reference](#15-reference)
 16. [Troubleshooting](#16-troubleshooting)
-16. [Appendix: a program and its inverse](#appendix-a-program-and-its-inverse)
+
+[Where to go next](#where-to-go-next) &middot; [Appendix: a program and its inverse](#appendix-a-program-and-its-inverse)
 
 ---
 
@@ -38,10 +39,10 @@ append([1, 2], [3]) =
 
 $ 42 prelude append "[1,2,3]" --backward
 append!([1, 2, 3]) =
-  ([], [1, 2, 3])           -- backwards: every way to cut a list in two
-  ([1], [2, 3])
+  ([1, 2, 3], [])          -- backwards: every way to cut a list in two
   ([1, 2], [3])
-  ([1, 2, 3], [])
+  ([1], [2, 3])
+  ([], [1, 2, 3])
 ```
 
 The three words after `42` are a file, a program in it, and an input:
@@ -695,9 +696,9 @@ cannot move a value between branches, and `mat!` puts back the tag it finds.
 That last fact is what the paragraphs on reversing below rest on.
 
 Application is juxtaposition, as in `ctrl not`, and it binds tighter than every
-operator, so `ctrl not ; f` means `(ctrl not) ; f`. `!` binds tighter still, so
-`ctrl m!` means `ctrl (m!)`, which is the reading you want: the argument is the
-thing being reversed.
+*infix* operator, so `ctrl not ; f` means `(ctrl not) ; f`. The postfix `!` and
+`^` bind tighter still, so `ctrl m!` means `ctrl (m!)`, which is the reading you
+want: the argument is the thing being reversed.
 
 Reversing works through a parameter without your doing anything:
 
@@ -760,7 +761,7 @@ program, so you cannot pass `ctrl` itself as an argument. And a parameterised
 definition is not a program until you supply the argument, so you cannot run it:
 
 ```
-$ 42 q42/classical ctrl 3
+$ 42 prelude ctrl 3
 error: `ctrl` is a combinator, not a relation -- it takes a parameter, so there
 is nothing to apply to a value.
 ```
@@ -1406,8 +1407,8 @@ lists already existed:
 
 ```
 bit    = 1 + 1                    L () = 0,  R () = 1
-byte   = bit × (bit × ( … ))      eight of them, MSB first, nested right
-string = μX. 1 + (byte × X)       exactly the list type from §3.5
+byte   = bit x (bit x ( … ))      eight of them, MSB first, nested right
+string = mu X. 1 + (byte x X)     exactly the list type from §3.5
 ```
 
 So a character is a byte, and a byte is eight booleans:
@@ -1462,7 +1463,7 @@ def split  = append!
 ```
 
 ```
-$ split("abc")  =  (0, "abc")  ("a", "bc")  ("ab", "c")  ("abc", 0)
+$ split("abc")  =  ("a", "bc")  ("ab", "c")  ("abc", [])  ([], "abc")
 ```
 
 Every way to cut a string in two, and nobody wrote a string-splitting routine.
@@ -1562,6 +1563,11 @@ There is no loop construct, no counter and no test for "am I done yet". `^`
 does the repeating, and the machine stops on its own because the halted state
 has no transition. `step` is empty there, and section 7 already told you what
 an empty result means.
+
+`init`, `step` and `final` are the roles, not the identifiers you will find in
+the file. `tm.42` spells the same three-part shape as `def inc = load ; run ;
+unload`, with `def run = carry ; step^ ; halt!`: `load` and `carry` together do
+the job of `init`, and `halt!` and `unload` together do the job of `final`.
 
 ### 13.2 The tape is a list with a hole in it
 
@@ -1772,9 +1778,11 @@ Read it as "a value is a unit, or an `L` of one, or an `R` of one, or a pair of
 two" — which is exactly what section 3 says a value is. Four constructors, one
 per line, and `meta.42` gives them names: `vunit`, `vinl`, `vinr`, `vpair`.
 
-The other holds a written-down program, and it has one case per way of
-combining programs from section 5, plus one for the built-ins and one for
-naming a definition:
+The other holds a written-down program. It has one case for each structural way
+of combining programs — `;`, `|`, `+`, `*` and `^` — plus one for the built-ins
+and one for naming a definition. Two of section 5's seven do not need a case of
+their own: a `!` rides along as a flag on the built-in or the reference it was
+written on, and parameters are expanded away before a program is ever quoted.
 
 | case | what it describes |
 |---|---|
@@ -1970,7 +1978,7 @@ eval! mul(4, 12) =
 Read that one twice. It divided 12 by 4. §11.4 makes the point that `arith.42`
 contains no division algorithm, because `divexact` is `mul!` — and now there is
 no division algorithm in the *interpreter* either. `meta.42` knows thirteen
-built-ins and seven ways of combining them, and nothing else. The division came
+built-ins and five ways of combining them, and nothing else. The division came
 out of `!`.
 
 The whole file is reachable the same way:
@@ -2105,7 +2113,7 @@ So `a ; b + c ; d` means `a ; (b + c) ; d`.
 | `swapprod` | `(a, b)` | `(b, a)` |
 | `assocprod` | `(a, (b, c))` | `((a, b), c)` |
 | `unitprod` | `((), a)` | `a` |
-| `swapsum` | `L a` | `R a` |
+| `swapsum` | `L a` / `R a` | `R a` / `L a` |
 | `assocsum` | `L a`, `R (L b)`, `R (R c)` | `L (L a)`, `L (R b)`, `R c` |
 | `unitsum` | `R a` | `a` |
 | `inl` | `a` | `L a` |
@@ -2149,7 +2157,8 @@ needs no setup at all.
 
 Options: `--raw` turns off number/list display sugar (useful when you are not
 sure what shape you actually have), `--limit` bounds recursion depth,
-`--orbit` bounds how far `^` will search before giving up.
+`--orbit` bounds how far `^` will search before giving up, and `--untyped`
+skips the domain check and prints the bare relational answer (§7, §14).
 
 `show` is handy for building intuition. It prints what a program's reverse
 is:
