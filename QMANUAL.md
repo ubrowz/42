@@ -172,8 +172,11 @@ of a relation, in Q42 the adjoint of a matrix, and they are the same structural
 operation in two different settings (§4).
 
 Q42 never checks unitarity, because it never has to: every primitive is unitary
-and every way of combining them preserves unitarity (§6). You can audit
-the claim:
+and every way of combining them preserves unitarity (§6). You can audit the
+claim anyway. For a definition `t`, `42q unitary` builds the matrix of `t ; t!`,
+`t` followed by its own adjoint, which is `U† U` from the equation above, and
+checks that it is the identity: that every basis state comes back exactly as it
+went in. Run on a whole file, it does this for every definition in it:
 
 ```
 $ 42q unitary gates
@@ -182,6 +185,15 @@ $ 42q unitary gates
   ...
 -- 24/26 unitary, 2 with no single matrix
 ```
+
+`gates.42` is the library of standard gates that §6 introduces; what each one
+does does not matter here, only that the check passes. Each `[ok ]` line names
+one definition and the size of the space it was checked on: `2ⁿ` dimensions for
+a gate on `n` qubits, so 2 for a gate on one qubit and 8 for one on three. The
+last line counts them. The two "with no single matrix" are definitions that take
+another gate as a parameter, such as "the controlled version of a gate `m`"
+(§6.4). Until `m` is given there is no single matrix to check, so they are
+listed but not counted as failures.
 
 ### 2.4 Superposition
 

@@ -209,12 +209,13 @@ tbody tr:last-child td { border-bottom: 0; }
 <p>Two things follow, and they are why the condition is the one physics imposes:</p>
 <ul><li><strong><code>U† </code> is <code>U</code>'s inverse.</strong> Reversibility, for free, for every gate.</li><li><strong><code>U</code> preserves length.</strong> Since states are unit vectors and probabilities are squared magnitudes, a map that changed length would produce probabilities not summing to <code>1</code>. Unitarity is exactly the condition "still a valid state afterwards".</li></ul>
 <p>Q42 spells <code>U†</code> as <code>U!</code>, which is the same <code>!</code> that 42 uses for running a program backwards. It is not an analogy: in 42 the operation is the converse of a relation, in Q42 the adjoint of a matrix, and they are the same structural operation in two different settings (§4).</p>
-<p>Q42 never checks unitarity, because it never has to: every primitive is unitary and every way of combining them preserves unitarity (§6). You can audit the claim:</p>
+<p>Q42 never checks unitarity, because it never has to: every primitive is unitary and every way of combining them preserves unitarity (§6). You can audit the claim anyway. For a definition <code>t</code>, <code>42q unitary</code> builds the matrix of <code>t ; t!</code>, <code>t</code> followed by its own adjoint, which is <code>U† U</code> from the equation above, and checks that it is the identity: that every basis state comes back exactly as it went in. Run on a whole file, it does this for every definition in it:</p>
 <div class="code"><pre><code>$ 42q unitary gates
   [ok ] h ; h! = id on 2 dimension(s)
   [ok ] ccx ; ccx! = id on 8 dimension(s)
   ...
 -- 24/26 unitary, 2 with no single matrix</code></pre></div>
+<p><code>gates.42</code> is the library of standard gates that §6 introduces; what each one does does not matter here, only that the check passes. Each <code>[ok ]</code> line names one definition and the size of the space it was checked on: <code>2ⁿ</code> dimensions for a gate on <code>n</code> qubits, so 2 for a gate on one qubit and 8 for one on three. The last line counts them. The two "with no single matrix" are definitions that take another gate as a parameter, such as "the controlled version of a gate <code>m</code>" (§6.4). Until <code>m</code> is given there is no single matrix to check, so they are listed but not counted as failures.</p>
 <h3 id="24-superposition"><a class="anchor" href="#24-superposition" aria-label="Link to this section">#</a>2.4 Superposition</h3>
 <p>A state with more than one nonzero amplitude is in <strong>superposition</strong>. The Hadamard gate makes one from a definite input:</p>
 <div class="code"><pre><code>$ 42q gates h "|0&gt;"
