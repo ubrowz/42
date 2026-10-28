@@ -185,6 +185,15 @@ class Emission(unittest.TestCase):
         # constructor-only side, so run backwards the cheap test comes first.
         self.assertEqual(bwd(ENV, "rev", "[1, 2, 3]"), {parse_value("[3, 2, 1]")})
 
+    def test_a_call_under_a_constructor_is_taken_apart_first(self):
+        # Both halves of hanoi's pair call something.  The right half's calls
+        # sit under a cons cell whose head must be the move (0, 2): run
+        # backwards, that check has to come before the left half recurses, or
+        # hanoi! exhausts the call depth (SUGAR.md section 8).
+        tour = _load("tour.42")
+        moves = parse_value("[(0, 1), (0, R R ()), (1, R R ())]")
+        self.assertEqual(run(dagger(Ref("hanoi")), moves, tour), {parse_value("2")})
+
     def test_literals_and_offsets(self):
         self.assertEqual(fwd(ENV, "greet", "()"), {parse_value('"hi"')})
         self.assertEqual(fwd(ENV, "two", "5"), {parse_value("3")})

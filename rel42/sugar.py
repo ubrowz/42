@@ -152,6 +152,20 @@ def variables(t: DTerm) -> List[DVar]:
     raise TypeError(f"not a data term: {t!r}")
 
 
+def _rank(t: DTerm) -> int:
+    """How late a term's own checks come when it is built backwards.
+
+    0: constructors only, so taking it apart is nothing but checks.  1: a call
+    under a constructor, so a check comes before the call.  2: a call outermost,
+    so the call comes first.  In a pair the higher rank is built first, which
+    puts the lower rank's checks first when the pair is taken apart
+    (SUGAR.md section 8).
+    """
+    if not _has_call(t):
+        return 0
+    return 1 if isinstance(t, (DInl, DInr, DPair)) else 2
+
+
 def _has_call(t: DTerm) -> bool:
     match t:
         case DApp():
@@ -202,9 +216,10 @@ def build(t: DTerm) -> Tuple[Shape, Term]:
         case DPair(a, c):
             sa, ba = build(a)
             sc, bc = build(c)
-            if _has_call(a) and not _has_call(c):
+            ra, rc = _rank(a), _rank(c)
+            if ra > rc:
                 return (sa, sc), Seq(Prod(ba, ID), Prod(ID, bc))
-            if _has_call(c) and not _has_call(a):
+            if rc > ra:
                 return (sa, sc), Seq(Prod(ID, bc), Prod(ba, ID))
             return (sa, sc), Prod(ba, bc)
     raise SugarError("`let` may only stand as the whole body of a clause")

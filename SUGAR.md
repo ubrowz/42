@@ -438,9 +438,23 @@ same reason, though it never says so.
 
 **Rule:** serialise every `f * g` so that recursive calls sit nearest the
 middle of the clause and constructor tests sit at its edges. As implemented: in
-a pair, a side that contains a call is built before a side made only of
-constructors, `(call * id) ; (id * constructors)`. Running that backwards puts
-the constructor test first by itself. Since the clause
+a pair, each side gets a rank: 0 for constructors only, 1 for a call under a
+constructor, 2 for a call outermost. The higher rank is built first,
+`(call * id) ; (id * constructors)`, so running it backwards takes the lower
+rank apart first, and its checks come before the other side's calls.
+
+The middle rank was added when `tour.42`'s `hanoi` was rewritten in clauses:
+
+```
+def hanoi (n+1)  <->  append (relabelA (hanoi n), (L (), R (R ())) : relabelB (hanoi n))
+```
+
+Both halves of the pair call something. Run backwards, `append!` offers every
+split, and the left half recursed on the whole list before the right half
+could check that its first move is (0, 2), so `hanoi!` exhausted the call
+depth. The right half's calls sit under a cons cell, which ranks it 1 against
+the left half's 2. So the cons-cell check now runs first, and `hanoi!` answers
+at once (checked). Since the clause
 is `match ; route ; build`, the tests at the front of the match and at the end
 of the build run first in their own direction, and both directions get them
 early. This is a heuristic, not a termination guarantee (backward termination is
@@ -536,7 +550,7 @@ What a relational target changes:
   warnings (`Program.warnings`); the command line prints warnings on stderr.
   `42 show` prints the three blocks of §5.
 - **Q42** parses with clauses switched off, and the refusal names §9.
-- **Tests** (`tests/test_sugar.py`, 55). Every example is checked against its
+- **Tests** (`tests/test_sugar.py`, 56). Every example is checked against its
   hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
   forwards and backwards. Turned-round clauses compile to the inverse. Printed
   clauses parse back. Case trees agree with the plain union on 34 untyped

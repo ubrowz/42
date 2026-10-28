@@ -1,164 +1,140 @@
--- tour.42 -- a guided tour of 42, in seven steps.
+-- tour.42 -- a guided tour of 42, in eight steps.
 --
 -- Read this top to bottom.  Every definition is runnable:
 --
---     python3 -m rel42 run  tour.42 <name> <value> [--backward]
---     python3 -m rel42 show tour.42 <name>
+--     ./42 tour <name> <value> [--backward]
+--     ./42 show tour <name>
+--
+-- Definitions are written as clauses, `pattern <-> term`.  `show` prints each
+-- one three ways: its clauses, the same clauses turned round (which is the
+-- program run backwards), and the point-free 42 they compile to.
 --
 -- The one thing to internalise: there is no "forward" version of a program.
 -- There is one definition, and two directions to read it.
+
+type nat    = mu X. 1 + X
+type list a = mu X. 1 + (a x X)
 
 
 -- ===========================================================================
 -- 1.  Bijections -- exactly one answer, both ways.
 -- ===========================================================================
 --
---   run tour.42 not "L ()"            ->  R ()
---   run tour.42 not "R ()" -b         ->  0      -- i.e. L (); see README on
---                                                -- why 0, [] and L () print alike
+--   ./42 tour not "L ()"              ->  R ()
+--   ./42 tour not "R ()" --backward   ->  L ()   (printed as 0; MANUAL section 3)
 --
--- Booleans are 1 + 1, so `not` is literally "swap the two summands".
+-- `not` moves whatever is under one label to the other.  Booleans are the
+-- case where what is under the label is ().  It compiles to the one built-in
+-- step `swapsum`.
 
-type nat    = mu X. 1 + X
-type list a = mu X. 1 + (a x X)
+def not (L x)  <->  R x
+def not (R x)  <->  L x
 
-def not  = swapsum
-def swap = swapprod
+def swap (a, b)  <->  (b, a)
 
--- Composition of bijections is a bijection.  (a, (b, c)) |-> (c, (a, b)):
+-- Any rearrangement of a value's pieces is a bijection:
 --
---   assocprod : (a, (b, c)) |-> ((a, b), c)
---   swapprod  : ((a, b), c) |-> (c, (a, b))
+--   ./42 tour rot3 "(1, (2, 3))"      ->  (3, (1, 2))
 
-def rot3 = assocprod ; swapprod
+def rot3 (a, (b, c))  <->  (c, (a, b))
 
 
 -- ===========================================================================
 -- 2.  Making structure out of nothing.
 -- ===========================================================================
 --
--- To build a value you often need a `()` you do not have.  `unitprod` throws
--- one away (1 x a -> a), so `unitprod!` conjures one up.  That is reversible
--- because `()` carries no information: there was only ever one thing it could
--- have been.
+-- `[x]` needs an empty list to put `x` in front of, and nothing in the input
+-- supplies one.  A constant like `[]` costs nothing to make, because there was
+-- only ever one thing it could be; run backwards, it is checked, not invented.
 --
--- `single` wraps a value into a one-element list.  Trace it on x:
---
---   x                unitprod!   -->  ((), x)
---   ((), x)          swapprod    -->  (x, ())
---   (x, ())          id * inl    -->  (x, L ())      -- L () is nil
---   (x, nil)         inr         -->  R (x, nil)     -- which is [x]
---
---   run tour.42 single 7          ->  [7]
---   run tour.42 single "[7]" -b   ->  7
+--   ./42 tour single 7                ->  [7]
+--   ./42 tour single "[7]" --backward ->  7
 
-def single = unitprod! ; swapprod ; (id * inl) ; inr
+def single x  <->  [x]
 
 
 -- ===========================================================================
 -- 3.  Partial injections -- at most one answer.
 -- ===========================================================================
 --
--- A nat is  mu X. 1 + X:  zero is `L ()`, and n+1 is `R n`.  So the successor
--- function *is* the right injection, and predecessor is its dagger.
+-- A nat is  mu X. 1 + X:  zero is `L ()`, and n + 1 is `R n`.  So the
+-- successor is the right label, and the predecessor takes it off again.
 --
---   run tour.42 pred 3   ->  2
---   run tour.42 pred 0   ->  {}     -- empty, not an error: 0 has no preimage
+--   ./42 tour pred 3                  ->  2
+--   ./42 tour pred 0                  ->  {}  -- empty, not an error: no clause
+--                                             -- of `pred` matches 0
 
-def succ = inr
-def pred = inr!
+def succ n        <->  n + 1
+def pred (n + 1)  <->  n
 
 
 -- ===========================================================================
 -- 4.  Union -- genuine choice.
 -- ===========================================================================
 --
--- `|` is union of relations.  `near` relates n to both its neighbours, so it
--- has two answers on most inputs and one on zero (where `pred` contributes
--- nothing).  Union is self-dual: dagger distributes over it without flipping.
+-- `|` is the union of two programs: every answer of either.  `near` relates n
+-- to both its neighbours, so it has two answers on most inputs and one on zero
+-- (where `pred` contributes nothing).  This is also how a definition says that
+-- two overlapping cases are both meant (MANUAL section 6).
 --
---   run tour.42 near 5   ->  4, 6
---   run tour.42 near 0   ->  1
+--   ./42 tour near 5                  ->  4, 6
+--   ./42 tour near 0                  ->  1
 
 def near = pred | succ
 
 
 -- ===========================================================================
--- 5.  The recursion idiom.  This is the pattern to learn.
+-- 5.  Recursion.
 -- ===========================================================================
 --
--- To case-analyse a value of a sum type, you need three moves:
---
---     dist    -- (only for binary functions) push the pair inside the sum
---     f + g   -- handle the two branches independently
---     join    -- collapse the two results back into one
---
--- For a *unary* function there is no pair, so you skip `dist`:
---
---     (base + step) ; join
---
--- For a *binary* function whose first argument is the one being analysed,
--- `dist` turns (1 + X) x Y into (1 x Y) + (X x Y) so each branch keeps its
--- second argument:
---
---     dist ; (base + step) ; join
---
--- Here is append.  Trace the step branch on (cons(h, t), ys):
---
---   (R (h, t), ys)       dist         -->  R ((h, t), ys)
---   ((h, t), ys)         assocprod!   -->  (h, (t, ys))
---   (h, (t, ys))         id * append  -->  (h, t ++ ys)
---   (h, t ++ ys)         inr          -->  cons(h, t ++ ys)
+-- One clause per shape of the input.  A list is empty or a cons cell, so
+-- `append` has two clauses, and the second calls `append` on a shorter list.
 
-def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
+def append ([], ys)    <->  ys
+def append (x:xs, ys)  <->  x : append (xs, ys)
 
--- And here is reverse, unary, so no `dist`.  The base branch receives `()`
--- and must produce nil -- which is exactly `inl`.  Trace the step on (h, t):
---
---   (h, t)               id * rev     -->  (h, rev t)
---   (h, rev t)           swapprod     -->  (rev t, h)
---   (rev t, h)           id * single  -->  (rev t, [h])
---   (rev t, [h])         append       -->  rev t ++ [h]
+def rev []      <->  []
+def rev (x:xs)  <->  append (rev xs, [x])
 
-def rev = (inl + ((id * rev) ; swapprod ; (id * single) ; append)) ; join
+--   ./42 tour append "([1,2], [3,4])" ->  [1, 2, 3, 4]
+--   ./42 tour rev "[1,2,3]"           ->  [3, 2, 1]
+--   ./42 tour rev "[3,2,1]" -b        ->  [1, 2, 3]
 
 
 -- ===========================================================================
 -- 6.  Naming an inverse.
 -- ===========================================================================
 --
--- `append!` is already a program, so you can just give it a name.  Forwards,
+-- `append!` is already a program, so it can be given a name.  Forwards,
 -- `split` enumerates every way to cut a list in two -- and nobody wrote it.
 --
---   run tour.42 split "[1,2,3]"   ->  four splittings
+--   ./42 tour split "[1,2,3]"         ->  four splittings
 --
--- This is the payoff of the whole design: `split` is not a second
--- implementation that must be kept in sync with `append`.  It *is* `append`.
+-- `./42 show tour append` prints the clauses of `append` turned round, which
+-- is what `split` does, read off the page:
+--
+--   append!  ys <-> ([], ys)
+--   append!  (x : append (xs, ys)) <-> (x : xs, ys)
 
 def split = append!
 
 
 -- ===========================================================================
--- 7.  Tests are coreflexives -- and you build them out of `copy`.
+-- 7.  A test is a name used twice.
 -- ===========================================================================
 --
--- A test is a relation that either returns its input unchanged or returns
--- nothing.  You do not need a special construct for it.  `copy` duplicates,
--- the middle does some work, and `copy!` succeeds only if the two halves
--- still agree:
+-- A test returns its input unchanged or returns nothing.  No special construct
+-- is needed: a pattern that uses a name twice matches only when the two
+-- places agree.  `palin` builds the pair (l, rev l) and matches it against
+-- (m, m), which succeeds exactly when l reads the same backwards.
 --
---   l          copy        -->  (l, l)
---   (l, l)     id * rev    -->  (l, rev l)
---   (l, rev l) copy!       -->  {l} if l == rev l, else {}
+--   ./42 tour palin "[1,2,1]"         ->  [1, 2, 1]
+--   ./42 tour palin "[1,2,3]"         ->  {}
 --
---   run tour.42 palin "[1,2,1]"   ->  [1, 2, 1]
---   run tour.42 palin "[1,2,3]"   ->  {}
---
--- Note it is its own dagger, up to `rev` being its own dagger.  A test does
--- not care which way you run it -- which is why "filter" and "condition" are
--- the same construct here, not two.
+-- It compiles to  copy ; id * rev ; copy!  -- duplicate, reverse one copy,
+-- demand they still agree.
 
-def palin = copy ; (id * rev) ; copy!
+def palin l  <->  let (m, m) = (l, rev l) in m
 
 
 -- ===========================================================================
@@ -173,57 +149,47 @@ def palin = copy ; (id * rev) ; copy!
 --                 + [(src, dst)]
 --                 + hanoi(n-1, aux, src, dst))
 --
--- It never transforms a value.  Its whole method is to hand the three pegs to
--- each sub-call in a *different order*.  42 has no argument names to reorder,
--- so that reordering has to become data: an explicit rewrite of every move in
--- the list a sub-call returns.
+-- It hands the three pegs to each sub-call in a *different order*.  42
+-- definitions take one value, not a list of arguments to reorder, so the
+-- reordering becomes data: a rewrite of every move in the list a sub-call
+-- returns.
 --
--- A peg is  1 + (1 + 1) -- three values, read as 0, 1, 2.  The printer knows
--- the first two as the numbers 0 and 1 and has no name for the third, so peg 2
--- prints raw, as `R R ()`.  A move is a pair of pegs.  `swap01` exchanges pegs
--- 0 and 1; `swap12` exchanges 1 and 2.  Each is one transposition:
+-- A peg is  1 + (1 + 1):  L () is peg 0, R (L ()) is peg 1, R (R ()) is
+-- peg 2.  The printer shows the first two as 0 and 1 and has no name for the
+-- third, so peg 2 prints as `R R ()`.  `swap01` exchanges pegs 0 and 1;
+-- `swap12` exchanges 1 and 2.
+
+def swap01 (L x)      <->  R (L x)
+def swap01 (R (L x))  <->  L x
+def swap01 (R (R x))  <->  R (R x)
+
+def swap12 (L x)      <->  L x
+def swap12 (R (L x))  <->  R (R x)
+def swap12 (R (R x))  <->  R (L x)
+
+-- `relabelA` rewrites the first sub-call's moves into our peg names: its
+-- destination is our auxiliary, so swap 1 and 2.  `relabelB` does the second
+-- sub-call: swap 0 and 1.
+
+def relabelA []             <->  []
+def relabelA ((a, b) : ms)  <->  (swap12 a, swap12 b) : relabelA ms
+
+def relabelB []             <->  []
+def relabelB ((a, b) : ms)  <->  (swap01 a, swap01 b) : relabelB ms
+
+-- `hanoi` itself.  `n` is used twice, once per sub-call, which is a copy.
 --
---   swap01   assocsum      -->  read 1 + (1 + 1) as (1 + 1) + 1
---            swapsum + id   -->  swap 0 and 1, leave 2
---            assocsum!      -->  back to 1 + (1 + 1)
-
-def swap01 = assocsum ; (swapsum + id) ; assocsum!
-def swap12 = id + swapsum
-
--- `relabelA` rewrites the first sub-call's moves into our peg names: its `dst`
--- is our `aux`, so fix 0 and swap 1 <-> 2.  `relabelB` does the second: fix 2
--- and swap 0 <-> 1.  Both are the unary list recursion of step 5 with a
--- move-rewrite in the step branch where `rev` had `append`.
-
-def relabelA = (inl + (((swap12 * swap12) * relabelA) ; inr)) ; join
-def relabelB = (inl + (((swap01 * swap01) * relabelB) ; inr)) ; join
-
--- The one move the big disk makes, (0, 2), conjured from () and consed on.
--- `mkmove02` turns () into ((), ()) and labels the halves 0 and 2.
-
-def mkmove02 = copy ; (inl * (inr ; inr))
-def consMid  = unitprod! ; (mkmove02 * id) ; inr
-
--- `hanoi` itself.  n = 0 is the empty list.  n = m+1 is, on m:
---
---   copy                 -->  (m, m)
---   hanoi * hanoi        -->  (solve m, solve m)
---   relabelA * relabelB  -->  (A, B), each move now in our peg names
---   id * consMid         -->  (A, (0,2) : B)
---   append               -->  A ++ (0,2) : B
---
---   run tour.42 hanoi 3
+--   ./42 tour hanoi 3
 --     ->  [(0, R R ()), (0, 1), (R R (), 1), (0, R R ()), (1, 0), (1, R R ()),
 --          (0, R R ())]                      -- i.e. 0->2, 0->1, 2->1, 0->2, ...
 --
 -- Backwards, `hanoi!` reads a move list and returns the n it solves, or {} if
--- the list is not the optimal solution for any n -- a checker nobody wrote:
+-- the list is not the optimal solution for any n -- a checker nobody wrote.
+-- Turned round, the two uses of `n` must agree, so both halves of the list
+-- have to be solutions for the same n.
 --
---   run tour.42 hanoi "[(0, 1), (0, R R ()), (1, R R ())]" -b   ->  2
---   run tour.42 hanoi "[(0, R R ()), (1, R R ())]"          -b   ->  {}
+--   ./42 tour hanoi "[(0, 1), (0, R R ()), (1, R R ())]" -b   ->  2
+--   ./42 tour hanoi "[(0, R R ()), (1, R R ())]"          -b   ->  {}
 
-def hanoi = ( inl
-            + ( copy ; (hanoi * hanoi)
-              ; (relabelA * relabelB)
-              ; (id * consMid) ; append )
-            ) ; join
+def hanoi 0      <->  []
+def hanoi (n+1)  <->  append (relabelA (hanoi n), (L (), R (R ())) : relabelB (hanoi n))
