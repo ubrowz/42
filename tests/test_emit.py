@@ -235,6 +235,21 @@ class TestEmitterRoundTrips(unittest.TestCase):
         gates, _ = emit(once, ground(infer(once), 2).dom, {})
         self.assertEqual([g[0] for g in gates], ["swap"])
 
+    def test_swapprod_backwards_is_swapprod(self):
+        """`swapprod!` exchanges the two blocks it is given, like `swapprod`.
+
+        The emitter once read the incoming pair back to front under `!`, which
+        goes unnoticed while both blocks have the same width and puts wires in
+        the wrong place when they do not. A one-qubit block beside a two-qubit
+        one, with an `x` on the single qubit afterwards, shows which wire it is.
+        """
+        term = parse_term("swapprod! ; (id * swapsum)")
+        dom = TProd(QUBIT, TProd(QUBIT, QUBIT))
+        gates, wires = emit(term, dom, {})
+        at = type(ground(infer(term), None))(dom, TProd(TProd(QUBIT, QUBIT), QUBIT))
+        ok, why = agree(unitary_of(gates, wires), reference(term, at, {}))
+        self.assertTrue(ok, why)
+
     def test_a_choice_is_a_control_with_no_rule_of_its_own(self):
         """`cx` and `ccx` come out as one gate each, from `ctrl` alone."""
         self.assertEqual(emitted("cx", 2)[0], [("cx", [0, 1])])

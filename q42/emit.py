@@ -270,7 +270,9 @@ def _prim(name: str, inv: bool, ty: Type, layout: Layout, ctrls: Ctrls):
         return _controlled("x", (layout[0],), ctrls), layout, TSum(b, a)
 
     if name == "swapprod":
-        a, b = _split_prod(ty) if not inv else _split_prod(ty)[::-1]
+        # `swapprod` is its own inverse, so `inv` changes nothing: whatever the
+        # incoming pair is, its two blocks change places.
+        a, b = _split_prod(ty)
         wa = _w(a)
         # No gate: exchanging two blocks is a relabelling in a format with no
         # fixed topology, and the layout carries it.
