@@ -7,13 +7,21 @@ core that 42 and Q42 share. No prior knowledge of quantum mechanics is assumed;
 the physics is developed here from scratch, but only as far as Q42 actually
 needs it, and the parts Q42 does *not* model are named as such.
 
+**What Q42 is.** 42 computes with *sets*: a program relates
+inputs to outputs, and running it backwards gives the set of everything an
+answer could have come from. Q42 is the same language computing with *complex
+numbers*: each input–output pairing carries a number, those numbers can cancel,
+and that makes it a language for quantum computers. §1 says why such a language
+has to be reversible, §2 gives the physics, and §3 and §4 show how little of 42
+had to change.
+
 ---
 
 ## Contents
 
-1. [One change, and everything follows](#1-one-change-and-everything-follows)
-2. [Why reversibility is forced](#2-why-reversibility-is-forced)
-3. [The physics you need](#3-the-physics-you-need)
+1. [Why reversibility is forced](#1-why-reversibility-is-forced)
+2. [The physics you need](#2-the-physics-you-need)
+3. [One change, and everything follows](#3-one-change-and-everything-follows)
 4. [Why 42 already fitted](#4-why-42-already-fitted)
 5. [What Q42 drops](#5-what-q42-drops)
 6. [What Q42 adds](#6-what-q42-adds)
@@ -26,25 +34,253 @@ needs it, and the parts Q42 does *not* model are named as such.
 
 ---
 
-## 1. One change, and everything follows
+## 1. Why reversibility is forced
 
-- [1.1 A program is a grid](#11-a-program-is-a-grid)
-- [1.2 Running backwards is reading the other way](#12-running-backwards-is-reading-the-other-way)
-- [1.3 Composing is combining grids](#13-composing-is-combining-grids)
-- [1.4 Q42 puts numbers in the cells](#14-q42-puts-numbers-in-the-cells)
-- [1.5 The whole difference, in one table](#15-the-whole-difference-in-one-table)
+Before the physics, the engineering reason a computer scientist should care.
 
-42 computes with **sets**: a program relates inputs to outputs, and running it
-backwards gives the set of everything an answer could have come from.
+### Erasing a bit costs energy
 
-Q42 computes with **complex numbers**: each input–output pairing carries a
-number, and those numbers can cancel.
+**Landauer's principle** (1961): erasing one bit of information in a computer at
+temperature `T` must dissipate at least `kT ln 2` joules as heat, where `k` is
+Boltzmann's constant. At room temperature that is about `2.9 × 10⁻²¹` joules,
+negligible per bit today, and a floor that no cleverness removes.
 
-That is the entire difference. The rest of this section makes it concrete,
-because the way to see it is to draw a 42 program as a grid and then change what
-sits in the cells.
+The point is *why* there is a floor. Information that is destroyed has to go
+somewhere; it becomes entropy in the environment. A computation that never
+destroys information has no such floor, and Bennett showed in 1973 that any
+computation can be rearranged into one that doesn't. That is the origin of
+reversible computing as a field, and of 42.
 
-### 1.1 A program is a grid
+### Quantum mechanics has no choice at all
+
+For quantum computers this stops being an efficiency argument and becomes a
+constraint. The evolution of an isolated quantum system is described by a
+**unitary** matrix (§2), and every unitary has an inverse. There is no such
+thing as an irreversible quantum gate, in the way that there is no such thing as
+a triangle with four sides. It is not a design decision anyone made.
+
+So the familiar irreversible operations are simply unavailable:
+
+```
+c = a AND b
+```
+
+destroys information, since knowing `c = 0` tells you almost nothing about `a`
+and `b`, so there is no two-input AND gate. What exists instead is the **Toffoli**
+gate, which keeps its inputs and writes the answer into a third wire:
+
+```
+(a, b, c)  |->  (a, b, c XOR (a AND b))
+```
+
+Set `c = 0` and the third component becomes `a AND b`, with `a` and `b` still
+there. This is the padding trick from the 42 manual's §9.3, where `mul` keeps its
+multiplier in order to stay invertible; the same pressure produces the same
+answer in both places.
+
+### Uncomputation
+
+Padding has a cost: the kept-around values pile up. If you compute an
+intermediate `x`, use it, and no longer want it, you cannot drop it, since that
+would be erasing information. You must **uncompute** it by running its producer
+backwards.
+
+The pattern is `P ; Q ; P!`: do the work, use it, undo the work. In Q42 that
+is an ordinary term, because `!` is part of the language, and because every Q42
+term is invertible `P!` really is `P`'s inverse. Languages like Silq spend
+considerable machinery on *inferring* where this goes, so that the programmer
+never has to decide. Q42 does not infer: you decide, and then writing it costs
+three characters. What the language gives you is that what you wrote is exact.
+
+---
+
+## 2. The physics you need
+
+- [2.1 A state is a vector of amplitudes](#21-a-state-is-a-vector-of-amplitudes)
+- [2.2 Amplitudes are not probabilities](#22-amplitudes-are-not-probabilities)
+- [2.3 A gate is a unitary matrix](#23-a-gate-is-a-unitary-matrix)
+- [2.4 Superposition](#24-superposition)
+- [2.5 Interference — the one that matters](#25-interference--the-one-that-matters)
+- [2.6 Entanglement](#26-entanglement)
+- [2.7 What Q42 does not model](#27-what-q42-does-not-model)
+
+Enough to read Q42 programs, and no more. Everything here is finite-dimensional
+linear algebra; nothing requires an understanding of physics.
+
+### 2.1 A state is a vector of amplitudes
+
+A classical bit is `0` or `1`. A **qubit** is a pair of complex numbers, one
+attached to each of those two possibilities:
+
+```
+|psi>  =  c0 |0>  +  c1 |1>          c0, c1 in C
+```
+
+`|0>` and `|1>` are names for the two basis vectors. The notation `|x>` is
+called a *ket* and is a way of writing "the basis vector labelled `x`". The `cᵢ` are **amplitudes**.
+
+For `n` qubits there are `2ⁿ` basis states, `|000…>` through `|111…>`, and a
+state is `2ⁿ` amplitudes. That exponential is the whole reason simulating
+quantum computers is expensive, and the whole reason building them might be
+worth it.
+
+### 2.2 Amplitudes are not probabilities
+
+The probability of seeing outcome `x` if you look is `|cₓ|²`, the squared
+magnitude. This is the **Born rule**, and it is where the physics enters; the
+rest is linear algebra.
+
+Two consequences a computer scientist should internalise:
+
+- Probabilities must sum to `1`, so `Σ |cᵢ|² = 1`. A state is a **unit vector**.
+- Amplitudes can be **negative**, or complex. Probabilities cannot. This is the
+  entire difference between a quantum computer and a randomised classical one,
+  and everything interesting comes from it.
+
+### 2.3 A gate is a unitary matrix
+
+A gate on `n` qubits is a `2ⁿ × 2ⁿ` complex matrix `U` satisfying
+
+```
+U† U  =  U U†  =  I
+```
+
+where `U†` ("U dagger") is the **adjoint**: transpose the matrix and conjugate
+every entry. Such a matrix is called **unitary**.
+
+Two things follow, and they are why the condition is the one physics imposes:
+
+- **`U† ` is `U`'s inverse.** Reversibility, for free, for every gate.
+- **`U` preserves length.** Since states are unit vectors and probabilities are
+  squared magnitudes, a map that changed length would produce probabilities not
+  summing to `1`. Unitarity is exactly the condition "still a valid state
+  afterwards".
+
+Q42 spells `U†` as `U!`, which is the same `!` that 42 uses for running
+a program backwards. It is not an analogy: in 42 the operation is the converse
+of a relation, in Q42 the adjoint of a matrix, and they are the same structural
+operation in two different settings (§4).
+
+Q42 never checks unitarity, because it never has to: every primitive is unitary
+and every way of combining them preserves unitarity (§6). You can audit
+the claim:
+
+```
+$ 42q unitary gates
+  [ok ] h ; h! = id on 2 dimension(s)
+  [ok ] ccx ; ccx! = id on 8 dimension(s)
+  ...
+-- 24/26 unitary, 2 with no single matrix
+```
+
+### 2.4 Superposition
+
+A state with more than one nonzero amplitude is in **superposition**. The
+Hadamard gate makes one from a definite input:
+
+```
+$ 42q gates h "|0>"
+h |0>
+  = 0.707107|0>  +  0.707107|1>
+```
+
+`0.707107` is `1/√2`, so both outcomes have probability `(1/√2)² = 1/2`.
+
+It is tempting, and wrong, to read this as "the qubit is secretly 0 or 1 and we
+don't know which". The next section is why.
+
+### 2.5 Interference — the one that matters
+
+Apply `h` a second time. Classically, randomising a coin twice leaves it random.
+Here:
+
+```
+$ 42q gates hh "|0>"
+hh |0>
+  = |0>
+```
+
+The randomness is *gone*. Follow the arithmetic. `H|0>` is `0.7071|0> +
+0.7071|1>`; now apply `H` to each part and collect the results:
+
+```
+    from |0> -> |0> :  +0.7071 x +0.7071  =  +0.5
+    from |1> -> |0> :  +0.7071 x +0.7071  =  +0.5      sum: +1.0
+    from |0> -> |1> :  +0.7071 x +0.7071  =  +0.5
+    from |1> -> |1> :  +0.7071 x -0.7071  =  -0.5      sum:  0.0
+```
+
+Two routes lead to `|1>` and they arrive with **opposite signs**, so they cancel.
+This is **destructive interference**, and it has no classical counterpart:
+probabilities are non-negative and adding more routes to an outcome can only
+make it likelier. Amplitudes are not so constrained.
+
+Every quantum algorithm that beats its classical rival does it this way, by
+arranging for the wrong answers' amplitudes to cancel and the right answer's to
+reinforce. Grover's search and Shor's factoring are both this, elaborately.
+
+This is what 42 cannot express. Over the booleans the two routes to `|1>` would
+be `1 ∨ 1 = 1`, still possible, and there is no `−1` to cancel with.
+42 tells you which outcomes are *reachable*; it cannot tell you that two ways of
+reaching one annihilate.
+
+### 2.6 Entanglement
+
+Two qubits have four basis states, and a state of the pair is four amplitudes.
+Sometimes those factor into "this qubit is in state `ψ`, that one in state `φ`",
+and sometimes they do not. When they do not, the qubits are **entangled** and
+neither has a state of its own.
+
+```
+$ 42q gates bell "|00>"
+bell |00>
+  = 0.707107|00>  +  0.707107|11>
+```
+
+Both qubits are certainly equal and neither is certainly anything. The test is
+mechanical: write the amplitudes as a 2×2 matrix indexed by the two qubits, and
+the state is a product exactly when the determinant is zero. Here
+
+```
+c00 c11 - c01 c10  =  0.7071 x 0.7071 - 0 x 0  =  0.5
+```
+
+which is not zero, so it does not factor.
+
+Entanglement is why Q42 needs one piece of machinery 42 did not (§7.5): a state
+of a compound system is not in general a pair of states.
+
+### 2.7 What Q42 does not model
+
+Stated plainly, because a manual that quietly omits these would be misleading.
+
+- **Measurement, except at the end.** Q42 computes the unitary. You may measure
+  the *result* (§7.6), which is the Born rule applied to a finished state, but
+  nothing collapses mid-program, so there is no measuring, branching on the
+  outcome, and carrying on. §9.2 is precise about the difference.
+- **Normalisation.** Q42 does not enforce `Σ|cᵢ|² = 1`. It does not need to: a
+  ket you type in is a unit vector, and unitary maps preserve length, so a
+  well-formed program cannot leave that set.
+- **Noise, decoherence, error correction.** Nothing here is modelled.
+- **Global phase.** Multiplying an entire state by a unit complex number is
+  physically undetectable. Q42 tracks it faithfully anyway, which is why some
+  gate identities hold only "up to phase" (§6.3).
+
+---
+
+## 3. One change, and everything follows
+
+- [3.1 A program is a grid](#31-a-program-is-a-grid)
+- [3.2 Running backwards is reading the other way](#32-running-backwards-is-reading-the-other-way)
+- [3.3 Composing is combining grids](#33-composing-is-combining-grids)
+- [3.4 Q42 puts numbers in the cells](#34-q42-puts-numbers-in-the-cells)
+- [3.5 The whole difference, in one table](#35-the-whole-difference-in-one-table)
+
+With the physics in hand, here is the whole difference between 42 and Q42, made
+concrete. The way to see it is to draw a 42 program as a grid and then change
+what sits in the cells: marks in 42, the amplitudes of §2 in Q42.
+
+### 3.1 A program is a grid
 
 Take a shape with finitely many values, say the two-value shape `1 + 1`, whose
 values are `L ()` and `R ()` (the 42 manual, §3.1). A program from that shape to
@@ -87,7 +323,7 @@ labels, has two marks in one row. That is a set of two answers, drawn:
 Nothing new has been said yet. This is the same "a program returns a set" from
 the 42 manual's §6, written as a picture instead of as a list.
 
-### 1.2 Running backwards is reading the other way
+### 3.2 Running backwards is reading the other way
 
 Now the useful part. To run a program backwards you ask, of an output, which
 inputs could have produced it, which is reading the grid down a column instead
@@ -107,7 +343,7 @@ Same marks, rows and columns exchanged. This is why 42 never needed a second
 algorithm for the backward direction, and why `f!!` is `f`: flipping
 twice puts everything back.
 
-### 1.3 Composing is combining grids
+### 3.3 Composing is combining grids
 
 `f ; g` means "do `f`, then `g`". So `f ; g` can get from `x` to `z` exactly when
 there is some middle value `y` with `f` reaching `y` and `g` reaching `z` from
@@ -120,10 +356,10 @@ of `×` and `or` in place of `+`. So 42's grids are matrices whose entries are
 `0` and `1`, and `;` is matrix multiplication over those. That is all that "42
 is matrices over the booleans" means.
 
-### 1.4 Q42 puts numbers in the cells
+### 3.4 Q42 puts numbers in the cells
 
-Q42 changes one thing: a cell holds a **complex number** instead of a mark. Call
-it an **amplitude**; §3.2 says what it means physically.
+Q42 changes one thing: a cell holds a **complex number** instead of a mark: the
+amplitude of §2.2.
 
 Here is `h`, the Hadamard gate, whose grid Q42 will print for you:
 
@@ -137,7 +373,7 @@ h : qubit <-> qubit
 Same 2×2 grid as `not`, but with numbers, and one of them is negative. That is
 the point.
 
-One wrinkle before going on. The grids in §1.1 put inputs in rows, which reads
+One wrinkle before going on. The grids in §3.1 put inputs in rows, which reads
 naturally as "from, to". `42q matrix` prints them the other way up: its **rows are
 outputs and its columns are inputs**. That is the universal convention in physics,
 because a gate is written as acting on a column of amplitudes, `U|ψ>`. The two
@@ -146,7 +382,7 @@ difference does not show on `h`, whose grid happens to be symmetric. It does sho
 where the lone `i` sits in row `|1>`, column `|0>`: the gate takes input `|0>` to
 output `i|1>`.
 
-Composition works exactly as in §1.3, with the OR and AND becoming ordinary `+`
+Composition works exactly as in §3.3, with the OR and AND becoming ordinary `+`
 and `×`, since that is what they were standing in for. So compose `h` with itself
 and fill in the `|1>` cell of the first row: walk along `h`'s row for `|0>` and
 down `h`'s column for `|1>`, multiplying and adding.
@@ -157,31 +393,21 @@ down `h`'s column for `|1>`, multiplying and adding.
     total   :                        0.0000
 ```
 
-The two routes **cancel**. With marks that could not have happened: `* or *` is
-`*`, and more ways of reaching an answer only ever makes it more reachable. With
-numbers, one route can undo another.
+The two routes **cancel**: this is §2.5's interference, now seen as arithmetic on
+grids. With marks it could not have happened: `* or *` is `*`, and more ways of
+reaching an answer only ever makes it more reachable. With numbers, one route can
+undo another.
 
-```
-$ 42q gates hh "|0>"
-hh |0>
-  = |0>
-```
+### 3.5 The whole difference, in one table
 
-Two Hadamards leave `|0>` exactly where it started. This is called
-**interference**, it is the source of every quantum algorithm's advantage over a
-classical one, and §3.5 returns to it. For now it is enough that it is arithmetic
-you can check by hand.
-
-### 1.5 The whole difference, in one table
-
-With §§1.1–1.4 in hand, the summary is readable:
+With §§3.1–3.4 in hand, the summary is readable:
 
 | | 42 | Q42 |
 |---|---|---|
 | a cell holds | a mark: reachable or not | a complex number |
 | a row says | the **set** of answers | the answers, each with an amplitude |
 | `;` combines grids by | AND down the middle, then OR | `×` down the middle, then `+` |
-| `!` is | the grid flipped (§1.2) | flipped, and each entry conjugated |
+| `!` is | the grid flipped (§3.2) | flipped, and each entry conjugated |
 | `+` and `*` | build a bigger grid out of two | the same, unchanged |
 | more routes to an answer | only ever helps | can cancel out |
 
@@ -195,240 +421,6 @@ semiring" is a one-line way to say all of the above. And flipping-and-conjugatin
 a matrix is called taking its **adjoint**, written `M†`. So `!` denotes the
 converse of a relation in 42 and the adjoint of a matrix in Q42, which §4.1
 shows is the same operation twice.
-
-## 2. Why reversibility is forced
-
-Before the physics, the engineering reason a computer scientist should care.
-
-### Erasing a bit costs energy
-
-**Landauer's principle** (1961): erasing one bit of information in a computer at
-temperature `T` must dissipate at least `kT ln 2` joules as heat, where `k` is
-Boltzmann's constant. At room temperature that is about `2.9 × 10⁻²¹` joules,
-negligible per bit today, and a floor that no cleverness removes.
-
-The point is *why* there is a floor. Information that is destroyed has to go
-somewhere; it becomes entropy in the environment. A computation that never
-destroys information has no such floor, and Bennett showed in 1973 that any
-computation can be rearranged into one that doesn't. That is the origin of
-reversible computing as a field, and of 42.
-
-### Quantum mechanics has no choice at all
-
-For quantum computers this stops being an efficiency argument and becomes a
-constraint. The evolution of an isolated quantum system is described by a
-**unitary** matrix (§3), and every unitary has an inverse. There is no such
-thing as an irreversible quantum gate, in the way that there is no such thing as
-a triangle with four sides. It is not a design decision anyone made.
-
-So the familiar irreversible operations are simply unavailable:
-
-```
-c = a AND b
-```
-
-destroys information, since knowing `c = 0` tells you almost nothing about `a`
-and `b`, so there is no two-input AND gate. What exists instead is the **Toffoli**
-gate, which keeps its inputs and writes the answer into a third wire:
-
-```
-(a, b, c)  |->  (a, b, c XOR (a AND b))
-```
-
-Set `c = 0` and the third component becomes `a AND b`, with `a` and `b` still
-there. This is the padding trick from the 42 manual's §9.3, where `mul` keeps its
-multiplier in order to stay invertible; the same pressure produces the same
-answer in both places.
-
-### Uncomputation
-
-Padding has a cost: the kept-around values pile up. If you compute an
-intermediate `x`, use it, and no longer want it, you cannot drop it, since that
-would be erasing information. You must **uncompute** it by running its producer
-backwards.
-
-The pattern is `P ; Q ; P!`: do the work, use it, undo the work. In Q42 that
-is an ordinary term, because `!` is part of the language, and because every Q42
-term is invertible `P!` really is `P`'s inverse. Languages like Silq spend
-considerable machinery on *inferring* where this goes, so that the programmer
-never has to decide. Q42 does not infer: you decide, and then writing it costs
-three characters. What the language gives you is that what you wrote is exact.
-
----
-
-## 3. The physics you need
-
-- [3.1 A state is a vector of amplitudes](#31-a-state-is-a-vector-of-amplitudes)
-- [3.2 Amplitudes are not probabilities](#32-amplitudes-are-not-probabilities)
-- [3.3 A gate is a unitary matrix](#33-a-gate-is-a-unitary-matrix)
-- [3.4 Superposition](#34-superposition)
-- [3.5 Interference — the one that matters](#35-interference--the-one-that-matters)
-- [3.6 Entanglement](#36-entanglement)
-- [3.7 What Q42 does not model](#37-what-q42-does-not-model)
-
-Enough to read Q42 programs, and no more. Everything here is finite-dimensional
-linear algebra; nothing requires an understanding of physics.
-
-### 3.1 A state is a vector of amplitudes
-
-A classical bit is `0` or `1`. A **qubit** is a pair of complex numbers, one
-attached to each of those two possibilities:
-
-```
-|psi>  =  c0 |0>  +  c1 |1>          c0, c1 in C
-```
-
-`|0>` and `|1>` are names for the two basis vectors. The notation `|x>` is
-called a *ket* and is a way of writing "the basis vector labelled `x`". The `cᵢ` are **amplitudes**.
-
-For `n` qubits there are `2ⁿ` basis states, `|000…>` through `|111…>`, and a
-state is `2ⁿ` amplitudes. That exponential is the whole reason simulating
-quantum computers is expensive, and the whole reason building them might be
-worth it.
-
-### 3.2 Amplitudes are not probabilities
-
-The probability of seeing outcome `x` if you look is `|cₓ|²`, the squared
-magnitude. This is the **Born rule**, and it is where the physics enters; the
-rest is linear algebra.
-
-Two consequences a computer scientist should internalise:
-
-- Probabilities must sum to `1`, so `Σ |cᵢ|² = 1`. A state is a **unit vector**.
-- Amplitudes can be **negative**, or complex. Probabilities cannot. This is the
-  entire difference between a quantum computer and a randomised classical one,
-  and everything interesting comes from it.
-
-### 3.3 A gate is a unitary matrix
-
-A gate on `n` qubits is a `2ⁿ × 2ⁿ` complex matrix `U` satisfying
-
-```
-U† U  =  U U†  =  I
-```
-
-where `U†` ("U dagger") is the **adjoint**: transpose the matrix and conjugate
-every entry. Such a matrix is called **unitary**.
-
-Two things follow, and they are why the condition is the one physics imposes:
-
-- **`U† ` is `U`'s inverse.** Reversibility, for free, for every gate.
-- **`U` preserves length.** Since states are unit vectors and probabilities are
-  squared magnitudes, a map that changed length would produce probabilities not
-  summing to `1`. Unitarity is exactly the condition "still a valid state
-  afterwards".
-
-Q42 spells `U†` as `U!`, which is the same `!` that 42 uses for running
-a program backwards. It is not an analogy: in 42 the operation is the converse
-of a relation, in Q42 the adjoint of a matrix, and they are the same structural
-operation in two different settings (§4).
-
-Q42 never checks unitarity, because it never has to: every primitive is unitary
-and every way of combining them preserves unitarity (§6). You can audit
-the claim:
-
-```
-$ 42q unitary gates
-  [ok ] h ; h! = id on 2 dimension(s)
-  [ok ] ccx ; ccx! = id on 8 dimension(s)
-  ...
--- 24/26 unitary, 2 with no single matrix
-```
-
-### 3.4 Superposition
-
-A state with more than one nonzero amplitude is in **superposition**. The
-Hadamard gate makes one from a definite input:
-
-```
-$ 42q gates h "|0>"
-h |0>
-  = 0.707107|0>  +  0.707107|1>
-```
-
-`0.707107` is `1/√2`, so both outcomes have probability `(1/√2)² = 1/2`.
-
-It is tempting, and wrong, to read this as "the qubit is secretly 0 or 1 and we
-don't know which". The next section is why.
-
-### 3.5 Interference — the one that matters
-
-Apply `h` a second time. Classically, randomising a coin twice leaves it random.
-Here:
-
-```
-$ 42q gates hh "|0>"
-hh |0>
-  = |0>
-```
-
-The randomness is *gone*. Follow the arithmetic. `H|0>` is `0.7071|0> +
-0.7071|1>`; now apply `H` to each part and collect the results:
-
-```
-    from |0> -> |0> :  +0.7071 x +0.7071  =  +0.5
-    from |1> -> |0> :  +0.7071 x +0.7071  =  +0.5      sum: +1.0
-    from |0> -> |1> :  +0.7071 x +0.7071  =  +0.5
-    from |1> -> |1> :  +0.7071 x -0.7071  =  -0.5      sum:  0.0
-```
-
-Two routes lead to `|1>` and they arrive with **opposite signs**, so they cancel.
-This is **destructive interference**, and it has no classical counterpart:
-probabilities are non-negative and adding more routes to an outcome can only
-make it likelier. Amplitudes are not so constrained.
-
-Every quantum algorithm that beats its classical rival does it this way, by
-arranging for the wrong answers' amplitudes to cancel and the right answer's to
-reinforce. Grover's search and Shor's factoring are both this, elaborately.
-
-This is what 42 cannot express. Over the booleans the two routes to `|1>` would
-be `1 ∨ 1 = 1`, still possible, and there is no `−1` to cancel with.
-42 tells you which outcomes are *reachable*; it cannot tell you that two ways of
-reaching one annihilate.
-
-### 3.6 Entanglement
-
-Two qubits have four basis states, and a state of the pair is four amplitudes.
-Sometimes those factor into "this qubit is in state `ψ`, that one in state `φ`",
-and sometimes they do not. When they do not, the qubits are **entangled** and
-neither has a state of its own.
-
-```
-$ 42q gates bell "|00>"
-bell |00>
-  = 0.707107|00>  +  0.707107|11>
-```
-
-Both qubits are certainly equal and neither is certainly anything. The test is
-mechanical: write the amplitudes as a 2×2 matrix indexed by the two qubits, and
-the state is a product exactly when the determinant is zero. Here
-
-```
-c00 c11 - c01 c10  =  0.7071 x 0.7071 - 0 x 0  =  0.5
-```
-
-which is not zero, so it does not factor.
-
-Entanglement is why Q42 needs one piece of machinery 42 did not (§7.5): a state
-of a compound system is not in general a pair of states.
-
-### 3.7 What Q42 does not model
-
-Stated plainly, because a manual that quietly omits these would be misleading.
-
-- **Measurement, except at the end.** Q42 computes the unitary. You may measure
-  the *result* (§7.6), which is the Born rule applied to a finished state, but
-  nothing collapses mid-program, so there is no measuring, branching on the
-  outcome, and carrying on. §9.2 is precise about the difference.
-- **Normalisation.** Q42 does not enforce `Σ|cᵢ|² = 1`. It does not need to: a
-  ket you type in is a unit vector, and unitary maps preserve length, so a
-  well-formed program cannot leave that set.
-- **Noise, decoherence, error correction.** Nothing here is modelled.
-- **Global phase.** Multiplying an entire state by a unit complex number is
-  physically undetectable. Q42 tracks it faithfully anyway, which is why some
-  gate identities hold only "up to phase" (§6.3).
-
----
 
 ## 4. Why 42 already fitted
 
@@ -1069,7 +1061,7 @@ The problem: you are handed a black box computing an unknown one-bit function
 tells you nothing about the other. Deutsch's algorithm answers after one.
 
 The oracle has to be reversible like everything else, so it takes the standard
-shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §2,
+shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §1,
 which is also `mul` keeping its multiplier in the 42 manual's §9.3. There are only
 four one-bit functions, so `q42/deutsch.42` writes all four out, each as its
 truth table (§7.3):
@@ -1379,7 +1371,7 @@ by what it does to the underlying bits:
 | `v` | superposes them | √X |
 
 Only **three of the ten** are physical operations, and they are exactly X, phase
-and √X. Everything else is the semiring plumbing of §1.5, and plumbing is
+and √X. Everything else is the semiring plumbing of §3.5, and plumbing is
 compile-time bookkeeping: `assocprod` regroups `a × (b × c)` into `(a × b) × c`
 and the bit string is untouched, while `unitsum` removes a tag whose other branch
 is uninhabited, `0 + qubit` and `qubit` being both two-dimensional, so there was
@@ -1627,7 +1619,7 @@ program worth the trouble.
 
 ### The program
 
-`bell` prepares the entangled pair of §3.6. Two operators:
+`bell` prepares the entangled pair of §2.6. Two operators:
 
 ```
 $ 42q show gates bell

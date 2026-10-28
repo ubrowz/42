@@ -268,8 +268,8 @@ class TestQManualNumbers(unittest.TestCase):
                     self.assertEqual(decode(v)[0], fibs[step] % 4)
             (v, _), = column(Ref("fib"), v, self.fib).items()
 
-    def test_section_1s_grids_are_the_real_relations(self):
-        """§1.1-1.2 draw four 42 programs as grids of marks. Check each cell."""
+    def test_section_3s_grids_are_the_real_relations(self):
+        """§3.1-3.2 draw four 42 programs as grids of marks. Check each cell."""
         from rel42 import run
         from rel42.core import Inl, Inr, UNIT
         from rel42.syntax import parse_term
@@ -285,8 +285,8 @@ class TestQManualNumbers(unittest.TestCase):
             with self.subTest(program=prog):
                 term = parse_term(prog)
                 got = [[1 if c in run(term, d, {}) else 0 for c in cod] for d in dom]
-                self.assertEqual(got, want, f"§1's grid for {prog} is wrong")
-        # and `join` really is `join!` transposed, which is what §1.2 claims
+                self.assertEqual(got, want, f"§3's grid for {prog} is wrong")
+        # and `join` really is `join!` transposed, which is what §3.2 claims
         jb = [[1 if c in run(parse_term("join!"), d, {}) else 0 for c in two]
               for d in one]
         jf = [[1 if c in run(parse_term("join"), d, {}) else 0 for c in one]
@@ -294,7 +294,7 @@ class TestQManualNumbers(unittest.TestCase):
         self.assertEqual([list(r) for r in zip(*jb)], jf)
 
     def test_the_matrix_printer_puts_outputs_in_rows(self):
-        """§1.4 warns that `42q matrix` is the transpose of §1.1's grids."""
+        """§3.4 warns that `42q matrix` is the transpose of §3.1's grids."""
         flat = re.sub(r"\s+", " ", self.text)
         self.assertIn("rows are outputs and its columns are inputs", flat)
         src = (
