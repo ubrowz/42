@@ -17,40 +17,36 @@
 -- Borrowed from arith.42.
 -- ---------------------------------------------------------------------------
 
-def add = dist ; (unitprod + (add ; inr)) ; join
+def add (0, n)      <->  n
+def add (m + 1, n)  <->  add (m, n) + 1
 
-def mul = dist ; ( (swapprod ; (id * inl))
-                 + (mul ; (copy * id) ; assocprod! ; (id * add))
-                 ) ; join
+def mul (0, n)      <->  (n, 0)
+def mul (m + 1, n)  <->  let (k, p) = mul (m, n) in (k, add (k, p))
 
 
 -- ---------------------------------------------------------------------------
--- Shape plumbing.
+-- Rearranging.
 --
--- `transpose` is the workhorse of this file: it exchanges the two inner
--- components of a pair of pairs, and it is its own inverse.
---
---   ((a, b), (c, d))  <->  ((a, c), (b, d))
+-- `transpose` exchanges the two inner components of a pair of pairs.  Turned
+-- round, its clause is the same clause with the names changed, so it is its
+-- own inverse.
 -- ---------------------------------------------------------------------------
 
-def transpose = assocprod!
-              ; (id * assocprod)
-              ; (id * (swapprod * id))
-              ; (id * assocprod!)
-              ; assocprod
+def transpose ((a, b), (c, d))  <->  ((a, c), (b, d))
 
 -- multiply, keeping BOTH operands:  (a, b) |-> ((a, b), a * b)
-def mul2 = (copy * id) ; assocprod! ; (id * mul) ; assocprod
+def mul2 (a, b)  <->  let (k, ab) = mul (a, b) in ((a, k), ab)
 
 
 -- ---------------------------------------------------------------------------
 -- Multiplication.   p/q * r/s  =  pr/qs
 --
--- The whole definition is one line, and it is worth seeing why.  `transpose`
--- turns ((p,q),(r,s)) into ((p,r),(q,s)) -- numerators together, denominators
--- together.  `mul` on each side gives ((r, pr), (s, qs)), because `mul` hands
--- back its second operand.  And a second `transpose` sorts that into
--- ((r,s), (pr, qs)): the operand we kept, beside the product.
+-- One line, and written point-free on purpose, because it shows what the
+-- clauses are doing.  `transpose` turns ((p,q),(r,s)) into ((p,r),(q,s)) --
+-- numerators together, denominators together.  `mul` on each side gives
+-- ((r, pr), (s, qs)), because `mul` hands back its second operand.  And a
+-- second `transpose` sorts that into ((r,s), (pr, qs)): the operand we kept,
+-- beside the product.
 -- ---------------------------------------------------------------------------
 
 def qmul = transpose ; (mul * mul) ; transpose
@@ -61,39 +57,15 @@ def qdiv = qmul!
 -- ---------------------------------------------------------------------------
 -- Addition.   p/q + r/s  =  (ps + qr) / qs
 --
--- Longer, because the operands are used unevenly: p once, r once, s three
--- times and q twice.  `mul` hands back its second operand, so s can simply be
--- threaded from one product into the next; only q has to be duplicated.
---
--- The steps are named so the shapes can be followed.
+-- The operands are used unevenly: p and r once each, q twice, s three times.
+-- `mul` hands back its second operand, so s threads from one product into the
+-- next as s1 and s2, and only q is used twice -- which is a copy.
 -- ---------------------------------------------------------------------------
 
---    ((p,q),(r,s))            ->  (p, (q, (q, (r, s))))
-def qsetup = ((id * copy) * id) ; assocprod! ; (id * assocprod!)
-
---    (q, (r, s))              ->  ((r, q*r), s)
-def qstepA = assocprod ; (mul * id)
-
---    (q, ((r, qr), s))        ->  ((s, q*s), (r, qr))
-def qstepB = (id * swapprod) ; assocprod ; (mul * id)
-
---    (p, ((s, qs), (r, qr)))  ->  (((s, p*s), qs), (r, qr))
-def qstepC = assocprod ; (assocprod * id) ; ((mul * id) * id)
-
---    (((s,ps), qs), (r,qr))   ->  ((r, s), (ps + qr, qs))
-def qstepD = assocprod!
-           ; (id * assocprod)
-           ; (id * (swapprod * id))
-           ; (id * assocprod!)
-           ; transpose
-           ; (swapprod * id)
-           ; (id * ((id * swapprod) ; assocprod ; (add * id)))
-
-def qadd = qsetup
-         ; (id * (id * qstepA))
-         ; (id * qstepB)
-         ; qstepC
-         ; qstepD
+def qadd ((p, q), (r, s))  <->  let (s1, ps) = mul (p, s)  in
+                                let (r1, qr) = mul (q, r)  in
+                                let (s2, qs) = mul (q, s1) in
+                                ((r1, s2), (add (ps, qr), qs))
 
 def qsub = qadd!
 
@@ -107,19 +79,19 @@ def qsub = qadd!
 --
 --   compute a thing, use it, then RECOMPUTE it backwards to cancel it.
 --
--- `withps` pairs a value with p*s injectively, so `withps!` removes a p*s.
--- Between them, `copy!` succeeds only if the two cross products agree.
+-- `withps` pairs a fraction pair with p*s, keeping everything it used, so it
+-- is injective and `withps!` removes a p*s again.  In `qeq`, the pattern
+-- (n, n) succeeds only if the two cross products agree.
 -- ---------------------------------------------------------------------------
 
-def toPS = (id * swapprod) ; transpose      -- ((p,q),(r,s)) -> ((p,s),(q,r))
-def toQR = (swapprod * id) ; transpose      -- ((p,q),(r,s)) -> ((q,r),(p,s))
+def withps ((p, q), (r, s))  <->  let ((p1, s1), ps) = mul2 (p, s) in (((p1, q), (r, s1)), ps)
+def withqr ((p, q), (r, s))  <->  let ((q1, r1), qr) = mul2 (q, r) in (((p, q1), (r1, s)), qr)
 
-def withps = toPS ; (mul2 * id) ; assocprod! ; (id * swapprod) ; assocprod ; (toPS! * id)
-def withqr = toQR ; (mul2 * id) ; assocprod! ; (id * swapprod) ; assocprod ; (toQR! * id)
+def cross x  <->  let (y, ps) = withps x in
+                  let (z, qr) = withqr y in
+                  (z, (ps, qr))
 
-def cross = withps ; (withqr * id) ; assocprod! ; (id * swapprod)
-
-def qeq = cross ; (id * copy!) ; withps!
+def qeq x  <->  let (y, (n, n)) = cross x in withps! (y, n)
 
 
 -- ---------------------------------------------------------------------------
@@ -127,7 +99,8 @@ def qeq = cross ; (id * copy!) ; withps!
 --
 -- `reduceby` divides both parts by a common factor you supply, and keeps the
 -- factor.  Keeping it is what makes the operation injective, so `scaleby`
--- comes free.
+-- comes free.  The factor is used twice, once per division, and comes back
+-- twice; the pattern (j, j) insists the two agree.
 --
 --   reduceby((6, 8), 2)  =  ((3, 4), 2)
 --   scaleby((3, 4), 2)   =  ((6, 8), 2)
@@ -147,11 +120,7 @@ def qeq = cross ; (id * copy!) ; withps!
 -- equality test agrees are the same number.
 -- ---------------------------------------------------------------------------
 
-def reduceby = (id * copy)
-             ; transpose
-             ; (swapprod * swapprod)
-             ; (mul! * mul!)
-             ; transpose
-             ; (id * copy!)
+def reduceby ((a, b), k)  <->  let ((a1, j), (b1, j)) = (mul! (k, a), mul! (k, b)) in
+                               ((a1, b1), j)
 
 def scaleby = reduceby!

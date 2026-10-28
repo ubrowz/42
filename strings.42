@@ -14,13 +14,14 @@
 
 
 -- ---------------------------------------------------------------------------
--- Borrowed wholesale from prelude.42 / tour.42.  Not one character of these
--- mentions text.
+-- Borrowed wholesale from tour.42.  Not one character of these mentions text.
 -- ---------------------------------------------------------------------------
 
-def single = unitprod! ; swapprod ; (id * inl) ; inr
-def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join
-def rev    = (inl + ((id * rev) ; swapprod ; (id * single) ; append)) ; join
+def append ([], ys)    <->  ys
+def append (x:xs, ys)  <->  x : append (xs, ys)
+
+def rev []      <->  []
+def rev (x:xs)  <->  append (rev xs, [x])
 
 
 -- ---------------------------------------------------------------------------
@@ -35,7 +36,8 @@ def rev    = (inl + ((id * rev) ; swapprod ; (id * single) ; append)) ; join
 def concat  = append
 def split   = append!
 def reverse = rev
-def palin   = copy ; (id * rev) ; copy!
+
+def palin l  <->  let (m, m) = (l, rev l) in m
 
 
 -- ---------------------------------------------------------------------------
@@ -43,44 +45,37 @@ def palin   = copy ; (id * rev) ; copy!
 --
 -- In ASCII, upper and lower case differ in exactly one bit -- the one worth
 -- 32.  So changing case is not arithmetic at all: it is reaching into the
--- byte and flipping a single boolean.  `swapsum` is the flip; the `id`s
--- either side of it are just navigation.
+-- byte and flipping a single boolean.
 --
 --   byte = (b7, (b6, (b5, (b4, (b3, (b2, (b1, b0)))))))
---           skip  skip  flip   ------- leave alone -------
+--           keep  keep  flip   ------- leave alone -------
 --
--- Being one `swapsum`, it is its own inverse: swapcase run backwards is
--- swapcase.
+-- `not` compiles to one `swapsum`, so `flipcase` is its own inverse: run
+-- backwards, it is itself.
 -- ---------------------------------------------------------------------------
 
-def flipcase = id * (id * (swapsum * id))
+def not (L x)  <->  R x
+def not (R x)  <->  L x
+
+def flipcase (b7, (b6, (b5, rest)))  <->  (b7, (b6, (not b5, rest)))
 
 
 -- Flipping bit 5 of *every* byte is wrong: it would turn a space into a NUL
 -- and a comma into a form feed.  We want to flip it only for letters, which
--- means a conditional -- and 42 does not have one.
+-- means if-then-else.
 --
--- `|` is not if-then-else.  It runs both branches and pools their answers, so
--- `f | g` normally gives two results.  But if the two branches are guarded by
--- filters that can never both succeed, exactly one of them ever produces
--- anything, and the union becomes a perfectly ordinary deterministic choice.
---
---   THIS IS HOW YOU WRITE IF-THEN-ELSE IN 42:
---       (guard ; then) | (complement-of-guard ; else)
---   and it is your job, not the language's, to make the guards disjoint.
---
--- Here the guard is on the top two bits.  ASCII letters all lie in 64..127,
--- that is b7 = 0 and b6 = 1, so:
+-- In 42 if-then-else is clauses whose patterns cannot both match.  ASCII
+-- letters all lie in 64..127, that is b7 = 0 and b6 = 1, so the first clause
+-- takes exactly those bytes and the other two take the rest.  Had two of the
+-- patterns overlapped, 42 would have warned: a definition is the union of its
+-- clauses, so an overlapping byte would get two answers.
 
-def bit0 = inl! ; inl           -- keeps a bit unchanged if it is 0, else nothing
-def bit1 = inr! ; inr           -- keeps a bit unchanged if it is 1, else nothing
+def swapbyte (L (), (R (), rest))  <->  flipcase (L (), (R (), rest))   -- 64..127
+def swapbyte (R (), rest)          <->  (R (), rest)                    -- 128..255
+def swapbyte (L (), (L (), rest))  <->  (L (), (L (), rest))            -- 0..63
 
-def hi     = bit0 * (bit1 * id)                    -- b7=0, b6=1  (64..127)
-def notHi  = (bit1 * id) | (bit0 * (bit0 * id))    -- everything else
-
-def swapbyte = (hi ; flipcase) | notHi
-
-def swapcase = (inl + ((swapbyte * swapcase) ; inr)) ; join
+def swapcase []        <->  []
+def swapcase (c : cs)  <->  swapbyte c : swapcase cs
 
 -- Caveat, stated precisely rather than waved at: this swaps case correctly for
 -- A-Z and a-z, leaves digits, spaces and punctuation alone, and still maps the

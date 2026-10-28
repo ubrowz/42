@@ -383,7 +383,45 @@ def route(s: Shape, t: Shape, units: bool = True) -> Term:
     out = flatten(s)
     if not leaves and units:
         out = Seq(out, UNIT_TEST)
-    return Seq(Seq(out, permute(leaves, _leaves(t))), dagger(flatten(t)))
+    return _shaped(Seq(Seq(out, permute(leaves, _leaves(t))), dagger(flatten(t))))
+
+
+# Inside a route every intermediate value has a known shape -- the route is
+# only ever applied to what a match produced -- so a rearrangement followed by
+# its inverse can go.  Not true of arbitrary values (swapprod ; swapprod is
+# empty on a non-pair), which is why this is not part of `simplify`.  Unit
+# checks are never cancelled: `unitprod ; unitprod!` is one.
+_REARRANGE = {"swapprod", "assocprod"}
+
+
+def _shaped(t: Term) -> Term:
+    while True:
+        new = _cancel(simplify(t))
+        if new == t:
+            return new
+        t = new
+
+
+def _cancel(t: Term) -> Term:
+    match t:
+        case Prod(a, b):
+            return Prod(_cancel(a), _cancel(b))
+        case Seq():
+            out: List[Term] = []
+            for y in _chain(t):
+                y = _cancel(y)
+                prev = out[-1] if out else None
+                if (isinstance(prev, Prim) and isinstance(y, Prim)
+                        and prev.name == y.name and prev.name in _REARRANGE
+                        and (prev.inv != y.inv or prev.name == "swapprod")):
+                    out.pop()
+                    continue
+                out.append(y)
+            res: Term = ID
+            for y in out:
+                res = Seq(res, y)
+            return res
+    return t
 
 
 # ---------------------------------------------------------------------------
@@ -474,8 +512,10 @@ def compile_clause(c: Clause, units: bool = True) -> Term:
     while isinstance(body, DLet):
         sr, br = build(body.rhs)
         sq, bq = build(body.pat)
-        bound_here = set(_names(variables(body.pat)))
-        keep = [n for n in _later(body.body) if n not in bound_here]
+        # Carry past this `let` the names still needed later that are in hand
+        # now -- not ones a later `let` will bind.
+        in_hand = set(_leaves(env))
+        keep = [n for n in _later(body.body) if n in in_hand]
         step = Seq(br, dagger(bq))
         if keep:
             keep_shape = _flat_shape(keep)
@@ -614,6 +654,18 @@ def _split_position(terms):
     return None, None
 
 
+def _final(body: DTerm) -> DTerm:
+    while isinstance(body, DLet):
+        body = body.body
+    return body
+
+
+def _with_final(body: DTerm, new: DTerm) -> DTerm:
+    if isinstance(body, DLet):
+        return DLet(body.pat, body.rhs, _with_final(body.body, new), body.line)
+    return new
+
+
 def _cases(clauses: List[Clause], units: bool = True) -> Term:
     if len(clauses) == 1:
         return compile_clause(clauses[0], units)
@@ -630,9 +682,10 @@ def _cases(clauses: List[Clause], units: bool = True) -> Term:
     pats = [_strip(m[1], front) for m in moved]
 
     # Is there an output position sorted the same way (or exactly opposite)?
+    # Only the final term of a `let` chain is the output, so look there.
     out_path = out_labels = None
-    if not any(isinstance(c.body, DLet) for c in clauses):
-        bodies = [c.body for c in clauses]
+    if True:
+        bodies = [_final(c.body) for c in clauses]
         for cand in _paths(bodies[0]):
             got = [_label(b, cand) for b in bodies]
             if None in got or len(set(got)) != 2:
@@ -647,9 +700,10 @@ def _cases(clauses: List[Clause], units: bool = True) -> Term:
         post: Term = _p("join")
         out_front = None
     else:
-        moved_out = [_to_front(c.body, out_path) for c in clauses]
+        moved_out = [_to_front(_final(c.body), out_path) for c in clauses]
         out_front = moved_out[0][2]
-        bodies = [_strip(m[1], out_front) for m in moved_out]
+        bodies = [_with_final(c.body, _strip(m[1], out_front))
+                  for c, m in zip(clauses, moved_out)]
         crossed = out_labels[0] != labels[0]
         post = Seq(_p("swapsum") if crossed else ID,
                    _p("dist", True) if out_front == (0,) else ID)

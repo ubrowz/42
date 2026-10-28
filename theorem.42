@@ -99,6 +99,21 @@ def loadnil   = copy ; (id * copy) ; (inl * (inl * inl))   -- 1 <-> tape
 def loadcons  = inr! ; unitprod! ; (inl * id)              -- bits <-> tape
 def loadtotal = loadcons | (inl! ; loadnil)
 
+-- Section 5.3: moving, reading and writing the tape.  Written point-free
+-- because the proof is about core terms; tm.42 writes the same moves as
+-- clauses, which compile to terms that agree with these.
+
+def isnil    = inl! ; inl
+def iscons   = inr! ; inr
+def right    = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
+def left     = right!
+def pad      = id * (id * (isnil ; cons0))
+def stepover = ((id * (id * iscons)) ; right) | (pad ; right)
+def focus    = assocprod ; (swapprod * id) ; assocprod!
+def readhead = focus ; dist ; (unitprod + unitprod)
+def write0   = inl ; readhead!
+def write1   = inr ; readhead!
+
 -- The state tags are `inl ; inr^(i-1)`, and the branches are put back together
 -- by a chain of `join`s.  Shown at four states; the schema is
 --   collapse_1 = id,  collapse_k = (id + collapse_{k-1}) ; join

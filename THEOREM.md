@@ -506,7 +506,8 @@ stated for *every* representative rather than for a canonical one.
 
 ### 5.3 The term
 
-Movement, reading and writing are as in `tm.42`:
+Movement, reading and writing are defined in `theorem.42`, point-free, since
+the proof is about core terms (`tm.42` writes the same moves as clauses):
 
 ```
 right    = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)

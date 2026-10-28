@@ -194,6 +194,16 @@ class Emission(unittest.TestCase):
         moves = parse_value("[(0, 1), (0, R R ()), (1, R R ())]")
         self.assertEqual(run(dagger(Ref("hanoi")), moves, tour), {parse_value("2")})
 
+    def test_a_let_chain_carries_only_names_in_hand(self):
+        # Regression: a `let` also tried to carry names that a *later* `let`
+        # binds, so any chain of two failed to compile.
+        env = expand_env(parse_program(
+            "def add (0, n) <-> n\n"
+            "def add (m + 1, n) <-> add (m, n) + 1\n"
+            "def f (a, b) <-> let c = add (a, b) in let d = add (c, b) in (d, b)\n"
+        ))
+        self.assertEqual(run(Ref("f"), parse_value("(1, 2)"), env), {parse_value("(5, 2)")})
+
     def test_literals_and_offsets(self):
         self.assertEqual(fwd(ENV, "greet", "()"), {parse_value('"hi"')})
         self.assertEqual(fwd(ENV, "two", "5"), {parse_value("3")})
@@ -445,6 +455,26 @@ class Q42(unittest.TestCase):
             qparse("def f x <-> x")
         self.assertIn("42-only", str(cm.exception))
         self.assertIn("section 9", str(cm.exception))
+
+
+class Libraries(unittest.TestCase):
+    """Where a library was rewritten in clauses and a document still needs the
+    point-free form, the two must agree."""
+
+    def test_the_tape_moves_agree_with_theorem_42(self):
+        # THEOREM.md section 5.3 quotes theorem.42's point-free moves and says
+        # tm.42 writes the same ones as clauses.
+        point_free = expand_env(_load("theorem.42"))
+        clauses = expand_env(_load("tm.42"))
+        tapes = ["([], (L (), []))", "([L ()], (R (), [R ()]))",
+                 "([R (), L ()], (L (), [L (), R ()]))", "([], (R (), [L ()]))"]
+        for name in ("right", "left", "stepover"):
+            for s in tapes:
+                for back in (False, True):
+                    with self.subTest(name=name, tape=s, backward=back):
+                        v = parse_value(s)
+                        self.assertEqual(run(Ref(name, back), v, clauses),
+                                         run(Ref(name, back), v, point_free))
 
 
 class Errors(unittest.TestCase):

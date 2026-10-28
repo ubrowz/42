@@ -1030,10 +1030,11 @@ multiplication and comparison, and none at all for subtraction or division.
 
 ### 9.2 Addition
 
-The recursion skeleton from §17, unchanged:
+One clause for zero, one for every other number:
 
 ```
-def add = dist ; (unitprod + (add ; inr)) ; join
+def add (0, n)      <->  n
+def add (m + 1, n)  <->  add (m, n) + 1
 ```
 
 ```
@@ -1043,14 +1044,15 @@ $ add!(5)    =  (0, 5)  (1, 4)  (2, 3)  (3, 2)  (4, 1)  (5, 0)
 
 `add` is allowed to discard how the total was split, because that information
 is still recoverable *as a set*: running backwards enumerates every pair.
-Nothing is truly lost, it is merely spread across six answers.
+Nothing is truly lost, it is merely spread across six answers. In clause terms:
+the two clauses can produce the same number, so turned round, both apply.
 
 ### 9.3 Multiplication, and what it must carry
 
 Here the naive version fails. `(m, n) ↦ m × n` has base case `0 × n = 0`,
-which must discard `n` outright, and §3.4 established that nothing in the
-language can do that. Unlike `add`, you cannot even recover it as a set: `mul`
-would have to work for every `n`, so the base case has nowhere to put it.
+which would be the clause `mul (0, n) <-> 0`, and §4.2 refuses it: `n` is bound
+and never used. Unlike `add`, you cannot even recover it as a set: `mul` would
+have to work for every `n`, so the base case has nowhere to put it.
 
 The fix is to carry the multiplier along:
 
@@ -1059,9 +1061,8 @@ mul : (m, n)  ↦  (n, m × n)
 ```
 
 ```
-def mul = dist ; ( (swapprod ; (id * inl))                        -- (0, n)   -> (n, 0)
-                 + (mul ; (copy * id) ; assocprod! ; (id * add))  -- (m+1, n) -> (n, p+n)
-                 ) ; join
+def mul (0, n)      <->  (n, 0)
+def mul (m + 1, n)  <->  let (k, p) = mul (m, n) in (k, add (k, p))
 ```
 
 ```
@@ -1069,10 +1070,9 @@ $ mul(4, 5)  =  (5, 20)
 $ mul(0, 7)  =  (7, 0)
 ```
 
-One extra component in the output, and the whole thing works. Note the `copy`
-in the step branch: the recursive call returns `(n, p)`, and we need `n` both
-to add to `p` and to hand back, so we duplicate it rather than trying (and
-failing) to use it twice.
+One extra component in the output, and the whole thing works. In the step,
+the recursive call hands the multiplier back as `k`, and `k` is used twice: once
+to add to the product, once to hand back. Using a name twice is a copy (§4.2).
 
 ### 9.4 Division is multiplication backwards
 
@@ -1096,11 +1096,11 @@ answer.
 
 ### 9.5 Subtraction
 
-Same trick, one line each. Make addition keep its second operand:
+Same trick. Make addition keep its second operand:
 
 ```
-def addk = (id * copy) ; assocprod ; (add * id)     -- (c, b) -> (c + b, b)
-def sub  = addk!                                    -- (a, b) -> (a - b, b)
+def addk (c, b)  <->  (add (c, b), b)      -- (c, b) -> (c + b, b)
+def sub = addk!                            -- (a, b) -> (a - b, b)
 ```
 
 ```
@@ -1123,12 +1123,12 @@ undivmod : ((q, r), b)  ↦  (q × b + r,  b)        provided r < b
 
 The proviso matters. Without `r < b`, both `(q=0, r=5)` and `(q=2, r=1)`
 rebuild 5 from divisor 2, and the inverse would be ambiguous. So we need a
-comparison, written as a filter (§3.4, §6):
+comparison, written as a filter: a definition that hands back its input
+unchanged, or gives no answer.
 
 ```
-def lt = dist ; ( (id * (inr! ; inr))
-                + ((id * inr!) ; lt ; (id * inr))
-                ) ; dist!
+def lt (0, n + 1)      <->  (0, n + 1)
+def lt (m + 1, n + 1)  <->  let (a, b) = lt (m, n) in (a + 1, b + 1)
 ```
 
 ```
@@ -1136,23 +1136,17 @@ $ lt(2, 5)  =  (2, 5)      -- passes through unchanged
 $ lt(5, 2)  =  {}          -- rejected
 ```
 
-Two idioms there worth stealing. `inr! ; inr` means "check this is nonzero and
-put it back exactly as it was". And `dist ; (f + g) ; dist!` is the
-case-analysis skeleton for a program that must hand back its input: `dist!`
-rebuilds what `dist` took apart, where `join` would have discarded the label.
+Both clauses take the pair apart and build it again. The first applies only
+when the first number is `0` and the second is not; the second counts both
+down together. No clause applies when the second number reaches `0` first, so
+those pairs get no answer.
 
 Now the easy direction, and its inverse:
 
 ```
-def undivmod = assocprod!            -- ((q, r), b)  ->  (q, (r, b))
-             ; (id * lt)             -- keep only r < b
-             ; (id * swapprod)       --              ->  (q, (b, r))
-             ; assocprod             --              ->  ((q, b), r)
-             ; (mul * id)            --              ->  ((b, q*b), r)
-             ; assocprod!            --              ->  (b, (q*b, r))
-             ; (id * add)            --              ->  (b, q*b + r)
-             ; swapprod              --              ->  (q*b + r, b)
-             ; (id * nonzero)        -- see §9.7
+def undivmod ((q, r), b)  <->  let (r1, b1)  = lt (r, b)   in
+                               let (b2, qb)  = mul (q, b1) in
+                               (add (qb, r1), nonzero b2)
 
 def divmod = undivmod!
 ```
@@ -1165,12 +1159,10 @@ $ divmod(3, 5)   =  ((0, 3), 5)
 
 ### 9.7 A filter must be stated at both ends
 
-That last line of `undivmod` looks like dead code:
+That `nonzero` in the last line of `undivmod` looks like dead code:
 
 ```
-def nonzero = inr! ; inr        -- keeps n unchanged if n > 0, else nothing
-
-... ; swapprod ; (id * nonzero)
+def nonzero (n + 1)  <->  n + 1        -- keeps n unchanged if n > 0, else nothing
 ```
 
 `lt` has already forced `b > 0`, so going forwards this check can never reject
@@ -1179,15 +1171,20 @@ anything. **It is there for the backward direction, and it is essential.**
 Here is the reasoning, and it is the one piece that does not carry over from
 ordinary programming:
 
-> Reversing a pipeline reverses the order of its stages. A filter written
-> early, pruning as you go forwards, ends up running last going backwards,
-> long after the expensive work it was meant to prevent.
+> Turning a clause round reverses its `let` chain. A filter written early,
+> pruning as you go forwards, ends up running last going backwards, long after
+> the expensive work it was meant to prevent.
 
-In `undivmod`, `lt` sits near the front and guarantees `b > 0`. Reversed, it
-fires at the very end. By then `divmod(7, 0)` has already asked `mul!` to
-divide by zero, and since `mul(m, 0) = (0, 0)` for *every* `m`, that search
-never terminates. Repeating the constraint at the far end of the pipeline puts
-it *first* under reversal:
+`42 show` prints `undivmod` turned round, and the order is plain to see:
+
+```
+undivmod!  (add (qb, r1), nonzero b2) <-> let mul (q, b1) = (b2, qb) in let lt (r, b) = (r1, b1) in ((q, r), b)
+```
+
+In `undivmod`, `lt` comes first and guarantees `b > 0`. Turned round, it comes
+last. By then `divmod(7, 0)` has already asked `mul!` to divide by zero, and
+since `mul(m, 0) = (0, 0)` for *every* `m`, that search never terminates.
+Repeating the constraint in the result puts it *first* when turned round:
 
 ```
 $ divmod(7, 0)  =  {}        -- immediately, with the guard
@@ -1196,8 +1193,11 @@ $ divmod(7, 0)  =  {}        -- immediately, with the guard
 
 > **Rule of thumb: a constraint you rely on in both directions must be stated
 > at both ends.** Forwards, one of the two statements is redundant. That
-> redundancy is the price of a pipeline that prunes in both directions. It is
-> not dead code; deleting it changes termination.
+> redundancy is the price of a definition that prunes in both directions. It
+> is not dead code; deleting it changes termination.
+
+42 orders the work inside a single term for you (§8.2). It does not reorder a
+`let` chain, because the chain is the order you wrote down.
 
 ### 9.8 Exact rationals
 
@@ -1215,11 +1215,16 @@ qmul : (a, b) ↦ (b, a × b)          so   qdiv = qmul!
 #### Multiplication is one line
 
 ```
+def transpose ((a, b), (c, d))  <->  ((a, c), (b, d))
+
 def qmul = transpose ; (mul * mul) ; transpose
 ```
 
-`transpose` swaps the two inner components of a pair of pairs, and is its own
-inverse. Watch it work:
+`transpose` swaps the two inner components of a pair of pairs; turned round,
+its clause is the same clause with the names changed, so it is its own
+inverse. `qmul` is written without clauses on purpose, as a pipeline of three
+steps (`;` runs one program after another, and `f * g` runs `f` on the left of
+a pair and `g` on the right; §13 has both). Watch it work:
 
 ```
 ((p, q), (r, s))     transpose     ->  ((p, r), (q, s))    numerators together
@@ -1232,10 +1237,17 @@ $ qmul((1,2), (3,4))  =  ((3, 4), (3, 8))       -- 1/2 × 3/4 = 3/8
 $ qdiv((3,4), (3,8))  =  ((1, 2), (3, 4))       -- and back
 ```
 
-Addition is the same idea over `(ps + qr, qs)`, but longer: the operands are
-used unevenly: `s` three times, `q` twice, `p` and `r` once each. Since `mul`
-hands back its second operand, `s` threads from one product into the next and
-only `q` needs a `copy`. See `rational.42`, where the steps are named.
+Addition is the same idea over `(ps + qr, qs)`, but the operands are used
+unevenly: `s` three times, `q` twice, `p` and `r` once each. Since `mul` hands
+back its second operand, `s` threads from one product into the next and only
+`q` is used twice:
+
+```
+def qadd ((p, q), (r, s))  <->  let (s1, ps) = mul (p, s)  in
+                                let (r1, qr) = mul (q, r)  in
+                                let (s2, qs) = mul (q, s1) in
+                                ((r1, s2), (add (ps, qr), qs))
+```
 
 ```
 $ qadd((1,2), (1,3))  =  ((1, 3), (5, 6))       -- 1/2 + 1/3 = 5/6
@@ -1258,7 +1270,7 @@ Reduction cannot lose the thing it exists to lose, so `rational.42` keeps
 fractions unreduced and compares them with cross-multiplication instead:
 
 ```
-def qeq = cross ; (id * copy!) ; withps!
+def qeq x  <->  let (y, (n, n)) = cross x in withps! (y, n)
 ```
 
 ```
@@ -1275,11 +1287,11 @@ fractions with `p×s` and `q×r` attached:
 $ cross((1,2),(3,4))  =  (((1, 2), (3, 4)), (4, 6))
 ```
 
-Then `copy!` demands the two agree, and one of them is **recomputed backwards to
-cancel it**: `withps` pairs a value with `p×s` injectively, so `withps!` removes a
-`p×s`. Computing
-something, using it, and then un-computing it is how you borrow a scratch
-value in a language with no scratch space.
+Then the pattern `(n, n)` demands the two agree, and one of them is
+**recomputed backwards to cancel it**: `withps` pairs a value with `p×s`
+injectively, so `withps!` removes a `p×s`. Computing something, using it, and
+then un-computing it is how you borrow a scratch value in a language that will
+not let you forget one.
 
 For scaling you supply the factor yourself, and keeping it makes the operation
 invertible:
@@ -1381,7 +1393,7 @@ as a string. And `""` is `L ()`, which is also `0` and `[]` (§3.6).
 ### 10.3 Every list program already works
 
 This is the part worth pausing on. Because a string *is* a list, the list
-programs from §17 operate on text with no modification whatsoever:
+programs of §8 operate on text with no modification whatsoever:
 
 ```
 $ concat("foo", "bar")   =  "foobar"
@@ -1411,45 +1423,35 @@ boolean:
 
 ```
 byte = (b7, (b6, (b5, (b4, (b3, (b2, (b1, b0)))))))
-        skip  skip  flip  ←------ leave alone ------→
+        keep  keep  flip  ←------ leave alone ------→
 
-def flipcase = id * (id * (swapsum * id))
+def not (L x)  <->  R x
+def not (R x)  <->  L x
+
+def flipcase (b7, (b6, (b5, rest)))  <->  (b7, (b6, (not b5, rest)))
 ```
 
-The `swapsum` does the work; the `id`s either side of it are pure navigation.
-And being a single `swapsum`, it is its own inverse: running `flipcase`
-backwards is `flipcase`.
+The pattern names the bits it needs and lumps the other five together as
+`rest`. `not` compiles to the single primitive `swapsum`, so `flipcase` is its
+own inverse: running it backwards is running it forwards.
 
 ### 10.5 How to write if-then-else
 
 Flipping bit 5 of *every* byte would be wrong: it turns a space into a NUL and
 a comma into a form feed. We want to flip it only for letters, which needs a
-conditional, and 42 does not have one.
+conditional.
 
-`|` is not if-then-else. It runs both branches and pools the answers, so `f | g`
-normally returns two results (§13). But if the branches are guarded by filters
-that can never both succeed, exactly one of them ever produces anything, and
-the union collapses into an ordinary deterministic choice:
-
-> ```
-> (guard ; then)  |  (complement-of-guard ; else)
-> ```
->
-> **This is how you write if-then-else in 42.** Making the two guards
-> disjoint is your job, not the language's. Get it wrong in one direction and
-> you silently get two answers; get it wrong in the other and you get none.
-
-ASCII letters all lie in 64..127, that is `b7 = 0` and `b6 = 1`:
+A conditional in 42 is **clauses whose patterns cannot both match**. ASCII
+letters all lie in 64..127, that is `b7 = 0` and `b6 = 1`, so one clause takes
+exactly those bytes and two more take the rest:
 
 ```
-def bit0 = inl! ; inl           -- keeps a bit unchanged if it is 0
-def bit1 = inr! ; inr           -- keeps a bit unchanged if it is 1
+def swapbyte (L (), (R (), rest))  <->  flipcase (L (), (R (), rest))   -- 64..127
+def swapbyte (R (), rest)          <->  (R (), rest)                    -- 128..255
+def swapbyte (L (), (L (), rest))  <->  (L (), (L (), rest))            -- 0..63
 
-def hi    = bit0 * (bit1 * id)                    -- b7=0, b6=1
-def notHi = (bit1 * id) | (bit0 * (bit0 * id))    -- everything else
-
-def swapbyte = (hi ; flipcase) | notHi
-def swapcase = (inl + ((swapbyte * swapcase) ; inr)) ; join
+def swapcase []        <->  []
+def swapcase (c : cs)  <->  swapbyte c : swapcase cs
 ```
 
 ```
@@ -1459,6 +1461,17 @@ $ swapcase("abc 123 XYZ")     =  "ABC 123 xyz"
 
 Punctuation, spaces and digits now pass through untouched, and `swapcase` is
 still its own inverse.
+
+Two things are worth knowing about writing a conditional this way:
+
+- **Overlap is checked.** A definition is the union of its clauses (§6.3), so
+  if two of these patterns could match the same byte, that byte would get two
+  answers. 42 compares the patterns and warns when they overlap (§6.4). Here
+  they do not, so it says nothing.
+- **Gaps are not.** Leave out a case and the bytes it covered get no answer at
+  all. That is a legitimate thing to want, a filter is exactly that, so 42
+  does not warn about it. These three clauses do cover all 256 bytes, and a
+  test checks it.
 
 The residual inaccuracy, stated precisely rather than waved at: the sixteen
 bytes ``@[\]^_`{|}~`` and DEL share the letters' top two bits, so they still get
@@ -1473,14 +1486,23 @@ caveat is exactly true, so it cannot quietly become false.)
 Every program so far does one thing to a value and stops. This section builds a
 machine that *runs*: it keeps changing a value until it is finished, and only
 then gives an answer. That is the last thing a language has to be able to do,
-and in 42 it needs no new construct, just `^` and `!` from section 13.
+and in 42 it needs one construct beyond clauses: `^`, "repeat any number of
+times".
 
 The file is `tm.42`. The machine adds one to a binary number.
+
+- [11.1 The shape every machine takes](#111-the-shape-every-machine-takes)
+- [11.2 The tape is a list with a hole in it](#112-the-tape-is-a-list-with-a-hole-in-it)
+- [11.3 The state is a label, not a component](#113-the-state-is-a-label-not-a-component)
+- [11.4 The table, one clause per row](#114-the-table-one-clause-per-row)
+- [11.5 Running it](#115-running-it)
+- [11.6 Running the machine backwards](#116-running-the-machine-backwards)
+- [11.7 What this does and does not show](#117-what-this-does-and-does-not-show)
 
 ### 11.1 The shape every machine takes
 
 A Turing machine is a tape, a head, a control state, and a table saying what to
-do next. In 42 the whole of it is three programs joined by `;`:
+do next. In 42 the whole of it is three programs run one after another:
 
 ```
 init ; step^ ; final
@@ -1489,15 +1511,19 @@ init ; step^ ; final
 - `init` turns the input into a starting **configuration**: tape, head and
   state, all in one value.
 - `step` is **one** move of the machine: `configuration <-> configuration`.
-- `step^` is section 13's "repeat any number of times", so it relates the start
-  to *every* configuration the machine can reach.
+- `step^` repeats `step` any number of times, so it relates the start to
+  *every* configuration the machine can reach.
 - `final` is a filter that lets through only configurations that have halted,
   and reads the answer off the tape.
 
+`;` runs one program after another, and `^` is the repeat (§13 has both). This
+line is written without clauses because it is not about values at all: it is
+about running a program over and over.
+
 There is no loop construct, no counter and no test for "am I done yet". `^`
 does the repeating, and the machine stops on its own because the halted state
-has no transition. `step` is empty there, and section 6 already told you what
-an empty result means.
+has no transition. `step` has no clause for it, and §6.1 already told you what
+no answer means.
 
 `init`, `step` and `final` are the roles, not the identifiers you will find in
 the file. `tm.42` spells the same three-part shape as `def inc = load ; run ;
@@ -1518,19 +1544,17 @@ tape = bits x (sym x bits)
        left, reversed   head   right
 ```
 
-Now moving the head one cell right is: take the head cell and put it on the
-front of the left list, take the front of the right list and make it the new
-head. Every part of that is `inr` or `inr!` from section 14, putting something
-on the front of a list and taking it off:
+Now moving the head one cell right is: the head cell goes on the front of the
+left list, and the front of the right list becomes the new head. As a clause:
 
 ```
-def right = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
-def left  = right!
+def right (l, (h, c : r))  <->  (h : l, (c, r))
+def left = right!
 ```
 
 **`left` is not written out.** Moving left *is* moving right backwards, so it is
-one `!`. That is not a trick; it is what section 13 says `!` means, applied to
-the one place in a machine where it obviously holds.
+one `!`. Turned round, `right`'s clause says exactly that: take the front of
+the left list as the head, and push the old head onto the right.
 
 ### 11.3 The state is a label, not a component
 
@@ -1541,70 +1565,61 @@ A machine with three control states and a tape looks like it should be a pair,
 conf = tape + (tape + tape)
 ```
 
-with one branch per state:
+with one label per state:
 
 ```
-def carry  = inl            -- still carrying a 1 leftward
-def rewind = inl ; inr      -- carry done; walk the head back to the start
-def halt   = inr ; inr      -- finished
+def carry t   <->  L t          -- still carrying a 1 leftward
+def rewind t  <->  R (L t)      -- carry done; walk the head back to the start
+def halt t    <->  R (R t)      -- finished
 ```
 
-This is the one design decision in the file worth copying. To behave differently
-in each state you now write `f + g + h`, which is section 13's `+` doing exactly
-what it is for. With a pair you would need `dist` to get at the state and more
-plumbing to put it back, in every branch. Sections 3.4 and 14 both make the same
-point in the small; here it is what keeps `step` down to one line.
-
-### 11.4 Reading the head, and writing it backwards
-
-To act on the symbol under the head you have to get at it. `focus` brings it to
-the front, and `dist` then splits on it, exactly as in section 14:
+This is the one design decision in the file worth copying. To behave
+differently in each state, `step` has one clause per state's label, and nothing
+has to take the state out of a pair and put it back.
 
 ```
-def focus    = assocprod ; (swapprod * id) ; assocprod!
-def readhead = focus ; dist ; (unitprod + unitprod)
+def step (L t)      <->  carrystep t
+def step (R (L t))  <->  rewindstep t
 ```
 
-`readhead` turns a tape into a labelled value: the `L` branch means the head was
-`0`, the `R` branch means it was `1`. Run it backwards and it writes the head
-instead, with the label choosing what to write:
+No clause matches `R (R t)`, the halted state, so a halted machine has no next
+step.
+
+### 11.4 The table, one clause per row
+
+The table for the carrying state has two rows: head is `0`, so write `1` and
+start rewinding; head is `1`, so write `0`, move right, and keep carrying.
 
 ```
-def write0 = inl ; readhead!
-def write1 = inr ; readhead!
+def carrystep (l, (L (), r))  <->  rewind (l, (R (), r))
+def carrystep (l, (R (), r))  <->  carry (stepover (l, (L (), r)))
 ```
 
-One program, read in both directions, is the whole of reading and writing.
+Reading the head is a pattern, and writing it is a term. `(l, (L (), r))` on
+the left reads a `0`; `(l, (R (), r))` on the right writes a `1`. It is the
+same notation in both places, which is §4.1's point that a pattern is a term
+read backwards.
 
-### 11.5 The table, one line per state
+Rewinding has two rows too, chosen by whether there is any tape left:
 
 ```
-def carrystep  = readhead ; ((write1 ; rewind) + (write0 ; stepover ; carry)) ; join
-def rewindstep = ((iscons * id) ; left ; rewind) | ((isnil * id) ; halt)
-
-def step = (carrystep + (rewindstep + zero)) ; (id + join) ; join
+def rewindstep (c : l, hr)  <->  rewind (left (c : l, hr))
+def rewindstep ([], hr)     <->  halt ([], hr)
 ```
-
-Read `carrystep` as the table it is: head is `0`, so write `1` and start
-rewinding; head is `1`, so write `0`, move right, and keep carrying. `rewindstep`
-uses the partial identities `iscons` and `isnil` from the file to ask whether
-there is any tape left, which is section 10.5's if-then-else with no condition
-to evaluate. And `zero` in the third branch is the halted state: no transition,
-so the machine stops.
 
 `stepover` is where the tape has to grow, because a real tape is infinite and a
 list is not:
 
 ```
-def stepover = ((id * (id * iscons)) ; right) | (pad ; right)
+def stepover (l, (h, c : r))  <->  right (l, (h, c : r))
+def stepover (l, (h, []))     <->  right (l, (h, [L ()]))
 ```
 
 If there is a cell to the right, move onto it; if there is not, add a `0` first.
-Note that `|` is doing this with no requirement that the two branches be
-distinct. They happen to be, because `iscons` and `isnil` cannot both apply, but
-nothing made you prove it.
+Each of these is an if-then-else in the sense of §10.5: two clauses whose
+patterns cannot both match.
 
-### 11.6 Running it
+### 11.5 Running it
 
 The number is written least significant bit first, so `[R (), R ()]` is `1,1`,
 which is 3. `value` reads a bit list as a number, `inc` is the machine, and
@@ -1629,7 +1644,7 @@ incval([R (), R ()]) =
 Zero is `[L ()]`, a list of one `0` bit, not the empty list: the head has to have
 a cell to sit on.
 
-### 11.7 Running the machine backwards
+### 11.6 Running the machine backwards
 
 `dec` is `inc!`. Feed it 4:
 
@@ -1651,7 +1666,7 @@ value([R (), R (), L ()]) =
   -- 1 result
 ```
 
-So the machine is not one-to-one, and section 6 is why you get told rather than
+So the machine is not one-to-one, and §6 is why you get told rather than
 being stopped from writing it. A language that insisted on one answer backwards
 would have made you strip trailing zeros before this program could exist.
 
@@ -1659,29 +1674,32 @@ There is a lesson in here worth the detour. The first version of `init` was
 just `carry`, which labels any configuration as a starting one, including ones
 with the head halfway along the tape. Forwards that made no difference and
 every test passed. Backwards it produced five answers instead of two, and the
-three extra ones were half-finished machines. The fix is one filter:
+three extra ones were half-finished machines. The fix is to say where the head
+starts:
 
 ```
-def load = inr! ; unitprod! ; (inl * id)
+def load (h : r)  <->  ([], (h, r))
 ```
 
-which insists the head starts at the end. **`init` has to be as tight as
-`final`**, and running the program backwards is how you find out that it is not.
-That check does not exist in a language that only runs forwards.
+The `[]` on the right insists that nothing lies to the left of the head. Turned
+round, it is a pattern, and it rejects every tape whose head is not at the
+start. **`init` has to be as tight as `final`**, and running the program
+backwards is how you find out that it is not. That check does not exist in a
+language that only runs forwards.
 
-### 11.8 What this does and does not show
+### 11.7 What this does and does not show
 
-It shows that a Turing machine fits in 42 with nothing added, and that the shape
-it takes, `init ; step^ ; final`, needs only `;`, `^` and the plumbing of
-section 14. The transition table is a `+` over states and a `|` over the rows in
-each state, so a different machine is a different table in the same frame.
+It shows that a Turing machine fits in 42 with nothing added but `^`, and that
+the shape it takes, `init ; step^ ; final`, needs nothing else. The transition
+table is one clause per row, so a different machine is a different table in the
+same frame.
 
 It does not prove that 42 can compute everything computable. That would need an
 argument covering every machine, not one machine. `tm.42` is the evidence that
 the encoding works, not the proof — the proof is
 [THEOREM.md](THEOREM.md), which settles rather more than Turing completeness:
 42 denotes *exactly* the relations a computer can enumerate, no fewer and no
-more. Section 18 is the other half of the same question, asked about 42 itself.
+more. §18 is the other half of the same question, asked about 42 itself.
 
 ---
 

@@ -550,7 +550,7 @@ What a relational target changes:
   warnings (`Program.warnings`); the command line prints warnings on stderr.
   `42 show` prints the three blocks of §5.
 - **Q42** parses with clauses switched off, and the refusal names §9.
-- **Tests** (`tests/test_sugar.py`, 56). Every example is checked against its
+- **Tests** (`tests/test_sugar.py`, 58). Every example is checked against its
   hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
   forwards and backwards. Turned-round clauses compile to the inverse. Printed
   clauses parse back. Case trees agree with the plain union on 34 untyped
@@ -579,6 +579,15 @@ What a relational target changes:
 4. **The order rule matters, as §8 predicted.** Without it `rev!` written as
    clauses exhausts the call depth. With it, it answers at once.
 5. **Overlap warnings on turned-round definitions** (§6).
+6. **A chain of two `let`s did not compile.** A `let` also tried to carry past
+   itself names that a *later* `let` binds. Every test had used one `let`;
+   rewriting `arith.42`'s `undivmod` in clauses was the first chain of two.
+   Fixed, with a regression test.
+7. **Rewriting the libraries improved the output.** The output case tree of
+   §6 now looks at the final term of a `let` chain, so `lt` compiles to
+   `dist ; … ; dist!` rather than `join`. And inside a route, where every value
+   has a known shape, a rearrangement followed by its inverse is cancelled
+   (never a unit check), which shortened `undivmod` considerably.
 
 ## 12. Open questions
 

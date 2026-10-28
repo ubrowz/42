@@ -328,7 +328,7 @@ conf = tape + (tape + (⋯ + tape))     h summands, right-nested</code></pre></d
 <ul><li><strong>(E1)</strong> <code>⌈v⌉ = ⌈v'⌉</code> iff <code>ls = ls'</code>, <code>c = c'</code>, and <code>rs</code>, <code>rs'</code> agree up to trailing <code>0</code>s.</li><li><strong>(E2)</strong> every eventually-blank tape with a head position is <code>⌈v⌉</code> for some <code>v</code>.</li></ul>
 <p>So <strong>the encoding is many-to-one.</strong> It has to be: a Turing tape is infinite and a 42 value is a finite tree, so the blanks past the end of <code>rs</code> are represented by their absence, and a value carrying two extra trailing blanks means the same thing as one that does not. This is the only mismatch in the construction, and the proof below is arranged so that it never has to be repaired: Lemma 10 is stated for <em>every</em> representative rather than for a canonical one.</p>
 <h3 id="53-the-term"><a class="anchor" href="#53-the-term" aria-label="Link to this section">#</a>5.3 The term</h3>
-<p>Movement, reading and writing are as in <code>tm.42</code>:</p>
+<p>Movement, reading and writing are defined in <code>theorem.42</code>, point-free, since the proof is about core terms (<code>tm.42</code> writes the same moves as clauses):</p>
 <div class="code"><pre><code>right    = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
 left     = right!
 pad      = id * (id * (isnil ; cons0))
