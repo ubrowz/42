@@ -229,6 +229,26 @@ class TestQManualNumbers(unittest.TestCase):
         joules = 1.380649e-23 * 300 * math.log(2)
         self.assertAlmostEqual(joules / 1e-21, 2.9, places=1)
 
+    def test_section_2_6s_matrices_are_the_gates(self):
+        """2.6 writes out H on the first qubit, the CNOT, and the state between."""
+        from q42 import parse_term
+        r = 2 ** -0.5
+        order = ["00", "01", "10", "11"]
+        written = {
+            "h * id": [[r, 0, r, 0], [0, r, 0, r], [r, 0, -r, 0], [0, r, 0, -r]],
+            "cx": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
+        }
+        for src, rows in written.items():
+            term = parse_term(src)
+            for col, inp in enumerate(order):
+                out = {bits_of(v): z for v, z in column(term, ket(inp), self.gates).items()}
+                for row, outp in enumerate(order):
+                    with self.subTest(gate=src, row=outp, col=inp):
+                        self.assertAlmostEqual(complex(out.get(outp, 0)).real, rows[row][col], places=6)
+        self.assertIn("So after step 1 the state is `r|00> + r|10>`", self.text)
+        mid = {bits_of(v): z for v, z in column(parse_term("h * id"), ket("00"), self.gates).items()}
+        self.assertEqual(sorted(k for k, z in mid.items() if abs(complex(z)) > 1e-9), ["00", "10"])
+
     def test_the_bell_determinant(self):
         """The manual computes 0.7071 x 0.7071 - 0 x 0 = 0.5; check both."""
         self.assertIn("0.7071 x 0.7071 - 0 x 0  =  0.5", self.text)

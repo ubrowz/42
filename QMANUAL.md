@@ -248,10 +248,15 @@ reaching one annihilate.
 
 ### 2.6 Entanglement
 
-Two qubits have four basis states, and a state of the pair is four amplitudes.
-Sometimes those factor into "this qubit is in state `ψ`, that one in state `φ`",
-and sometimes they do not. When they do not, the qubits are **entangled** and
-neither has a state of its own.
+Two qubits have four basis states, `|00>`, `|01>`, `|10>` and `|11>`, so a state
+of the pair is four amplitudes, `c00`, `c01`, `c10` and `c11`. Sometimes those
+four come from two separate qubits, "this one is in state `ψ` and that one in
+state `φ`". Sometimes they do not, and then the qubits are **entangled**: the
+pair has a state, but neither qubit has one of its own.
+
+The standard example is `bell`, two gates in a row: the Hadamard of §2.4 on the
+first qubit, then a **controlled-NOT**, which flips the second qubit when the
+first is `1` and leaves it alone when the first is `0`. Started on `|00>`:
 
 ```
 $ 42q gates bell "|00>"
@@ -259,15 +264,83 @@ bell |00>
   = 0.707107|00>  +  0.707107|11>
 ```
 
-Both qubits are certainly equal and neither is certainly anything. The test is
-mechanical: write the amplitudes as a 2×2 matrix indexed by the two qubits, and
-the state is a product exactly when the determinant is zero. Here
+**The arithmetic, step by step.** Write a two-qubit state as a column of its
+four amplitudes, in the order `|00>, |01>, |10>, |11>`, and a gate as the 4×4
+matrix that acts on it: the column for each input holds the amplitudes that
+input produces. With `r = 1/√2 ≈ 0.7071`, the starting state `|00>` is the
+column `(1, 0, 0, 0)`.
+
+The Hadamard on the first qubit sends `|0x>` to `r|0x> + r|1x>` and `|1x>` to
+`r|0x> − r|1x>`, whatever `x` is. Multiplying:
+
+```
+   H on the first qubit         |00>         after step 1
+
+  [ r   0   r   0 ]            [ 1 ]          [ r ]    |00>
+  [ 0   r   0   r ]     x      [ 0 ]    =     [ 0 ]    |01>
+  [ r   0  -r   0 ]            [ 0 ]          [ r ]    |10>
+  [ 0   r   0  -r ]            [ 0 ]          [ 0 ]    |11>
+```
+
+So after step 1 the state is `r|00> + r|10>`: the first qubit is in
+superposition and the second is still plainly `0`. That much is a product, as
+§2.4's `h` would lead you to expect.
+
+The controlled-NOT exchanges `|10>` and `|11>` and leaves `|00>` and `|01>` where
+they are. As a matrix that is a permutation:
+
+```
+      CNOT                   after step 1      after step 2
+
+  [ 1   0   0   0 ]            [ r ]            [ r ]    |00>
+  [ 0   1   0   0 ]     x      [ 0 ]    =       [ 0 ]    |01>
+  [ 0   0   0   1 ]            [ r ]            [ 0 ]    |10>
+  [ 0   0   1   0 ]            [ 0 ]            [ r ]    |11>
+```
+
+The amplitude that was on `|10>` has moved to `|11>`, and the result is
+`r|00> + r|11>`, which is what Q42 printed.
+
+**Why that cannot be two separate qubits.** Suppose it were: the first qubit in
+`a0|0> + a1|1>`, the second in `b0|0> + b1|1>`. Then each two-qubit amplitude is a
+product of one from each, because the first qubit has to be in its part and the
+second in its:
+
+```
+c00 = a0 b0      c01 = a0 b1      c10 = a1 b0      c11 = a1 b1
+```
+
+The Bell state needs `c01 = a0 b1 = 0`, so `a0 = 0` or `b1 = 0`. But `a0 = 0` would
+make `c00 = 0`, and `b1 = 0` would make `c11 = 0`, and both of those are `r`. No
+choice of the four numbers works, so the state is not a product.
+
+The same argument gives a test that works on any two-qubit state. For a product,
+`c00 c11 = a0 b0 a1 b1 = c01 c10`, so
+
+```
+c00 c11  -  c01 c10  =  0
+```
+
+always, and conversely when this is zero the state does factor. (It is the
+determinant of the amplitudes arranged as a 2×2 grid, rows for the first qubit
+and columns for the second.) For the Bell state:
 
 ```
 c00 c11 - c01 c10  =  0.7071 x 0.7071 - 0 x 0  =  0.5
 ```
 
 which is not zero, so it does not factor.
+
+**What it means.** Measure the pair and you get `00` or `11`, each half the
+time, and never `01` or `10` (§7.6 shows `42q sample` doing this). Each qubit on
+its own is a fair coin; together they always agree. So far that is no stranger
+than two sealed envelopes holding copies of one randomly chosen card. The
+strangeness appears when each qubit is rotated before it is measured: the
+agreement then follows the angle between the two rotations in a way no
+envelopes can reproduce. That is Bell's theorem, which the state is named
+after. It does not let either side send a message to the other, but it is a
+resource quantum algorithms use, and §8.5's teleportation is built on exactly
+this state.
 
 Entanglement is why Q42 needs one piece of machinery 42 did not (§7.5): a state
 of a compound system is not in general a pair of states.

@@ -237,13 +237,37 @@ hh |0&gt;
 <p>Every quantum algorithm that beats its classical rival does it this way, by arranging for the wrong answers' amplitudes to cancel and the right answer's to reinforce. Grover's search and Shor's factoring are both this, elaborately.</p>
 <p>This is what 42 cannot express. Over the booleans the two routes to <code>|1&gt;</code> would be <code>1 ∨ 1 = 1</code>, still possible, and there is no <code>−1</code> to cancel with. 42 tells you which outcomes are <em>reachable</em>; it cannot tell you that two ways of reaching one annihilate.</p>
 <h3 id="26-entanglement"><a class="anchor" href="#26-entanglement" aria-label="Link to this section">#</a>2.6 Entanglement</h3>
-<p>Two qubits have four basis states, and a state of the pair is four amplitudes. Sometimes those factor into "this qubit is in state <code>ψ</code>, that one in state <code>φ</code>", and sometimes they do not. When they do not, the qubits are <strong>entangled</strong> and neither has a state of its own.</p>
+<p>Two qubits have four basis states, <code>|00&gt;</code>, <code>|01&gt;</code>, <code>|10&gt;</code> and <code>|11&gt;</code>, so a state of the pair is four amplitudes, <code>c00</code>, <code>c01</code>, <code>c10</code> and <code>c11</code>. Sometimes those four come from two separate qubits, "this one is in state <code>ψ</code> and that one in state <code>φ</code>". Sometimes they do not, and then the qubits are <strong>entangled</strong>: the pair has a state, but neither qubit has one of its own.</p>
+<p>The standard example is <code>bell</code>, two gates in a row: the Hadamard of §2.4 on the first qubit, then a <strong>controlled-NOT</strong>, which flips the second qubit when the first is <code>1</code> and leaves it alone when the first is <code>0</code>. Started on <code>|00&gt;</code>:</p>
 <div class="code"><pre><code>$ 42q gates bell "|00&gt;"
 bell |00&gt;
   = 0.707107|00&gt;  +  0.707107|11&gt;</code></pre></div>
-<p>Both qubits are certainly equal and neither is certainly anything. The test is mechanical: write the amplitudes as a 2×2 matrix indexed by the two qubits, and the state is a product exactly when the determinant is zero. Here</p>
+<p><strong>The arithmetic, step by step.</strong> Write a two-qubit state as a column of its four amplitudes, in the order <code>|00&gt;, |01&gt;, |10&gt;, |11&gt;</code>, and a gate as the 4×4 matrix that acts on it: the column for each input holds the amplitudes that input produces. With <code>r = 1/√2 ≈ 0.7071</code>, the starting state <code>|00&gt;</code> is the column <code>(1, 0, 0, 0)</code>.</p>
+<p>The Hadamard on the first qubit sends <code>|0x&gt;</code> to <code>r|0x&gt; + r|1x&gt;</code> and <code>|1x&gt;</code> to <code>r|0x&gt; − r|1x&gt;</code>, whatever <code>x</code> is. Multiplying:</p>
+<div class="code"><pre><code>   H on the first qubit         |00&gt;         after step 1
+
+  [ r   0   r   0 ]            [ 1 ]          [ r ]    |00&gt;
+  [ 0   r   0   r ]     x      [ 0 ]    =     [ 0 ]    |01&gt;
+  [ r   0  -r   0 ]            [ 0 ]          [ r ]    |10&gt;
+  [ 0   r   0  -r ]            [ 0 ]          [ 0 ]    |11&gt;</code></pre></div>
+<p>So after step 1 the state is <code>r|00&gt; + r|10&gt;</code>: the first qubit is in superposition and the second is still plainly <code>0</code>. That much is a product, as §2.4's <code>h</code> would lead you to expect.</p>
+<p>The controlled-NOT exchanges <code>|10&gt;</code> and <code>|11&gt;</code> and leaves <code>|00&gt;</code> and <code>|01&gt;</code> where they are. As a matrix that is a permutation:</p>
+<div class="code"><pre><code>      CNOT                   after step 1      after step 2
+
+  [ 1   0   0   0 ]            [ r ]            [ r ]    |00&gt;
+  [ 0   1   0   0 ]     x      [ 0 ]    =       [ 0 ]    |01&gt;
+  [ 0   0   0   1 ]            [ r ]            [ 0 ]    |10&gt;
+  [ 0   0   1   0 ]            [ 0 ]            [ r ]    |11&gt;</code></pre></div>
+<p>The amplitude that was on <code>|10&gt;</code> has moved to <code>|11&gt;</code>, and the result is <code>r|00&gt; + r|11&gt;</code>, which is what Q42 printed.</p>
+<p><strong>Why that cannot be two separate qubits.</strong> Suppose it were: the first qubit in <code>a0|0&gt; + a1|1&gt;</code>, the second in <code>b0|0&gt; + b1|1&gt;</code>. Then each two-qubit amplitude is a product of one from each, because the first qubit has to be in its part and the second in its:</p>
+<div class="code"><pre><code>c00 = a0 b0      c01 = a0 b1      c10 = a1 b0      c11 = a1 b1</code></pre></div>
+<p>The Bell state needs <code>c01 = a0 b1 = 0</code>, so <code>a0 = 0</code> or <code>b1 = 0</code>. But <code>a0 = 0</code> would make <code>c00 = 0</code>, and <code>b1 = 0</code> would make <code>c11 = 0</code>, and both of those are <code>r</code>. No choice of the four numbers works, so the state is not a product.</p>
+<p>The same argument gives a test that works on any two-qubit state. For a product, <code>c00 c11 = a0 b0 a1 b1 = c01 c10</code>, so</p>
+<div class="code"><pre><code>c00 c11  -  c01 c10  =  0</code></pre></div>
+<p>always, and conversely when this is zero the state does factor. (It is the determinant of the amplitudes arranged as a 2×2 grid, rows for the first qubit and columns for the second.) For the Bell state:</p>
 <div class="code"><pre><code>c00 c11 - c01 c10  =  0.7071 x 0.7071 - 0 x 0  =  0.5</code></pre></div>
 <p>which is not zero, so it does not factor.</p>
+<p><strong>What it means.</strong> Measure the pair and you get <code>00</code> or <code>11</code>, each half the time, and never <code>01</code> or <code>10</code> (§7.6 shows <code>42q sample</code> doing this). Each qubit on its own is a fair coin; together they always agree. So far that is no stranger than two sealed envelopes holding copies of one randomly chosen card. The strangeness appears when each qubit is rotated before it is measured: the agreement then follows the angle between the two rotations in a way no envelopes can reproduce. That is Bell's theorem, which the state is named after. It does not let either side send a message to the other, but it is a resource quantum algorithms use, and §8.5's teleportation is built on exactly this state.</p>
 <p>Entanglement is why Q42 needs one piece of machinery 42 did not (§7.5): a state of a compound system is not in general a pair of states.</p>
 <h3 id="27-what-q42-does-not-model"><a class="anchor" href="#27-what-q42-does-not-model" aria-label="Link to this section">#</a>2.7 What Q42 does not model</h3>
 <p>Stated plainly, because a manual that quietly omits these would be misleading.</p>
