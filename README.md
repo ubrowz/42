@@ -1,7 +1,7 @@
 # 42
 
-A point-free reversible programming language, interpreted in **Rel** — the
-category of sets and relations.
+A reversible programming language with a point-free core, interpreted in
+**Rel** — the category of sets and relations.
 
 **The manuals are the way in:** [42](https://ubrowz.github.io/42/manual.html)
 and [Q42](https://ubrowz.github.io/42/qmanual.html), with everything else at
