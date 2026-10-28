@@ -1544,6 +1544,7 @@ That is the strongest single argument in §9.2 for leaving the language alone.
 - [9.2 Where the language stops](#92-where-the-language-stops)
 - [9.3 The comparison that is not the right one](#93-the-comparison-that-is-not-the-right-one)
 - [9.4 Could a Q42 program run on real hardware?](#94-could-a-q42-program-run-on-real-hardware)
+- [9.5 Q42 beside other quantum languages](#95-q42-beside-other-quantum-languages)
 
 ### 9.1 What it is for
 
@@ -1584,10 +1585,11 @@ contribution is *safe, automatic* uncomputation: its point is that the programme
 never decides where the undo goes. Q42 is in the category Silq set out to improve
 on, the one where you trigger it yourself — as Quipper (a quantum language
 embedded in Haskell) does with `with_computed`, and Q# (Microsoft's quantum
-language) with `ApplyWith`. What Q42 adds within that category is that the inverse is a
-syntactic consequence of the forward term instead of a second definition to keep
-in step, and that invoking it costs three characters. That is a smaller claim
-than Silq's, and a different one.
+language) with `within … apply`. Those two derive the inverse from the forward
+code as well, so that is not what separates them. What Q42 adds is that the
+inverse exists for *every* term, with no declaration and no check that the term
+happens to avoid measurement, because no term can contain one (§9.5 says this
+more carefully). That is a smaller claim than Silq's, and a different one.
 
 **Evidence for a claim about language design.** `q42/` shares the data types for
 values and programs (`Value`, `Term`), the parser and the whole type checker
@@ -1894,6 +1896,87 @@ restriction not an artefact of one architecture* are one question asked three
 times — **which finite subgroup of the phase group do you take, and what does the
 choice buy** — and Q42's answer is the smallest rung at which the language is
 universal at all, with `v` and the plumbing held fixed.
+
+### 9.5 Q42 beside other quantum languages
+
+Several languages exist for programming quantum computers. They differ less in
+which gates they offer, since nearly all reach a universal set, than in **what a
+program is**, and that one difference explains most of the others. Six are worth
+knowing:
+
+- **Qiskit** (IBM) and **Cirq** (Google) are Python libraries. A program is an
+  ordinary Python program whose calls append gates to a circuit object, which is
+  then sent to a simulator or a device. They are the most widely used, and they
+  run on real hardware today.
+- **Q#** (Microsoft) is a standalone language with its own compiler. A quantum
+  routine is an `operation`; qubits are allocated with `use`, and measuring one
+  is an ordinary operation, `M`, whose result the program can branch on.
+- **Quipper** (Green, Lumsdaine, Ross, Selinger & Valiron, 2013) is embedded in
+  Haskell. A program is a Haskell function that generates a circuit, which lets
+  it describe circuits far too large to run and count what they would cost.
+- **Silq** (Bichsel, Baader, Gehr & Vechev, ETH Zürich, 2020) is a standalone
+  language whose type system works out where temporary qubits must be
+  uncomputed (§1), so that the programmer never writes the undo.
+- **Guppy** (Quantinuum) is embedded in Python and designed for measuring in the
+  middle of a program and branching on the result while the qubits are still
+  live, which Quantinuum's trapped-ion machines support.
+- **OpenQASM 3** is not a language you would write algorithms in but a text
+  format for circuits, gate by gate: the common output of the others, and what
+  `42q emit` writes (§9.4).
+
+Set beside them, Q42 differs on four points.
+
+| | Qiskit, Cirq, Guppy | Q# | Quipper | Silq | Q42 |
+|---|---|---|---|---|---|
+| a program is | Python code that builds a circuit | a sequence of operations | Haskell code that builds a circuit | a sequence of statements | a term that denotes a matrix |
+| measure mid-program | yes | yes | yes | yes | no (§9.2) |
+| the inverse | derived, if no measurement | derived, if declared `is Adj` | derived, if no measurement | derived, if no measurement | defined on every term |
+| two programs equal? | simulate, compare approximately | simulate, compare approximately | simulate, compare approximately | simulate, compare approximately | decided exactly (§6.5) |
+| runs on hardware | directly | via QIR, Microsoft's compiler format | not the aim | simulator only | via OpenQASM 3 (§9.4) |
+
+**What a program is.** In Qiskit, Cirq, Guppy and Quipper there are two
+languages at once: the host language (Python or Haskell), which runs on your
+computer and decides which gates to emit, and the circuit it emits, which is
+what runs on the quantum machine. Loops, recursion and conditionals belong to the
+first; only a flat list of gates reaches the second. In Q42 there is one
+language. A term *is* the circuit, `;` and `*` and `+` are its only ways of
+combining things, and its meaning is a single matrix (§3.4). The price is that
+Q42 has no host language to compute the circuit with: a gate for 64 qubits is
+written for 64 qubits, not generated by a loop. RELATED.md §11.6 calls this the
+family problem and discusses it at length.
+
+**Measurement.** Every other language here can measure a qubit half way through
+and choose what to do next from the result; for Guppy that is the point. Q42
+cannot, by design, and §9.2 gives the reason (a term that measures has no
+inverse) and the theorem that makes the omission cost no computing power.
+
+**The inverse.** Most of these languages can produce the inverse of a quantum
+routine for you: Qiskit's `inverse()`, Q#'s `Adjoint`, Quipper's
+`reverse_generic`. But each must first make sure the routine has no
+measurement in it, or no other step without an inverse, and refuses
+otherwise; in Q# you declare `is Adj` and the compiler holds you to it. In Q42
+`!` applies to every term without a declaration, because no term can contain
+such a step. The same holds for control: Q#'s `Controlled` turns an operation
+into its controlled version when the operation permits it, Q42's `ctrl` (§6.4)
+does so for every term.
+
+**Deciding equality.** To learn whether two Qiskit circuits do the same thing,
+you simulate both in floating point and compare the matrices up to a tolerance,
+so "equal" means "equal to twelve places". Q42's generators are fixed numbers,
+so its amplitudes can be stored exactly, and `42q equal` *decides* the question,
+with no tolerance (§6.5). Q42 also has equations for proving two terms equal
+without computing their matrices, but §6.5 is candid that they are complete only
+for some families of circuits. A complete set for all of Clifford+T belongs to
+the ZX-calculus, a graphical notation in which circuit diagrams are rewritten
+into one another; ZX is a notation for reasoning, though, not a language you
+run.
+
+In short, the mainstream languages are built to run programs on the machines
+that exist, with every convenience a host language gives. Q42 is built so that
+every program has a single meaning that can be inverted, controlled and
+compared exactly, and it pays for that with no mid-program measurement and
+no host language. RELATED.md §8 and §11 place it against these languages, and
+against verification languages like QWIRE and Qunity, in more detail.
 
 ---
 
