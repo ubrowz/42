@@ -189,11 +189,32 @@ Two consequences a computer scientist should internalise:
 ### 2.3 A gate is a unitary matrix
 
 A gate on `n` qubits is a `2ⁿ × 2ⁿ` matrix of complex numbers, and applying it
-to a state is multiplying the matrix by the state's vector: output amplitude
-number `r` is the sum, over every input `c`, of matrix entry `(r, c)` times input
-amplitude `c`. Column `c` of the matrix is therefore what basis state `c` turns
-into. Physicists write the result of applying gate `U` to state `|ψ>` as
-`U|ψ>`.
+to a state is ordinary matrix–vector multiplication. For one qubit, name the
+gate's four entries by row and column, `u00` to `u11`, and take the state
+`[c0, c1]` of §2.1:
+
+```
+  [ u00  u01 ]     [ c0 ]     [ u00 × c0  +  u01 × c1 ]     new amplitude of |0>
+  [ u10  u11 ]  x  [ c1 ]  =  [ u10 × c0  +  u11 × c1 ]     new amplitude of |1>
+```
+
+Each new amplitude is one row of the matrix, multiplied entry by entry with the
+state and summed. Applied to `|0>`, which is `[1, 0]`, the result is
+`[u00, u10]`, the matrix's first column; applied to `|1>` it is the second column.
+So **column `k` of the matrix is what the basis state `|k>` turns into**, and a
+gate is fully described by what it does to each basis state.
+
+An example with numbers, using a matrix chosen because its arithmetic comes out
+round, applied to the state `0.6|0> + 0.8|1>`:
+
+```
+  [ 0.6   0.8 ]     [ 0.6 ]     [ 0.6 × 0.6  +  0.8 × 0.8 ]     [ 0.36 + 0.64 ]     [ 1 ]
+  [ 0.8  -0.6 ]  x  [ 0.8 ]  =  [ 0.8 × 0.6  -  0.6 × 0.8 ]  =  [ 0.48 - 0.48 ]  =  [ 0 ]
+```
+
+The result is `|0>` exactly: in the second row the two products cancel, a first
+glimpse of §2.5. Physicists write the result of applying gate `U` to state
+`|ψ>` as `U|ψ>`.
 
 The simplest example is **NOT**, written `X` and in Q42 called `x`. It swaps the
 two amplitudes, so `|0>` becomes `|1>` and `|1>` becomes `|0>`:

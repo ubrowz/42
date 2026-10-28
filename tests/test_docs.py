@@ -249,6 +249,17 @@ class TestQManualNumbers(unittest.TestCase):
         mid = {bits_of(v): z for v, z in column(parse_term("h * id"), ket("00"), self.gates).items()}
         self.assertEqual(sorted(k for k, z in mid.items() if abs(complex(z)) > 1e-9), ["00", "10"])
 
+    def test_section_2_3s_worked_multiplication(self):
+        """2.3 multiplies [[0.6, 0.8], [0.8, -0.6]] by [0.6, 0.8] and gets |0>."""
+        self.assertIn("[ 0.6 × 0.6  +  0.8 × 0.8 ]     [ 0.36 + 0.64 ]     [ 1 ]", self.text)
+        m, s = [[0.6, 0.8], [0.8, -0.6]], [0.6, 0.8]
+        out = [sum(m[r][k] * s[k] for k in range(2)) for r in range(2)]
+        self.assertAlmostEqual(out[0], 1.0)
+        self.assertAlmostEqual(out[1], 0.0)
+        # and it is a legitimate gate: unitary
+        mtm = [[sum(m[k][r] * m[k][c] for k in range(2)) for c in range(2)] for r in range(2)]
+        self.assertEqual([[round(x, 12) for x in row] for row in mtm], [[1, 0], [0, 1]])
+
     def test_section_6_1s_matrix_of_v(self):
         """6.1 prints V = 1/2 [[-1+i, -1-i], [-1-i, -1+i]]; check it, and V V = X."""
         from rel42.core import Prim
