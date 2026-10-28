@@ -1,0 +1,90 @@
+-- spike/sugar.42 -- the examples of SUGAR.md, desugared by hand.
+--
+-- Nothing here is new language.  Each definition is what the proposed
+-- desugarer would emit for the clauses in the comment above it, written out
+-- by hand so the note's claims can be run today:
+--
+--     ./42 spike/sugar <name> <value>
+--     ./42 spike/sugar <name> <value> --backward
+--     ./42 law spike/sugar <name> <value>
+--
+-- Clauses are joined with `|` exactly as the note's section 3 compiles them;
+-- the case-tree form of section 6 appears only where it is the point.
+
+
+type nat    = mu X. 1 + X
+type list a = mu X. 1 + (a x X)
+
+
+-- single x  <->  [x]
+--   match x  (nothing to do) ; route x -> (x, .) ; build R (x, L ())
+def single = unitprod! ; swapprod ; (id * inl) ; inr
+
+
+-- append ([], ys)    <->  ys
+-- append (x:xs, ys)  <->  x : append (xs, ys)
+def append = ((inl! * id) ; unitprod)
+           | ((inr! * id) ; assocprod! ; (id * append) ; inr)
+
+
+-- The same two clauses after the case-tree step of section 6.  This is
+-- prelude.42's `append`, character for character (with `inr` for `cons`).
+def appendt = dist ; (unitprod + (assocprod! ; (id * appendt) ; inr)) ; join
+
+
+-- The clauses of `append` with every arrow turned round (section 5):
+-- split ys                  <->  ([], ys)
+-- split (x : append (xs, ys)) <->  (x:xs, ys)
+def split = (unitprod! ; (inl * id))
+          | (inr! ; (id * append!) ; assocprod ; (inr * id))
+
+
+-- rev []      <->  []
+-- rev (x:xs)  <->  append (rev xs, [x])
+--
+-- Two emissions of the same clause, equal as relations.  `revpar` builds the
+-- pair with a single  f * g ; `rev` serialises it with the recursive call
+-- innermost (section 8).  Forwards both work.  Backwards `revpar` exhausts
+-- the call depth and `rev` answers at once.
+def revpar = (inl! ; inl)
+           | (inr! ; swapprod ; (id * (unitprod! ; swapprod))
+                   ; (revpar * ((id * inl) ; inr)) ; append)
+
+def rev    = (inl! ; inl)
+           | (inr! ; swapprod ; (rev * id)
+                   ; (id * (unitprod! ; swapprod ; (id * inl) ; inr)) ; append)
+
+
+-- A call in a pattern runs backwards (section 5):
+-- initlast (append (xs, [x]))  <->  (xs, x)
+def initlast = append! ; (id * (inr! ; (id * inl!) ; swapprod ; unitprod))
+
+
+-- Forgetting on purpose: one clause per shape (section 4).
+-- forget 0      <->  ()
+-- forget (n+1)  <->  forget n
+def forget = inl! | (inr! ; forget)
+
+
+-- A variable twice in a pattern is an equality test (section 4).
+-- same (x, x)  <->  x
+def same = copy!
+
+
+-- Program parameters are not data and are exempt from the count (section 4).
+-- ctrl m (L (), a)  <->  (L (), a)
+-- ctrl m (R (), a)  <->  (R (), m a)
+-- Both sides split on the same label, so the case tree needs no `join`
+-- (section 6).  prelude.42 writes this  mat ; (id + m) ; mat! .
+def ctrl m = dist ; (id + (id * m)) ; dist!
+def flip   = ctrl swapsum
+
+
+-- An intended overlap, written as an explicit union so it does not warn
+-- (section 6).  Both clause groups match every non-empty list.
+-- here   (x:xs)  <->  (x, xs)
+-- deeper (x:xs)  <->  let (y, ys) = pick xs in (y, x:ys)
+-- pick = here | deeper
+def here   = inr!
+def deeper = inr! ; swapprod ; (pick * id) ; assocprod! ; (id * swapprod) ; (id * inr)
+def pick   = here | deeper
