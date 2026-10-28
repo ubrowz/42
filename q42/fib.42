@@ -30,33 +30,21 @@
 
 
 -- ---------------------------------------------------------------------------
--- Plumbing.  `ctrl m = mat ; (id + m) ; mat!` is 42's if-then-else (MANUAL
--- section 12.5): split on the leading bit, apply `m` on the R branch, put it
--- back.  With it, each wiring below says what it does.
---
--- `on2` and `on3` select which qubit of the tail a gate acts on, so that a
--- control can reach past its neighbour.
+-- The gates, as clauses (QSUGAR.md).  `cx` flips its target when its control
+-- is set; `ccx` does that when both controls are set.
 -- ---------------------------------------------------------------------------
 
 -- A qubit is a two-case choice carrying no data.  Declaring the name is a
 -- printing convenience only; the checker is unaffected.
 type qubit = 1 + 1
 
-def x       = swapsum
-def mat     = dist ; (unitprod + unitprod)
-def ctrl m  = mat ; (id + m) ; mat!
+def x = swapsum
 
-def on2 m   = id * m                    -- act on the tail, not the head
-def on3 m   = id * (id * m)
+def cx (L (), q)  <->  (L (), q)
+def cx (R (), q)  <->  (R (), x q)
 
--- CNOT from x0 to y0:  control q0, target q2 -- so skip q1.
-def cx02    = ctrl (on2 (x * id))
-
--- Toffoli from x0 and y0 to y1:  "if x0, then CNOT(y0 -> y1)".
-def cc03    = ctrl (on2 (ctrl x))
-
--- CNOT from x1 to y1:  control q1, target q3.
-def cx13    = on2 (ctrl (on2 x))
+def ccx (L (), qs)  <->  (L (), qs)
+def ccx (R (), qs)  <->  (R (), cx qs)
 
 
 -- ---------------------------------------------------------------------------
@@ -67,17 +55,24 @@ def cx13    = on2 (ctrl (on2 x))
 --   y += 2  on two bits is  X(y1)                    -- 2 is 0b10
 -- Controlling each on a bit of x gives the three gates below.  The Toffoli must
 -- come first: y1 depends on the OLD y0.
+--
+-- Each name is a wire.  A gate takes the wires it names and hands them back
+-- under the same names, so the definition reads as the circuit.
 -- ---------------------------------------------------------------------------
 
-def add4 = cc03 ; cx02 ; cx13
+def add4 (x0, (x1, (y0, y1)))  <->
+    let (x0, (y0, y1)) = ccx (x0, (y0, y1)) in     -- Toffoli: x0, y0 -> y1
+    let (x0, y0)       = cx (x0, y0)        in     -- CNOT:    x0 -> y0
+    let (x1, y1)       = cx (x1, y1)        in     -- CNOT:    x1 -> y1
+    (x0, (x1, (y0, y1)))
 
 
 -- ---------------------------------------------------------------------------
--- Swap the two registers.  Three primitives, no gates at all: reassociate so
--- the halves are adjacent, swap them, reassociate back.
+-- Swap the two registers.  No gates at all: the clause only rearranges, and
+-- rearranging emits nothing.
 -- ---------------------------------------------------------------------------
 
-def swapregs = assocprod ; swapprod ; assocprod!
+def swapregs (x0, (x1, (y0, y1)))  <->  (y0, (y1, (x0, x1)))
 
 
 -- ---------------------------------------------------------------------------
@@ -109,6 +104,6 @@ def hcore = x ; s ; v ; s ; x
 def h     = unitprod! ; (omega * hcore) ; unitprod
 
 -- Hadamard on y0, the low bit of the second register.
-def hy0   = on3 (h * id)
+def hy0 (x0, (x1, (y0, y1)))  <->  let y0 = h y0 in (x0, (x1, (y0, y1)))
 
 def qfib  = hy0 ; fib

@@ -9,8 +9,8 @@
 -- Chuang section 4.4) says that any circuit with mid-circuit measurement and
 -- classically-controlled gates can be rewritten with every measurement moved to
 -- the end, replacing each classical control by a *quantum* control.  Q42 has
--- quantum control -- that is `ctrl` -- so the rewritten circuit is an ordinary
--- Q42 term, unitary like everything else.
+-- quantum control -- a clause that matches on a qubit -- so the rewritten
+-- circuit is an ordinary Q42 definition, unitary like everything else.
 --
 --   42q unitary teleport tele -q 3        -- tele ; tele! = id, on 8 dimensions
 --   42q sample  teleport checkh "|000>" --bits 2
@@ -26,20 +26,29 @@ def t       = id + omega
 def z       = id + (omega ; omega ; omega ; omega)
 def hcore   = x ; s ; v ; s ; x
 def h       = unitprod! ; (omega * hcore) ; unitprod
-def mat     = dist ; (unitprod + unitprod)
-def ctrl m  = mat ; (id + m) ; mat!
-def cx      = ctrl x
 
+-- Controlled gates, as clauses: act on the target when the control is set.
+def cx (L (), q)  <->  (L (), q)
+def cx (R (), q)  <->  (R (), x q)
 
--- ---------------------------------------------------------------------------
--- The protocol.  `bob` is where the deferral shows: instead of "if Alice's bit
--- is 1, apply X", it is a CNOT and a CZ -- the same conditionals, controlled by
--- the qubits themselves rather than by bits read out of them.
--- ---------------------------------------------------------------------------
+def cz (L (), q)  <->  (L (), q)
+def cz (R (), q)  <->  (R (), z q)
 
-def bell    = (id * (h * id)) ; (id * cx)        -- entangle q1 with q2
-def alice   = (ctrl (x * id)) ; (h * id)         -- CNOT q0->q1, then H on q0
-def bob     = (id * cx) ; (ctrl (id * z))        -- CNOT q1->q2, CZ q0->q2
+-- The three stages, each a circuit on named wires.
+def bell (q0, (q1, q2))  <->                       -- entangle q1 with q2
+    let q1       = h q1        in
+    let (q1, q2) = cx (q1, q2) in
+    (q0, (q1, q2))
+
+def alice (q0, (q1, q2))  <->                      -- CNOT q0->q1, then H on q0
+    let (q0, q1) = cx (q0, q1) in
+    let q0       = h q0        in
+    (q0, (q1, q2))
+
+def bob (q0, (q1, q2))  <->                        -- CNOT q1->q2, CZ q0->q2
+    let (q1, q2) = cx (q1, q2) in
+    let (q0, q2) = cz (q0, q2) in
+    (q0, (q1, q2))
 
 def tele    = bell ; alice ; bob
 

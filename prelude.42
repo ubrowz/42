@@ -65,7 +65,7 @@ def toggle = not^
 
 
 -- ---------------------------------------------------------------------------
--- A parameterised definition, and the one MANUAL section 6 is built around.
+-- A parameterised definition, and the one MANUAL section 13 is built around.
 -- `ctrl m` reads "if the label is R, do m" -- but note what it does NOT do: the
 -- label is lifted out by `mat`, the branches are acted on without changing which
 -- branch you are in, and `mat!` puts the same label back.  `m` never sees it,
@@ -76,5 +76,5 @@ def toggle = not^
 def mat     = dist ; (unitprod + unitprod)      -- (1+1) x a  <->  a + a
 def ctrl m  = mat ; (id + m) ; mat!
 def cdouble = ctrl double                       -- double the payload, if labelled R
-def flip    = ctrl not                          -- MANUAL section 6's example
+def flip    = ctrl not                          -- MANUAL section 13's example
 def flip2   = ctrl flip                         -- and the same trick twice

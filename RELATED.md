@@ -908,7 +908,7 @@ underexplored and better behaved, not that the others made a mistake.
   field-wide gap rather than a deficit.
 - **Mid-circuit measurement, in Q42.** √Π excludes state preparation and
   measurement. Q42 has terminal measurement, in which `42q sample` applies the
-  Born rule to the state a program produced (QMANUAL §7.5), and that required no
+  Born rule to the state a program produced (QMANUAL §7.6), and that required no
   addition to the language, because it operates on the output rather than being a term.
   Measurement *within* a program is absent by decision rather than omission:
   measurement is not unitary, so admitting it as a term would make `!` partial.

@@ -392,8 +392,8 @@ class TestQManualNumbers(unittest.TestCase):
         from q42 import parse_program
         from q42.types import ground, infer_all
 
-        for lib, expected in [("gates", 24), ("fib", 15),
-                              ("deutsch", 13), ("classical", 4)]:
+        for lib, expected in [("gates", 24), ("fib", 13),
+                              ("deutsch", 12), ("classical", 4)]:
             env = expand_env(parse_program(
                 (ROOT / "q42" / f"{lib}.42").read_text(encoding="utf-8")))
             schemes, errors = infer_all(env)

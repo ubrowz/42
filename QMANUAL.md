@@ -1,7 +1,9 @@
 # Q42 — User Manual
 
 For a reader with a computer science background who has read
-[the 42 manual](MANUAL.md). No prior knowledge of quantum mechanics is assumed;
+[the 42 manual](MANUAL.md): its Part I, which writes definitions as clauses
+(Q42's clauses follow stricter rules, §7.3), and its Part II, the point-free
+core that 42 and Q42 share. No prior knowledge of quantum mechanics is assumed;
 the physics is developed here from scratch, but only as far as Q42 actually
 needs it, and the parts Q42 does *not* model are named as such.
 
@@ -407,7 +409,7 @@ c00 c11 - c01 c10  =  0.7071 x 0.7071 - 0 x 0  =  0.5
 
 which is not zero, so it does not factor.
 
-Entanglement is why Q42 needs one piece of machinery 42 did not (§7.4): a state
+Entanglement is why Q42 needs one piece of machinery 42 did not (§7.5): a state
 of a compound system is not in general a pair of states.
 
 ### 3.7 What Q42 does not model
@@ -415,7 +417,7 @@ of a compound system is not in general a pair of states.
 Stated plainly, because a manual that quietly omits these would be misleading.
 
 - **Measurement, except at the end.** Q42 computes the unitary. You may measure
-  the *result* (§7.5), which is the Born rule applied to a finished state, but
+  the *result* (§7.6), which is the Born rule applied to a finished state, but
   nothing collapses mid-program, so there is no measuring, branching on the
   outcome, and carrying on. §9.2 is precise about the difference.
 - **Normalisation.** Q42 does not enforce `Σ|cᵢ|² = 1`. It does not need to: a
@@ -482,7 +484,8 @@ at independently in 42.
 This matters because of a result of Carette, Heunen, Kaarsgaard & Sabry
 (POPL 2024): a rig groupoid extended with **two maps and three equations** is
 computationally universal for quantum computing. Those two maps are §6. Q42 is
-that construction, given 42's syntax.
+that construction, given 42's syntax: the point-free core, and clauses that
+compile to it (§7.3).
 
 So the whole of the difference is: the semiring changes, the primitives that are
 not unitary go, and two unitary ones arrive. The evaluator, the type system and
@@ -495,9 +498,11 @@ not unitary go, and two unitary ones arrive. The evaluator, the type system and
 - [5.1 `|` and `^` need `1 + 1 = 1`](#51--and--need-1--1--1)
 - [5.2 `copy` is not the no-cloning theorem](#52-copy-is-not-the-no-cloning-theorem)
 - [5.3 Where the restriction actually bites](#53-where-the-restriction-actually-bites)
+- [5.4 What it means for clauses](#54-what-it-means-for-clauses)
 
 Five primitives and two combining forms. Each is dropped for a reason you can
-check, not by taste.
+check, not by taste, and §5.4 says what that changes for definitions written as
+clauses.
 
 ### 5.1 `|` and `^` need `1 + 1 = 1`
 
@@ -564,6 +569,24 @@ unitary, so the restriction has only two ways to catch you:
    these are not gates.
 2. **The space is infinite-dimensional.** This is the subtler one and it is why
    Q42 has no arithmetic on unbounded numbers; §8 is the worked case.
+
+### 5.4 What it means for clauses
+
+A 42 clause definition compiles to the primitives above, so the ones Q42 drops
+take some of the clause rules with them. Each change is one of §5.1–5.3 again:
+
+- **A name is used exactly once on each side.** In 42 a name used twice in a
+  term is a `copy`, and a name used twice in a pattern is an equality test, its
+  `copy!`. Neither is unitary (§5.2), so in Q42 both are errors.
+- **The patterns cover every input exactly once, and the terms every output.**
+  In 42 a definition is the union of its clauses, overlap merely warns, and a
+  missing case means no answer. In Q42 a definition is the *sum* of its
+  clauses, which is §5.1's `1 + 1 = 2`: overlap would add two matrices, and a
+  gap would leave a partial map. Both are errors.
+- **A `let` pattern cannot fail.** A call's result may be a superposition, and a
+  pattern that kept part of it and dropped the rest would not be unitary.
+
+§7.3 shows what is left, which is most of what one wants.
 
 ---
 
@@ -721,8 +744,8 @@ h : qubit <-> qubit
 ### 6.4 Control is `dist`, which you have already met
 
 A **controlled** gate applies its target gate only when the control qubit is
-`|1>`. That is a conditional, and 42 does conditionals with `dist` (the 42
-manual, §10.5). So:
+`|1>`. That is a conditional, and 42's core does conditionals with `dist` (the
+42 manual, §13). So:
 
 ```
 def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  <->  A + A
@@ -736,6 +759,14 @@ controlled gate is one line:
 def cx    = ctrl x                              -- CNOT
 def ccx   = ctrl cx                             -- Toffoli
 def cswap = ctrl swap                           -- Fredkin
+```
+
+Written as clauses (§7.3), a controlled gate is two lines, one for each value
+of the control, and `cx` compiles to exactly `ctrl x` with `mat` written out:
+
+```
+def cx (L (), q)  <->  (L (), q)
+def cx (R (), q)  <->  (R (), x q)
 ```
 
 The inferred type says what control requires and nothing more:
@@ -757,9 +788,10 @@ adjoint. That falls out of how `!` treats a parameter and is not arranged.
 
 - [7.1 A qubit is `1 + 1`](#71-a-qubit-is-1--1)
 - [7.2 Registers and kets](#72-registers-and-kets)
-- [7.3 The commands](#73-the-commands)
-- [7.4 Superpositions in, and why that needed new machinery](#74-superpositions-in-and-why-that-needed-new-machinery)
-- [7.5 Measuring the result](#75-measuring-the-result)
+- [7.3 Writing gates as clauses](#73-writing-gates-as-clauses)
+- [7.4 The commands](#74-the-commands)
+- [7.5 Superpositions in, and why that needed new machinery](#75-superpositions-in-and-why-that-needed-new-machinery)
+- [7.6 Measuring the result](#76-measuring-the-result)
 
 ### 7.1 A qubit is `1 + 1`
 
@@ -785,18 +817,80 @@ You write states as kets on the command line: `"|0110>"`, or just `"0110"`.
 Only *basis* states can be written down, which is deliberate. You make
 superpositions by applying a gate.
 
-### 7.3 The commands
+### 7.3 Writing gates as clauses
+
+A Q42 definition can be written as clauses, as in the 42 manual's Part I, and
+it compiles to the point-free core. In Q42 **a name is a wire**: a pattern
+names the qubits it takes apart, and a call names the qubits a gate acts on.
+The compiler routes them together and back, and routing costs no gates (§9.4).
+`teleport.42`'s first stage:
+
+```
+def bell (q0, (q1, q2))  <->
+    let q1       = h q1        in
+    let (q1, q2) = cx (q1, q2) in
+    (q0, (q1, q2))
+```
+
+reads as the circuit: Hadamard on `q1`, then a CNOT from `q1` to `q2`. A name
+may be bound again once a gate has consumed it, so the wires keep their names
+through the circuit.
+
+A controlled gate is a definition with one clause per value of the control:
+
+```
+$ 42q show teleport cx
+cx   (L (), q) <-> (L (), q)
+cx   (R (), q) <-> (R (), x q)
+cx!  (L (), q) <-> (L (), q)
+cx!  (R (), x q) <-> (R (), q)
+```
+
+The two `cx!` lines are the clauses turned round, which is the adjoint (the 42
+manual, §5). Matching a qubit like this is **quantum control**, not a classical
+branch: a control in superposition matches both clauses, and both run, weighted
+by its amplitudes. That is §6.4's `dist`, written with names.
+
+A classical function is its truth table. Deutsch's oracle for `f(x) = not x`
+(§8.4):
+
+```
+def orcnot (L (), y)  <->  (L (), x y)       -- f(0) = 1: flip y
+def orcnot (R (), y)  <->  (R (), y)         -- f(1) = 0: leave y
+```
+
+The rules are 42's, tightened as §5.4 explains, and each has a message:
+
+```
+error: line 2: in `dup a <-> (a, a)`, `a` is used twice.  Q42 cannot copy a value: copying maps a space into a bigger one, so it is not unitary (QMANUAL section 5.2).
+```
+
+The others refuse a name matched twice, two clauses whose patterns (or terms)
+overlap, an input (or output) no clause covers, a `let` pattern that can fail,
+and a call inside a pattern. Every definition the rules accept is unitary.
+
+Two things clauses do not do. They do not make superpositions: a definition
+built from clauses alone permutes basis states, and every genuinely quantum
+step, `h`, `v`, `omega` and what is built from them, enters as a call. And not
+every definition they accept can yet be emitted as a circuit: when a
+definition's inputs and outputs cannot be split the same way, it is compiled by
+a construction that reorders sums of different widths, which are not registers
+(§9.4). It runs in the evaluator, and `42q emit` says why it will not emit it.
+The design, and the proof that the compiled term means what the clauses say and
+is unitary, are in `QSUGAR.md`.
+
+### 7.4 The commands
 
 ```
 42q FILE GATE STATE [-b]     apply a gate to a state
-42q sample  FILE GATE STATE  apply it, then measure -- see section 7.5
+42q sample  FILE GATE STATE  apply it, then measure -- see section 7.6
 42q law     FILE GATE STATE  check that `!` really is the adjoint
 42q unitary FILE [GATE]      check `t ; t! = id` over the whole basis
 42q matrix  FILE [GATE]      print the matrix
 42q equal   FILE GATE GATE   decide whether two gates are the same -- 6.1
 42q emit    FILE [GATE]      write it out as OpenQASM 3 -- see section 9.4
 42q type    FILE [GATE]      infer the type
-42q show    FILE [GATE]      print a definition and its adjoint
+42q show    FILE [GATE]      print a definition, its adjoint, and what it compiles to
 ```
 
 `matrix` and `unitary` need to know how big the space is, and the *type* is what
@@ -814,7 +908,7 @@ cswap : qubit x (qubit x qubit) <-> qubit x (qubit x qubit)
    ...
 ```
 
-### 7.4 Superpositions in, and why that needed new machinery
+### 7.5 Superpositions in, and why that needed new machinery
 
 42 applies a program to one value at a time and unions the results. Q42 cannot
 quite do that, and the reason is entanglement.
@@ -829,7 +923,7 @@ applies a gate to a whole state rather than to a basis value.
 You see this in `bell`: applied to `|00>` it is a single column, but the answer
 is a state that no pair of single-qubit states could produce.
 
-### 7.5 Measuring the result
+### 7.6 Measuring the result
 
 `42q FILE GATE STATE` shows you the state. `42q sample` measures it, which is what
 a real device would do:
@@ -917,18 +1011,25 @@ Real quantum hardware has registers of fixed size and does arithmetic **mod
 
 becomes a *permutation* of the `2ⁿ × 2ⁿ` basis states. The matrix `[[0,1],[1,1]]`
 has determinant `−1`, which is invertible mod `2ⁿ`, so the permutation is
-unitary and therefore expressible. `q42/fib.42` does it on two 2-bit registers:
+unitary and therefore expressible. `q42/fib.42` does it on two 2-bit registers,
+`|x0 x1 y0 y1>`, writing each step as the circuit it is (§7.3):
 
 ```
-def add4     = cc03 ; cx02 ; cx13              -- (x,y) -> (x, x+y mod 4)
-def swapregs = assocprod ; swapprod ; assocprod!
-def fib      = swapregs ; add4
+def add4 (x0, (x1, (y0, y1)))  <->               -- (x, y) -> (x, x+y mod 4)
+    let (x0, (y0, y1)) = ccx (x0, (y0, y1)) in     -- Toffoli: x0, y0 -> y1
+    let (x0, y0)       = cx (x0, y0)        in     -- CNOT:    x0 -> y0
+    let (x1, y1)       = cx (x1, y1)        in     -- CNOT:    x1 -> y1
+    (x0, (x1, (y0, y1)))
+
+def swapregs (x0, (x1, (y0, y1)))  <->  (y0, (y1, (x0, x1)))
+
+def fib = swapregs ; add4
 ```
 
 `add4` is three gates because `y += x` is "if `x₀` then `y += 1`" followed by
-"if `x₁` then `y += 2`", and a two-bit increment is `CNOT` then `X`. `swapregs`
-is three *primitives* and no gates at all: reassociate so the halves are
-adjacent, swap them, reassociate back.
+"if `x₁` then `y += 2`", and a two-bit increment is `CNOT` then `X`; the Toffoli
+comes first because `y1` depends on the old `y0`. `swapregs` is no gates at all:
+its clause only rearranges, and rearranging emits nothing.
 
 Iterating gives the Fibonacci numbers mod 4:
 
@@ -949,6 +1050,7 @@ Everything above is a permutation, so it is reversible *classical* computing and
 42 could do it too. What Q42 adds is that the seed may be a superposition:
 
 ```
+def hy0 (x0, (x1, (y0, y1)))  <->  let y0 = h y0 in (x0, (x1, (y0, y1)))
 def qfib = hy0 ; fib
 ```
 
@@ -969,13 +1071,19 @@ tells you nothing about the other. Deutsch's algorithm answers after one.
 The oracle has to be reversible like everything else, so it takes the standard
 shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §2,
 which is also `mul` keeping its multiplier in the 42 manual's §9.3. There are only
-four one-bit functions, so `q42/deutsch.42` writes all four out:
+four one-bit functions, so `q42/deutsch.42` writes all four out, each as its
+truth table (§7.3):
 
 ```
-def orc0   = id                              -- f(x) = 0       constant
-def orc1   = id * x                          -- f(x) = 1       constant
-def orcid  = ctrl x                          -- f(x) = x       balanced
-def orcnot = (x * id) ; ctrl x ; (x * id)     -- f(x) = not x   balanced
+def orc0 (a, y)     <->  (a, y)              -- f(x) = 0       constant
+
+def orc1 (a, y)     <->  (a, x y)            -- f(x) = 1       constant
+
+def orcid (L (), y)   <->  (L (), y)         -- f(x) = x       balanced
+def orcid (R (), y)   <->  (R (), x y)
+
+def orcnot (L (), y)  <->  (L (), x y)       -- f(x) = not x   balanced
+def orcnot (R (), y)  <->  (R (), y)
 ```
 
 **The algorithm** is three steps: superpose both inputs, query the oracle once,
@@ -1002,7 +1110,7 @@ two behave the same way as their partner: **the first qubit is `|0>` for a
 constant `f` and `|1>` for a balanced one, with certainty.** One query, and the
 answer is not probable but definite.
 
-And it will say so outright if you measure the first qubit (§7.5):
+And it will say so outright if you measure the first qubit (§7.6):
 
 ```
 $ 42q sample deutsch dnot "|01>" --bits 0
@@ -1028,15 +1136,29 @@ It is not, and the reason is a theorem. The **principle of deferred measurement*
 (Nielsen & Chuang §4.4) says that any circuit with mid-circuit measurements and
 classically-controlled gates can be rewritten with every measurement moved to the
 *end*, each classical control replaced by a **quantum** control. Q42 has quantum
-control, namely `ctrl`, so the rewritten circuit is an ordinary Q42 term.
+control, a clause that matches on a qubit (§7.3), so the rewritten circuit is an
+ordinary Q42 definition.
 
-`q42/teleport.42` is that circuit, and the deferral is visible in one line:
+`q42/teleport.42` is that circuit, on `(q0, (q1, q2))`, and the deferral is
+visible in one stage:
 
 ```
-def bell  = (id * (h * id)) ; (id * cx)      -- entangle q1 with q2
-def alice = (ctrl (x * id)) ; (h * id)       -- CNOT q0->q1, then H on q0
-def bob   = (id * cx) ; (ctrl (id * z))      -- CNOT q1->q2, CZ q0->q2
-def tele  = bell ; alice ; bob
+def bell (q0, (q1, q2))  <->                       -- entangle q1 with q2
+    let q1       = h q1        in
+    let (q1, q2) = cx (q1, q2) in
+    (q0, (q1, q2))
+
+def alice (q0, (q1, q2))  <->                      -- CNOT q0->q1, then H on q0
+    let (q0, q1) = cx (q0, q1) in
+    let q0       = h q0        in
+    (q0, (q1, q2))
+
+def bob (q0, (q1, q2))  <->                        -- CNOT q1->q2, CZ q0->q2
+    let (q1, q2) = cx (q1, q2) in
+    let (q0, q2) = cz (q0, q2) in
+    (q0, (q1, q2))
+
+def tele = bell ; alice ; bob
 ```
 
 `bob` is where "if Alice's bit is 1, apply X" became a CNOT: the same conditional,
@@ -1099,7 +1221,7 @@ compare. Gate identities like `H ; H = id`, `H ; X ; H = Z`, `S ; S = Z` and
 `tests/test_q42.py`.
 
 **Amplitudes and samples, side by side.** `42q sample` measures a result as a
-device would, and prints the exact Born probabilities next to the draw (§7.5).
+device would, and prints the exact Born probabilities next to the draw (§7.6).
 So Deutsch's question gets an answer, `|1_> 100.0%`, while the state that
 produced it stays visible: `-0.707107|10> + 0.707107|11>`, from which you can
 see why the first qubit is certainly `|1>`. A real machine gives you only the
@@ -1144,7 +1266,7 @@ than unfinished: it is what buys every property in §9.1.
 **Inside the line.** Every term denotes a unitary, so `!` is defined on every
 term with no side conditions, `t ; t! = id` holds by construction, and
 `42q unitary` can assert it over a whole file. Measurement sits at the end:
-`42q sample` applies the Born rule to the state the program produced (§7.5).
+`42q sample` applies the Born rule to the state the program produced (§7.6).
 That is an operation on the *output*, not a term in the language, which is
 exactly why it costs the language nothing.
 
@@ -1300,7 +1422,7 @@ library is register-shaped**, across `gates.42`, `fib.42`, `deutsch.42`,
 `teleport.42`, `grover.42`, `gsum.42`, `qft3.42` and `classical.42`, with none
 rejected. Programs people actually write in this language are already circuits.
 
-**Measurement.** *Terminal* measurement is part of the tooling today (§7.5):
+**Measurement.** *Terminal* measurement is part of the tooling today (§7.6):
 run the unitary, then sample the result. It is the Born rule and a random
 number, nothing more. It covers every algorithm whose last step is a single
 measurement: Deutsch, Bernstein–Vazirani, Grover, and the quantum subroutine of
@@ -1464,10 +1586,16 @@ Absent, with reasons in §5: `zero`, `inl`, `inr`, `copy`, `join`, `|`, `^`.
 
 ```
 type qubit = 1 + 1                  -- a printing abbreviation
-def  name   = gate
+def  name pattern <-> term          -- a clause (§7.3)
+def  name   = gate                  -- a point-free definition
 def  name m = gate                  -- m is a parameter, standing for a gate
 -- comments run to end of line
 ```
+
+Clauses follow the 42 manual's §4 and §19, with §5.4's changes: every name used
+exactly once on each side; patterns covering each input exactly once and terms
+each output exactly once; `let` patterns of names, pairs and `()` only; no calls
+in patterns. `QSUGAR.md` §6 lists every message.
 
 `q42/classical.42` uses only primitives that 42 *also* has, so the same file runs
 under either interpreter, which is one way to see that `omega` and `v` buy
@@ -1509,7 +1637,8 @@ bell!  = cx! ; h! * id!
 
 Read it as: Hadamard the left qubit, leave the right one alone, then a
 controlled-NOT. The adjoint was not written by anyone; it is the same
-definition read backwards.
+definition read backwards. Written as clauses, `bell (a, b) <-> let a = h a in
+cx (a, b)` compiles to exactly this term.
 
 ### The circuit
 

@@ -329,6 +329,6 @@ def metaswap   = runw encpair qswap
 
 -- `join ; inl`, interpreted: forwards it throws the bit away and always
 -- answers L; backwards it hands back both bits that could have led there, and
--- nothing at all for the answer it never produces.  MANUAL section 14.4 runs
+-- nothing at all for the answer it never produces.  MANUAL section 18.4 runs
 -- this one both ways.
 def metasink   = runq (qseq qjoin qinl)

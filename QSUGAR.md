@@ -494,7 +494,13 @@ Each step is a commit with every test passing, as for the 42 sugar.
    as what they compile to. The five fixes found while reviewing it (who it is
    for, §4.2's "42's syntax", clauses in §5, §6.4's reference, the reference's
    source-file summary) fold into the rewrite, as do the stale manual
-   references in the comments of the `.42` files.
+   references in the comments of the `.42` files. *Done.* QMANUAL gains §5.4
+   (what dropping primitives means for clauses) and §7.3 (writing gates as
+   clauses: wires, control, truth tables, the rules, and what clauses do not
+   do); §8's examples are now `fib.42`, `deutsch.42` and `teleport.42`
+   rewritten in clauses, each as the circuit it is. `gates.42` stays the
+   point-free gate library. The manual's physics, §1–§3 and §9, needed no
+   change: they are about the core, which did not change.
 
 Then the held push: the 42 work and the Q42 work go out together.
 

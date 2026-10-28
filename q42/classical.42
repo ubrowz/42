@@ -12,8 +12,8 @@
 --
 --     (a, b, c)  |->  (a, b, c XOR (a AND b))
 --
--- is already a 42 program, because control is just `dist`, which is also 42's
--- if-then-else (MANUAL section 12.5).  What the two generators buy is `h`, `s`
+-- is already a 42 program, because control is just `dist`, which is also how
+-- 42's core writes if-then-else (MANUAL section 13).  What the two generators buy is `h`, `s`
 -- and `t`: interference, not logic.
 
 -- A qubit is a two-case choice carrying no data.  Declaring the name is a
