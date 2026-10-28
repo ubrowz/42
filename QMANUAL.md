@@ -110,14 +110,24 @@ linear algebra; nothing requires an understanding of physics.
 ### 2.1 A state is a vector of amplitudes
 
 A classical bit is `0` or `1`. A **qubit** is a pair of complex numbers, one
-attached to each of those two possibilities:
+attached to each of those two possibilities.
+
+Physicists write this with *kets*. `|x>` means "the basis state labelled `x`",
+so `|0>` and `|1>` are a qubit's two basis states, the quantum counterparts of
+the bit values 0 and 1. A qubit's state in general is written:
 
 ```
 |psi>  =  c0 |0>  +  c1 |1>          c0, c1 in C
 ```
 
-`|0>` and `|1>` are names for the two basis vectors. The notation `|x>` is
-called a *ket* and is a way of writing "the basis vector labelled `x`". The `cᵢ` are **amplitudes**.
+Read it as: *the state called psi consists of the basis state 0 with weight
+`c0`, plus the basis state 1 with weight `c1`, where `c0` and `c1` are complex
+numbers* (`C` is the complex numbers). `psi`, the Greek letter ψ, is only the
+customary name for "some state", the way `x` is for "some number"; nothing
+depends on it. The weights `c0` and `c1` are the **amplitudes**, and §2.2 says
+what they mean. When `c1` is 0 the state is just `|0>`, and when `c0` is 0 it is
+just `|1>`. When both are nonzero, the qubit is in both basis states at once,
+in proportions the amplitudes give: a *superposition*, which §2.4 takes up.
 
 For `n` qubits there are `2ⁿ` basis states, `|000…>` through `|111…>`, and a
 state is `2ⁿ` amplitudes. That exponential is the whole reason simulating
