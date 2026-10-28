@@ -5,6 +5,12 @@ bounced off 42 at least once. It assumes you have read §1–§3 of the
 [manual](MANUAL.md) (values, and the one rule) and stalled somewhere around
 "how do I actually *write* one of these."
 
+> **Which 42 this course is about.** 42 can now be written in clauses, with
+> names, and the manual's Part I teaches that; the compiler then does
+> everything this course teaches you to do by hand. This course is about the
+> language underneath, the manual's Part II: what `42 show` prints, and how to
+> write point-free yourself when you want to choose every step.
+
 The manual's §15 and §16 are the two-paragraph version of this course. If those
 worked for you, you do not need this. If they did not, the problem is almost
 always the same one, and it is not a lack of cleverness:

@@ -1725,9 +1725,11 @@ def single(x):
     return [x]
 ```
 
-You *name* the input `x`, then mention `x` where you want it. 42 has no names.
+You *name* the input `x`, then mention `x` where you want it, and Part I's
+`def single x <-> [x]` does the same. The program that clause compiles to has
+no names at all.
 
-Instead, think of a Unix pipeline:
+Think of a Unix pipeline:
 
 ```
 cat file | sort | uniq
@@ -1750,10 +1752,10 @@ argument, `f(x) = …`, is *pointwise*, and one that never does is *point-free*.
 The pipeline above is the everyday example: nothing in `cat file | sort | uniq`
 names the lines passing between the stages, and nothing needs to.
 
-In most languages going point-free is a style you may adopt. In 42 it is the
-only option, because the language has no way to bind a name to a value at all.
-Sections 13 and 14 are what you use instead, and section 15 is how to read the
-result.
+In most languages going point-free is a style you may adopt. In 42's core it is
+the only option: the core has no way to bind a name to a value, and the names
+in clauses are compiled away. Sections 13 and 14 are the core's vocabulary, and
+section 15 is how to read it, including what a clause becomes.
 
 It is also part of why `!` works on every program without exception. There is no
 conditional whose branches would have to be told apart when the program runs
@@ -1767,13 +1769,15 @@ take the pair apart.
 
 One consequence is what makes 42 feel alien at first:
 
-> Because you cannot name the parts of a value, you cannot say *"take the `h`
-> out of that pair and put it next to `ys`."* Instead you **rearrange the
-> shape of the value until the pieces are already in the right place.**
+> In the core you cannot name the parts of a value, so you cannot say *"take
+> the `h` out of that pair and put it next to `ys`."* Instead a program
+> **rearranges the shape of the value until the pieces are already in the
+> right place.**
 
 That rearranging is what most of 42's built-in programs are for. They do no
 arithmetic or logic; they move parentheses around. They make more sense read as
-plumbing than as computation.
+plumbing than as computation. When you write clauses, the compiler works out
+the rearranging for you, and §15.2 shows where it puts it.
 
 ---
 
@@ -1869,6 +1873,15 @@ def ctrl m = mat ; (id + m) ; mat!      -- "if the label is R, do m"
 def flip   = ctrl not
 def flip2  = ctrl flip
 ```
+
+In clauses, parameters come between the name and the pattern:
+
+```
+def ctrl m (L (), a)  <->  (L (), a)
+def ctrl m (R (), a)  <->  (R (), m a)
+```
+
+which compiles to the definition above with `mat` written out.
 
 One new name there: `not` is the built-in `swapsum`, which does nothing but
 exchange the two labels. §14 tabulates it with the other rearrangements:
@@ -2068,6 +2081,13 @@ keeping the other component available in both branches. See §17.
 
 ## 15. How to read a program
 
+- [15.1 Shape by shape](#151-shape-by-shape)
+- [15.2 What a clause compiles to](#152-what-a-clause-compiles-to)
+- [15.3 Several clauses: case trees](#153-several-clauses-case-trees)
+- [15.4 Steps you did not write](#154-steps-you-did-not-write)
+
+### 15.1 Shape by shape
+
 The technique is to write the shape of the value after each step. That is all
 of it; do it on paper the first few times.
 
@@ -2105,16 +2125,128 @@ correctly, since `[7,8]` is not a one-element list.
 
 That is the skill. Everything else is vocabulary.
 
+### 15.2 What a clause compiles to
+
+The pipeline above is exactly what `def single x <-> [x]` compiles to. Every
+clause compiles in three parts, in this order:
+
+1. **Match.** Take the input apart according to the pattern. This is the
+   pattern *built backwards*: `x` needs nothing, `L t` needs `inl!`, a pair
+   needs `*`.
+2. **Route.** Rearrange the named pieces into the places the term needs them.
+   This is the plumbing of §14: `swapprod`, `assocprod`, `unitprod!` where a
+   constant like `[]` needs a `()` to be built from, `copy` where a name is used
+   twice, `copy!` where a pattern names the same thing twice.
+3. **Build.** Construct the answer: `inl`, `inr`, `*`, and the programs the
+   term calls.
+
+For `single`, the match is nothing, the route is `unitprod! ; swapprod` (make
+room for the `[]`), and the build is `(id * inl) ; inr`. For the second clause
+of `append`, `(x:xs, ys) <-> x : append (xs, ys)`:
+
+```
+    inr! * id           ((x, xs), ys)       -- match: x:xs is R (x, xs)
+    assocprod!          (x, (xs, ys))       -- route: where the term wants them
+    id * append         (x, zs)             -- build: the call
+    inr                 x : zs              -- build: the cons cell
+```
+
+The names are gone, but every step is one you could have written by hand
+(§16). Using a name twice shows up as a `copy`, and a pattern that names
+something twice as a `copy!`:
+
+```
+def pair x  <->  (x, x)          -- compiles to  copy
+def same (x, x)  <->  x          -- compiles to  copy!
+```
+
+### 15.3 Several clauses: case trees
+
+A definition is the union of its clauses (§6.3), and could compile to exactly
+that: each clause compiled on its own, joined with `|`. Usually it compiles to
+something better. When every clause's pattern has an `L` or an `R` at the same
+place, 42 splits on that label instead of trying every clause:
+
+```
+$ 42 show tour append
+append   ([], ys) <-> ys
+append   (x : xs, ys) <-> x : append (xs, ys)
+append!  ys <-> ([], ys)
+append!  (x : append (xs, ys)) <-> (x : xs, ys)
+append   = dist ; unitprod + (assocprod! ; id * append ; inr) ; join
+append!  = join! ; unitprod! + (inr! ; id * append! ; assocprod) ; dist!
+```
+
+Read the compiled line as §17's skeleton: `dist` pushes the pair inside the
+first component's label, `+` handles the empty-list clause on the left and the
+cons clause on the right, and `join` forgets which one ran. The two are the
+same relation; the case tree is just quicker.
+
+When the outputs also carry a label at one place, sorted the same way as the
+inputs, the last step is `dist!` instead of `join`, and nothing is forgotten:
+
+```
+$ 42 show arith lt
+lt   (0, n + 1) <-> (0, n + 1)
+lt   (m + 1, n + 1) <-> let (a, b) = lt (m, n) in (a + 1, b + 1)
+lt!  (0, n + 1) <-> (0, n + 1)
+lt!  (a + 1, b + 1) <-> let lt (m, n) = (a, b) in (m + 1, n + 1)
+lt   = dist ; (id * inr! ; unitprod ; inr ; unitprod!) + (id * inr! ; lt ; id * inr) ; dist!
+lt!  = dist ; (unitprod ; inr! ; inr ; unitprod!) + (id * inr! ; lt! ; id * inr) ; dist!
+```
+
+A `join` in compiled output is a place where running backwards will have to
+try both branches. A `dist!` is a place where it will not.
+
+When the patterns do not split on a label, as with `split`'s turned-round
+clauses `ys` and `x : append (xs, ys)`, the clauses are joined with `|`.
+
+### 15.4 Steps you did not write
+
+Two kinds of step appear in compiled output that correspond to nothing you
+wrote.
+
+**Unit checks.** A constant in a pattern, like `[]`, is matched by building it
+backwards, and that leaves a `()` behind which must really be `()`. Usually the
+plumbing that removes it checks it as a side effect. Where nothing else would,
+42 adds `unitprod! ; swapprod ; unitprod`, which lets `()` through and nothing
+else:
+
+```
+$ 42 show strings swapcase
+swapcase   [] <-> []
+swapcase   (c : cs) <-> swapbyte c : swapcase cs
+swapcase!  [] <-> []
+swapcase!  (swapbyte c : swapcase cs) <-> c : cs
+swapcase   = (unitprod! ; swapprod ; unitprod) + swapbyte * swapcase
+swapcase!  = (unitprod! ; swapprod ; unitprod) + swapbyte! * swapcase!
+```
+
+Where the types already guarantee the `()`, the check is left out: `rev`'s
+empty-list branch compiles to plain `inl`. The rule is that a check is dropped
+only if dropping it changes no definition's type, so on every input the command
+line accepts, the result is the same.
+
+**Order.** In a pair whose halves both need work, 42 decides which half is
+built first, so that run backwards the cheaper half is checked first (§8.2).
+That is why `rev` compiles to `rev * id` followed by `id * (…)` rather than one
+`rev * (…)`: the two are the same relation, but backwards only one of them
+stops.
+
 ---
 
 ## 16. How to write a program
 
-Work backwards from ordinary code. Three steps.
+You do not need this section to write 42: a clause is the program, and §15.2
+is what the compiler does with it. Writing point-free by hand is for when you
+want to choose every step yourself, as `prelude.42` does, or to understand what
+the compiler chose. It is the method the compiler runs, done on paper. Three
+steps.
 
-### Step 1 — write it with names, as an equation
+### Step 1 — write it as a clause
 
 ```
-single(x) = [x]
+def single x  <->  [x]
 ```
 
 ### Step 2 — write out the shape you start with and the shape you want
@@ -2147,7 +2279,8 @@ tells you the next step to write, in reverse.**
 
 ## 17. Recursion
 
-A definition may refer to itself by name.
+This is the shape §8's recursive clauses compile to, and the shape to use when
+writing a recursion point-free.
 
 Recursive data in 42 is always "base case, or something bigger", which is to
 say a labelled value. So a recursive program is always a switch on that label, and
@@ -2294,8 +2427,19 @@ them.
 
 ### 18.3 Running a program through it
 
-To hand the interpreter a program you have to write that program down as a
-value. `meta.42` has short names that build one — a **quotation**:
+`42 quote` does this for you, for any definition in a file, clause definitions
+included: it quotes what the clauses compiled to, which is a core program like
+any other.
+
+```
+$ 42 quote tour rev "[1,2]"
+eval rev([1, 2]) =
+  [2, 1]
+  -- 1 result
+```
+
+To hand the interpreter a program yourself, you have to write that program down
+as a value. `meta.42` has short names that build one — a **quotation**:
 
 | you write | you get |
 |---|---|
@@ -2380,7 +2524,7 @@ that was never told about any of it.
 
 Two things to know and you can run your own programs through it.
 
-**Build the quotation.** Compose the names from 14.3 exactly as you would
+**Build the quotation.** Compose the names from 18.3 exactly as you would
 compose the programs. `copy ; copy!` becomes:
 
 ```
@@ -2412,7 +2556,7 @@ metaswap(0, R ()) =
 ```
 
 — and an encoder for any other shape is written the same way, out of the four
-constructors of 14.1. That is the whole extension mechanism.
+constructors of 18.1. That is the whole extension mechanism.
 
 ### 18.6 Programs that mention other programs
 
@@ -2540,7 +2684,7 @@ a second one that does not follow from it are in
 - **Corollary 18** is 14.4 stated properly: given the forward interpreter is
   right, the backward one is too, with nothing further to prove.
 - **Theorem 19** is the one worth the trip. `meta.42` also contains `dag`,
-  which is 42's own `!` written *in* 42 — seven lines, one per case of 14.1.
+  which is 42's own `!` written *in* 42 — seven lines, one per case of 18.1.
   There are now two ways to run a program backwards: dagger the interpreter, or
   dagger the written-down program and run it forwards. The theorem says they
   agree.
@@ -2554,6 +2698,34 @@ caught, and it is the only place.
 ---
 
 ## 19. Reference
+
+### Clauses
+
+```
+def NAME PARAM* PATTERN  <->  TERM          -- one clause; several make a definition
+```
+
+| Written | In a term | In a pattern |
+|---|---|---|
+| `x` | the value named `x` | anything; names it `x` |
+| `()`, `(t, u)`, `L t`, `R t` | builds it | matches exactly that shape |
+| `0`, `'a'`, `"hi"`, `[]`, `[t, u]` | that value | exactly that value |
+| `t : u` | `R (t, u)`, a list cell | a non-empty list |
+| `t + k` | `R` applied `k` times | a number at least `k` |
+| `P t` | runs `P` on `t` | a value `P` could produce from `t` (runs `P!`) |
+| `let q = t in e` | builds `t`, matches it against `q`, continues with `e` | — |
+
+`P` is a definition (with its program arguments, if it takes any), a
+parameter, a built-in, any of these followed by `!`, or any program in
+brackets.
+
+Rules: every name a clause binds is used, and every name it uses is bound
+(§4.2). A name used twice is copied; a name bound twice is an equality test. A
+pattern variable may not have the name of a definition, parameter or built-in.
+`L`, `R`, `let`, `in` and `def` are reserved. A definition's clauses are written
+together and share their parameters. A definition means the union of its
+clauses (§6.3); a definition and its clauses turned round are each other's
+reverse (§5).
 
 ### Combining programs
 
@@ -2607,7 +2779,7 @@ L x   R x     labelled
 ```
 42      FILE NAME VALUE [--backward]    apply a definition
 42 law  FILE NAME VALUE                 check reversibility
-42 show FILE [NAME]                     print a definition and its reverse
+42 show FILE [NAME]                     print a definition, its reverse, and what it compiles to
 42 type FILE [NAME]                     report the shapes (section 3.7)
 42 quote FILE NAME [VALUE]              run it through meta.42 (section 18)
 ```
@@ -2643,12 +2815,28 @@ on, and `arith.42`, `strings.42`, `rational.42` and `cipher.42` go further.
 
 ```
 type name   = shape                 -- optional; a printing abbreviation (3.7)
-def  name   = program
+def  name pattern <-> term          -- a clause (Part I)
+def  name   = program               -- a point-free definition (Part II)
 def  name p = program               -- p is a parameter, standing for a program
 -- comments run to end of line
 ```
 
-Definitions may refer to each other and to themselves, in any order.
+Definitions may refer to each other and to themselves, in any order, and the
+two kinds mix freely.
+
+### Errors and warnings from clauses
+
+| Message begins | Meaning | See |
+|---|---|---|
+| `the variable x is bound and never used` | the clause would forget `x` | §2, §4.2 |
+| `x is used but never bound` | the clause would have to invent `x` | §2, §4.2 |
+| `the pattern variable x has the name of a definition` | rename the variable | §4.4 |
+| `x is a definition, so here it must be applied` | a definition's name used as a value | §4.4 |
+| `x is bound twice` | a `let` reused a name still in hand | §7 |
+| `the clauses of f must be written together` | another definition sits between them | §4.1 |
+| `every clause of f must have the same parameters` | parameter lists differ | §13 |
+| `a clause's pattern must be a single term` | put brackets round the pattern | §4.1 |
+| warning: `clauses i and j of f both match` | two patterns overlap; both clauses apply there | §6.4 |
 
 ---
 
@@ -2658,7 +2846,14 @@ Definitions may refer to each other and to themselves, in any order.
 
 `{}` means no answer. In order of likelihood:
 
-1. **Shape mismatch.** The most common cause by far. A program got a value of
+1. **No clause matched.** For a definition written in clauses, check each
+   pattern against your input. A constant in a pattern matches only that
+   value (`0` does not match `1`), nesting must agree (§3.4), and a pattern
+   that uses a name twice matches only when both places hold the same value.
+   Running backwards, it is the turned-round clauses that must match: `42 show`
+   prints them.
+
+2. **Shape mismatch.** The most common cause by far. A program got a value of
    the wrong shape: `swapprod` on something that isn't a pair, `unitprod` on
    something that isn't a pair-with-unit-on-the-left.
 
@@ -2674,19 +2869,46 @@ Definitions may refer to each other and to themselves, in any order.
    stops matching the table in §19 is the bug. If a pair is involved, check the
    nesting first: `(a, (b, c))` and `((a, b), c)` are different values (§3.4).
 
-2. **A label was wrong.** `inl!` on an `R`-labelled value gives nothing, and
+3. **A label was wrong.** `inl!` on an `R`-labelled value gives nothing, and
    vice versa. This is on purpose; it is how case analysis rejects.
 
-3. **`copy!` on a mismatched pair.** It only succeeds when both halves are
+4. **`copy!` on a mismatched pair.** It only succeeds when both halves are
    equal.
 
-4. **Missing `dist`.** You wrote `(f + g)` where the value is a *pair* whose
+5. **Missing `dist`** (point-free only). You wrote `(f + g)` where the value is a *pair* whose
    first component is labelled, rather than a labelled value. `+` needs a
    labelled value. Insert `dist` first.
 
+### "42 refused my clause"
+
+Each message says what the clause would have done wrong, and the table at the
+end of §19 says where it is explained. The two most common are a name bound and
+never used, which would forget a value, and a name used and never bound, which
+would invent one. Both have the same cure: decide where the value comes from or
+goes to, and say so in the clause (§2, §4.2).
+
+### "I got a warning that two clauses both match"
+
+Two of a definition's patterns can match the same value, and since a definition
+is the union of its clauses, both apply to it (§6.4). If you meant the first to
+win, as it would in Haskell, make the patterns disjoint. If you meant both,
+give each its own name and join them with `|`. A pattern that contains a call
+counts as matching anything, so this warning can appear where the call would in
+fact keep the patterns apart.
+
+### "It works forwards, but backwards the call depth is exhausted"
+
+A backward run stops only if every recursive call it makes is on something
+smaller. 42 orders the work inside each term so that cheap checks come first
+(§8.2), but it does not reorder a `let` chain, and it cannot invent a check that
+is not there. Look at the turned-round clauses with `42 show`: if a recursive
+call can be reached with an input no smaller than the original, add a filter
+that rules that input out, and state it at the end of the clause as well as the
+beginning (§9.7).
+
 ### "I got a result with a stray `L` or `R` on it"
 
-You used `f + g` and forgot the `join` afterwards. `+` preserves the label by
+In point-free code: you used `f + g` and forgot the `join` afterwards. `+` preserves the label by
 design; `join` removes it.
 
 ### "It runs forever, or says the closure did not saturate"
@@ -2702,7 +2924,8 @@ Note that a program can be fine in one direction and not the other:
 ### "The backward direction gives loads of answers"
 
 Expected, and it is information-theoretic rather than a bug: every extra
-answer corresponds to a `join` that discarded which branch was taken. If you
+answer corresponds to clauses whose results overlap, which in compiled form is
+a `join` that discarded which branch was taken. If you
 want fewer, arrange for the forward direction to destroy less. `copy` before an
 operation, then `copy!` after, is the standard trick (see `double` in §6).
 
@@ -2742,7 +2965,9 @@ requirement.
 - `strings.42` — the text of §10.
 - `tm.42` — the Turing machine of §11.
 - `meta.42` — the interpreter for 42 written in 42, of §18.
-- `prelude.42` — shorter, denser examples.
+- `prelude.42` — shorter, denser examples, written point-free.
+- [The course](COURSE.md) — writing point-free 42 by hand, step by step: the
+  long form of §15–§17.
 - `qft.42` — a 42 program that writes *Q42* programs: a circuit family, generated.
   It uses nothing beyond §§12–16, and is the clearest example in the project of a
   recursive definition doing real work.
@@ -2753,29 +2978,40 @@ requirement.
 ## Appendix: a program and its inverse
 
 The claim this manual opens with is that you write a program once and get both
-directions. Section 15 shows you reading a program backwards by hand. This
-appendix shows the machine doing it, on a recursive definition, where the
-backward direction is not the forward one run in reverse but a different
-algorithm altogether.
+directions. This appendix shows the machine doing it on a recursive definition,
+where the backward direction is not the forward one run in reverse but a
+different algorithm altogether, and shows it at both levels: the clauses, and
+the core program they compile to.
 
 ### The program
 
-Addition, from §9.2, is six operators:
+Addition, from §9.2, is two clauses in `arith.42`:
 
 ```
-$ 42 show prelude add
+$ 42 show arith add
+add   (0, n) <-> n
+add   (m + 1, n) <-> add (m, n) + 1
+add!  n <-> (0, n)
+add!  (add (m, n) + 1) <-> (m + 1, n)
 add   = dist ; unitprod + (add ; inr) ; join
-add!  = join! ; (unitprod! + (inr! ; add!) ; dist!)
+add!  = join! ; unitprod! + (inr! ; add!) ; dist!
 ```
 
-The second line is not in `prelude.42`. It was computed from the first.
+Only the first two lines are in the file. The other four were computed from
+them.
 
-### The derivation
+### The derivation, twice
 
-Two rules produce it. Reversing a composite reverses the order of its parts,
-`(f ; g)! = g! ; f!`, and reversing a part is reversing whatever it is made of.
-Section 15 applies them by hand to a program that does not call itself; applied
-to `add`, they give:
+**In clauses**, the reverse is the clauses turned round (§5.1). The first
+turned-round clause says any `n` is `0 + n`. The second says a number of the
+form `add (m, n) + 1`, that is, any number above zero split by running `add`
+backwards on its predecessor, is `(m + 1, n)`. Both match every number above
+zero, so both contribute, and that is why `add!` finds every split.
+
+**In the core**, two rules produce the reverse. Reversing a composite reverses
+the order of its parts, `(f ; g)! = g! ; f!`, and reversing a part is reversing
+whatever it is made of. Section 15.1 applies them by hand to a program that does
+not call itself; applied to `add`, they give:
 
 | in `add`, in order | in `add!`, in order |
 |---|---|
@@ -2797,12 +3033,15 @@ And `unitprod!` becomes `unitprod`, not `unitprod!!`, because `f!!` is `f`
 (§13). The operator that discards a `()` and the one that invents it trade
 places.
 
+The two derivations agree, and must: turning clauses round always gives the
+same result as running their compiled program backwards (§2).
+
 ### The two directions
 
 Forwards, `add` is a function:
 
 ```
-$ 42 prelude add "(2, 3)"
+$ 42 arith add "(2, 3)"
 add(2, 3) =
   5
   -- 1 result
@@ -2811,7 +3050,7 @@ add(2, 3) =
 Backwards, it is a search, and it finds everything:
 
 ```
-$ 42 prelude add 5 --backward
+$ 42 arith add 5 --backward
 add!(5) =
   (0, 5)
   (1, 4)
@@ -2823,7 +3062,7 @@ add!(5) =
 ```
 
 Those are different computations. One walks a number down to zero; the other
-enumerates a set whose size depends on the input. No line of `prelude.42`
+enumerates a set whose size depends on the input. No line of `arith.42`
 describes the second, and `arith.42` contains no subtraction (§9.1).
 
 ### Checking it
@@ -2832,7 +3071,7 @@ The defining law says that running forwards and then backwards returns a set
 containing where you started. That is checkable on any input:
 
 ```
-$ 42 law prelude add "(2, 3)"
+$ 42 law arith add "(2, 3)"
 add(2, 3) has 1 result(s)
   [ok ] 5: inv has 6 preimage(s), input in it
 law holds
@@ -2846,7 +3085,7 @@ The type comes from the same definition, with no annotation anywhere in the
 file:
 
 ```
-$ 42 type prelude add
+$ 42 type arith add
 add  : nat x (mu Y. a + Y) <-> mu Y. a + Y
 ```
 
@@ -2856,9 +3095,10 @@ you ran it.
 
 ### What was not written
 
-Not the inverse term, not the search, not a subtraction, not a second type, and
-not a proof that the two agree. What was written is one line of `prelude.42`;
-everything else on this page was derived from it mechanically.
+Not the inverse clauses, not the inverse term, not the search, not a
+subtraction, not a second type, and not a proof that the two agree. What was
+written is two lines of `arith.42`; everything else on this page was derived
+from them mechanically.
 
 ### A second example: Towers of Hanoi
 
@@ -2876,25 +3116,25 @@ def hanoi(n, src=0, aux=1, dst=2):
 ```
 
 It never transforms a value: its whole method is to hand the three pegs to each
-sub-call *in a different order*. 42 has no argument names to reorder, so that
-reordering becomes data — an explicit rewrite of every move a sub-call returns.
-A peg is `1 + (1 + 1)`, a move a pair of pegs; `swap01` and `swap12` are the two
-transpositions. `tour.42` writes it:
+sub-call *in a different order*. A 42 definition takes one value, not a list of
+arguments to reorder, so that reordering becomes data — an explicit rewrite of
+every move a sub-call returns. A peg is `1 + (1 + 1)`, a move a pair of pegs;
+`swap01` and `swap12` exchange two pegs. `tour.42` writes it:
 
 ```
-def relabelA = (inl + (((swap12 * swap12) * relabelA) ; inr)) ; join
-def relabelB = (inl + (((swap01 * swap01) * relabelB) ; inr)) ; join
+def relabelA []             <->  []
+def relabelA ((a, b) : ms)  <->  (swap12 a, swap12 b) : relabelA ms
 
-def hanoi = ( inl
-            + ( copy ; (hanoi * hanoi)
-              ; (relabelA * relabelB)
-              ; (id * consMid) ; append )
-            ) ; join
+def relabelB []             <->  []
+def relabelB ((a, b) : ms)  <->  (swap01 a, swap01 b) : relabelB ms
+
+def hanoi 0      <->  []
+def hanoi (n+1)  <->  append (relabelA (hanoi n), (L (), R (R ())) : relabelB (hanoi n))
 ```
 
-`copy` makes the two recursive calls on the same `n`; `relabelA` and `relabelB`
-are the map that replaces Python's argument reordering; `consMid` inserts the
-one move the largest disk makes.
+`n` is used twice, once per recursive call, so it is copied; `relabelA` and
+`relabelB` are the map that replaces Python's argument reordering; and
+`(L (), R (R ()))` is the one move the largest disk makes, from peg 0 to peg 2.
 
 ```
 $ 42 tour hanoi 3
@@ -2921,6 +3161,12 @@ hanoi!([(0, R R ()), (1, R R ())]) =
   {}   (empty: no result)
 ```
 
-So `hanoi!` is a solution checker nobody wrote. `add!` was subtraction, a
-different algorithm; `hanoi!` is the same recursion the other way, admitting a
-list only when it is exactly what `hanoi` produces.
+So `hanoi!` is a solution checker nobody wrote. Turned round, the two uses of
+`n` become a pattern that names `n` twice, so both halves of the move list must
+be solutions for the same number of disks. `add!` was subtraction, a different
+algorithm; `hanoi!` is the same recursion the other way, admitting a list only
+when it is exactly what `hanoi` produces.
+
+This is also the definition that taught the compiler its order rule (§8.2):
+both halves of its pair call something, and backwards the half with the cons
+cell's check has to be taken apart first, or `hanoi!` never stops.
