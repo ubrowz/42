@@ -1219,7 +1219,7 @@ functional form:
 > (called a complement view) `g : S -> V'` such that the tupled function
 > `(f △ g) : S -> (V × V')` is injective
 
-That condition is 42's `mul`. MANUAL §11.3 explains that
+That condition is 42's `mul`. MANUAL §9.3 explains that
 `mul : (m, n) -> m x n` is not writable, because the base case `0 x n = 0`
 discards `n` and cannot even recover it as a set. What is written instead is
 
@@ -1325,7 +1325,7 @@ The honest side of that trade. The survey's test asks for `append/3` to work
 
 which is one mode per subset of the arguments, chosen at the query. A 42 program
 `P : A <-> B` has exactly two directions, fixed when it is written. The
-arguments are packed into one value (MANUAL §4), so there is no notion of
+arguments are packed into one value (MANUAL §3.4), so there is no notion of
 binding some of them and leaving others free: to ask 42 what `add` does given
 the first summand and the total, you run `add!` and filter, which enumerates
 where Prolog would constrain.

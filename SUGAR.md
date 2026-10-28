@@ -35,7 +35,7 @@ Writing 42 is hard in two different ways.
 **Plumbing.** There are no names, so values are routed by hand with
 `swapprod`, `assocprod`, `unitprod!` and `dist`. `single` is four steps of
 moving parentheses to say `[x]`. This difficulty is *accidental*. The manual's
-§9 already says how to write a program: "Step 1 — write it with names, as an
+§16 already says how to write a program: "Step 1 — write it with names, as an
 equation", then peel the target shape layer by layer. Steps 2 and 3 are an
 algorithm that people currently run on paper.
 
@@ -179,7 +179,7 @@ unitprod! ; swapprod ; (id * inl) ; inr
 ```
 
 which is the manual's `single`, step for step. The compiler has just run the
-peel method of manual §9.
+peel method of manual §16.
 
 **Worked: `append (x:xs, ys) <-> x : append (xs, ys)`.** `⟦p⟧ = inr * id`, so
 the match is `inr! * id`. The route from `((x, xs), ys)` to `(x, (xs, ys))` is
@@ -207,7 +207,7 @@ Count each data variable's occurrences in the pattern (`m`) and in the term
 
 The rule is symmetric, as §5 requires. Swap the sides of a clause and the last
 two rows swap, and so do `copy` and `copy!`. A non-linear pattern is not an
-oddity to be forbidden: it is what `copy!` has always meant (manual §6,
+oddity to be forbidden: it is what `copy!` has always meant (manual §14,
 "Copying"). The canonical route merges all of a variable's source copies to one
 and then splits that one to the target count, so `(x, x) <-> (x, x)` is the
 test-and-rebuild, not `id`.
@@ -235,7 +235,7 @@ call depth (checked). The notation does not hide the price. It makes you write
 the clauses that pay it.
 
 **Program parameters are exempt.** They stand for programs, not values, and
-manual §5 already allows `def there_and_back m = m ; m!`. Only data variables
+manual §13 already allows `def there_and_back m = m ; m!`. Only data variables
 are counted.
 
 ## 5. Inversion is turning the arrows around
@@ -504,7 +504,7 @@ irreversible classical code into Q42 oracles. It is useful, but it produces
 
 ## 10. Precedents, and what is particular here
 
-- **Manual §9** is the human version of §3, and the course's peel method
+- **Manual §16** is the human version of §3, and the course's peel method
   (Lesson 5) is the same algorithm run by hand.
 - **Paterson's arrow notation** (2001) compiles `proc` blocks with named
   variables into point-free arrow combinators. It is the closest engineering

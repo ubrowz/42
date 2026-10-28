@@ -83,7 +83,7 @@ labels, has two marks in one row. That is a set of two answers, drawn:
 ```
 
 Nothing new has been said yet. This is the same "a program returns a set" from
-the 42 manual's §7, written as a picture instead of as a list.
+the 42 manual's §6, written as a picture instead of as a list.
 
 ### 1.2 Running backwards is reading the other way
 
@@ -234,7 +234,7 @@ gate, which keeps its inputs and writes the answer into a third wire:
 ```
 
 Set `c = 0` and the third component becomes `a AND b`, with `a` and `b` still
-there. This is the padding trick from the 42 manual's §11.3, where `mul` keeps its
+there. This is the padding trick from the 42 manual's §9.3, where `mul` keeps its
 multiplier in order to stay invertible; the same pressure produces the same
 answer in both places.
 
@@ -722,7 +722,7 @@ h : qubit <-> qubit
 
 A **controlled** gate applies its target gate only when the control qubit is
 `|1>`. That is a conditional, and 42 does conditionals with `dist` (the 42
-manual, §12.5). So:
+manual, §10.5). So:
 
 ```
 def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  <->  A + A
@@ -968,7 +968,7 @@ tells you nothing about the other. Deutsch's algorithm answers after one.
 
 The oracle has to be reversible like everything else, so it takes the standard
 shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §2,
-which is also `mul` keeping its multiplier in the 42 manual's §11.3. There are only
+which is also `mul` keeping its multiplier in the 42 manual's §9.3. There are only
 four one-bit functions, so `q42/deutsch.42` writes all four out:
 
 ```

@@ -167,43 +167,84 @@ tbody tr:last-child td { border-bottom: 0; }
   </header>
   <nav class="rail" aria-label="Contents">
     <h2>Contents</h2>
-    <ol><li><a class="" href="#1-the-five-minute-version">1. The five-minute version</a></li><li><a class="" href="#2-the-one-rule-nothing-may-be-thrown-away">2. The one rule: nothing may be thrown away</a></li><li><a class="" href="#3-values">3. Values</a></li><li><a class="sub" href="#31-the-four-building-blocks">3.1 The four building blocks</a></li><li><a class="sub" href="#32-you-already-use-this--it-just-has-names">3.2 You already use this — it just has names</a></li><li><a class="sub" href="#33-why-the-labels-are-visible">3.3 Why the labels are visible</a></li><li><a class="sub" href="#34-how-pairs-work">3.4 How pairs work</a></li><li><a class="sub" href="#35-numbers-and-lists">3.5 Numbers and lists</a></li><li><a class="sub" href="#36-what-the-encoding-costs">3.6 What the encoding costs</a></li><li><a class="sub" href="#37-asking-what-shape-a-program-works-on">3.7 Asking what shape a program works on</a></li><li><a class="" href="#4-programs-are-pipelines-not-functions">4. Programs are pipelines, not functions</a></li><li><a class="" href="#5-the-seven-ways-to-combine-programs">5. The seven ways to combine programs</a></li><li><a class="sub" href="#f--g--do-f-then-g">f ; g — do f, then g</a></li><li><a class="sub" href="#f--g--the-value-is-a-pair-run-f-on-the-left-half-g-on-the-right">f * g — the value is a pair; run f on the left half, g on the right</a></li><li><a class="sub" href="#f--g--the-value-is-labelled-switch-on-the-label">f + g — the value is labelled; switch on the label</a></li><li><a class="sub" href="#f--g--try-both-collect-all-answers">f | g — try both, collect all answers</a></li><li><a class="sub" href="#f--repeat-f-any-number-of-times">f^ — repeat f any number of times</a></li><li><a class="sub" href="#f--run-f-backwards">f! — run f backwards</a></li><li><a class="sub" href="#f-a--a-program-that-takes-another-program">f a — a program that takes another program</a></li><li><a class="" href="#6-plumbing-rearranging-shapes-when-you-cannot-name-things">6. Plumbing: rearranging shapes when you cannot name things</a></li><li><a class="sub" href="#pairs">Pairs</a></li><li><a class="sub" href="#labels">Labels</a></li><li><a class="sub" href="#copying">Copying</a></li><li><a class="sub" href="#mixing-pairs-and-labels">Mixing pairs and labels</a></li><li><a class="sub" href="#others">Others</a></li><li><a class="" href="#7-none-one-or-many-answers">7. None, one, or many answers</a></li><li><a class="" href="#8-how-to-read-a-program">8. How to read a program</a></li><li><a class="" href="#9-how-to-write-a-program">9. How to write a program</a></li><li><a class="sub" href="#step-1--write-it-with-names-as-an-equation">Step 1 — write it with names, as an equation</a></li><li><a class="sub" href="#step-2--write-out-the-shape-you-start-with-and-the-shape-you-want">Step 2 — write out the shape you start with and the shape you want</a></li><li><a class="sub" href="#step-3--get-from-one-to-the-other-using-plumbing-one-move-at-a-time">Step 3 — get from one to the other using plumbing, one move at a time</a></li><li><a class="" href="#10-recursion">10. Recursion</a></li><li><a class="sub" href="#for-a-program-taking-one-argument">For a program taking one argument</a></li><li><a class="sub" href="#for-a-program-taking-two-arguments">For a program taking two arguments</a></li><li><a class="sub" href="#worked-example-append">Worked example: append</a></li><li><a class="" href="#11-arithmetic">11. Arithmetic</a></li><li><a class="sub" href="#111-the-governing-question">11.1 The governing question</a></li><li><a class="sub" href="#112-addition">11.2 Addition</a></li><li><a class="sub" href="#113-multiplication-and-what-it-must-carry">11.3 Multiplication, and what it must carry</a></li><li><a class="sub" href="#114-division-is-multiplication-backwards">11.4 Division is multiplication backwards</a></li><li><a class="sub" href="#115-subtraction">11.5 Subtraction</a></li><li><a class="sub" href="#116-division-with-remainder">11.6 Division with remainder</a></li><li><a class="sub" href="#117-a-filter-must-be-stated-at-both-ends">11.7 A filter must be stated at both ends</a></li><li><a class="sub" href="#118-exact-rationals">11.8 Exact rationals</a></li><li><a class="sub" href="#119-limits">11.9 Limits</a></li><li><a class="" href="#12-strings-and-text">12. Strings and text</a></li><li><a class="sub" href="#121-there-is-no-string-type">12.1 There is no string type</a></li><li><a class="sub" href="#122-writing-text">12.2 Writing text</a></li><li><a class="sub" href="#123-every-list-program-already-works">12.3 Every list program already works</a></li><li><a class="sub" href="#124-case-conversion-is-one-bit">12.4 Case conversion is one bit</a></li><li><a class="sub" href="#125-how-to-write-if-then-else">12.5 How to write if-then-else</a></li><li><a class="" href="#13-a-turing-machine">13. A Turing machine</a></li><li><a class="sub" href="#131-the-shape-every-machine-takes">13.1 The shape every machine takes</a></li><li><a class="sub" href="#132-the-tape-is-a-list-with-a-hole-in-it">13.2 The tape is a list with a hole in it</a></li><li><a class="sub" href="#133-the-state-is-a-label-not-a-component">13.3 The state is a label, not a component</a></li><li><a class="sub" href="#134-reading-the-head-and-writing-it-backwards">13.4 Reading the head, and writing it backwards</a></li><li><a class="sub" href="#135-the-table-one-line-per-state">13.5 The table, one line per state</a></li><li><a class="sub" href="#136-running-it">13.6 Running it</a></li><li><a class="sub" href="#137-running-the-machine-backwards">13.7 Running the machine backwards</a></li><li><a class="sub" href="#138-what-this-does-and-does-not-show">13.8 What this does and does not show</a></li><li><a class="" href="#14-42-interpreting-itself">14. 42 interpreting itself</a></li><li><a class="sub" href="#141-a-program-is-a-value-once-you-write-it-down">14.1 A program is a value, once you write it down</a></li><li><a class="sub" href="#142-every-construct-interprets-itself">14.2 Every construct interprets itself</a></li><li><a class="sub" href="#143-running-a-program-through-it">14.3 Running a program through it</a></li><li><a class="sub" href="#144-it-runs-backwards-and-nobody-wrote-that">14.4 It runs backwards, and nobody wrote that</a></li><li><a class="sub" href="#145-quoting-your-own">14.5 Quoting your own</a></li><li><a class="sub" href="#146-programs-that-mention-other-programs">14.6 Programs that mention other programs</a></li><li><a class="sub" href="#147-two-things-it-costs">14.7 Two things it costs</a></li><li><a class="sub" href="#148-what-this-does-and-does-not-show">14.8 What this does and does not show</a></li><li><a class="" href="#15-reference">15. Reference</a></li><li><a class="sub" href="#combining-programs">Combining programs</a></li><li><a class="sub" href="#built-in-programs">Built-in programs</a></li><li><a class="sub" href="#writing-values-on-the-command-line">Writing values on the command line</a></li><li><a class="sub" href="#command-line">Command line</a></li><li><a class="sub" href="#source-files">Source files</a></li><li><a class="" href="#16-troubleshooting">16. Troubleshooting</a></li><li><a class="sub" href="#i-got--and-expected-an-answer">&quot;I got {} and expected an answer&quot;</a></li><li><a class="sub" href="#i-got-a-result-with-a-stray-l-or-r-on-it">&quot;I got a result with a stray L or R on it&quot;</a></li><li><a class="sub" href="#it-runs-forever-or-says-the-closure-did-not-saturate">&quot;It runs forever, or says the closure did not saturate&quot;</a></li><li><a class="sub" href="#the-backward-direction-gives-loads-of-answers">&quot;The backward direction gives loads of answers&quot;</a></li><li><a class="sub" href="#empty-list-prints-as-0">&quot;Empty list prints as 0&quot;</a></li><li><a class="" href="#where-to-go-next">Where to go next</a></li><li><a class="" href="#appendix-a-program-and-its-inverse">Appendix: a program and its inverse</a></li><li><a class="sub" href="#the-program">The program</a></li><li><a class="sub" href="#the-derivation">The derivation</a></li><li><a class="sub" href="#the-two-directions">The two directions</a></li><li><a class="sub" href="#checking-it">Checking it</a></li><li><a class="sub" href="#what-was-not-written">What was not written</a></li><li><a class="sub" href="#a-second-example-towers-of-hanoi">A second example: Towers of Hanoi</a></li></ol>
+    <ol><li><a class="" href="#1-the-five-minute-version">1. The five-minute version</a></li><li><a class="" href="#2-the-one-rule-nothing-may-be-thrown-away">2. The one rule: nothing may be thrown away</a></li><li><a class="sub" href="#what-the-rule-forbids">What the rule forbids</a></li><li><a class="sub" href="#where-information-can-go">Where information can go</a></li><li><a class="sub" href="#names-on-the-surface-none-underneath">Names on the surface, none underneath</a></li><li><a class="" href="#3-values">3. Values</a></li><li><a class="sub" href="#31-the-four-building-blocks">3.1 The four building blocks</a></li><li><a class="sub" href="#32-you-already-use-this--it-just-has-names">3.2 You already use this — it just has names</a></li><li><a class="sub" href="#33-why-the-labels-are-visible">3.3 Why the labels are visible</a></li><li><a class="sub" href="#34-how-pairs-work">3.4 How pairs work</a></li><li><a class="sub" href="#35-numbers-and-lists">3.5 Numbers and lists</a></li><li><a class="sub" href="#36-what-the-encoding-costs">3.6 What the encoding costs</a></li><li><a class="sub" href="#37-asking-what-shape-a-program-works-on">3.7 Asking what shape a program works on</a></li><li><a class="" href="#4-clauses">4. Clauses</a></li><li><a class="sub" href="#41-what-a-clause-is">4.1 What a clause is</a></li><li><a class="sub" href="#42-every-name-used-every-name-bound">4.2 Every name used, every name bound</a></li><li><a class="sub" href="#43-calling-other-programs">4.3 Calling other programs</a></li><li><a class="sub" href="#44-names-and-what-they-may-not-be">4.4 Names and what they may not be</a></li><li><a class="" href="#5-running-backwards">5. Running backwards</a></li><li><a class="sub" href="#51-turning-clauses-round">5.1 Turning clauses round</a></li><li><a class="sub" href="#52-a-call-in-a-pattern">5.2 A call in a pattern</a></li><li><a class="sub" href="#53-checking-the-law">5.3 Checking the law</a></li><li><a class="" href="#6-none-one-or-many-answers">6. None, one, or many answers</a></li><li><a class="sub" href="#61-no-answer">6.1 No answer</a></li><li><a class="sub" href="#62-many-answers">6.2 Many answers</a></li><li><a class="sub" href="#63-a-definition-is-the-union-of-its-clauses">6.3 A definition is the union of its clauses</a></li><li><a class="sub" href="#64-overlapping-clauses-warn">6.4 Overlapping clauses warn</a></li><li><a class="" href="#7-let">7. let</a></li><li><a class="" href="#8-recursion">8. Recursion</a></li><li><a class="sub" href="#81-one-clause-per-shape">8.1 One clause per shape</a></li><li><a class="sub" href="#82-running-a-recursion-backwards">8.2 Running a recursion backwards</a></li><li><a class="" href="#9-arithmetic">9. Arithmetic</a></li><li><a class="sub" href="#91-the-governing-question">9.1 The governing question</a></li><li><a class="sub" href="#92-addition">9.2 Addition</a></li><li><a class="sub" href="#93-multiplication-and-what-it-must-carry">9.3 Multiplication, and what it must carry</a></li><li><a class="sub" href="#94-division-is-multiplication-backwards">9.4 Division is multiplication backwards</a></li><li><a class="sub" href="#95-subtraction">9.5 Subtraction</a></li><li><a class="sub" href="#96-division-with-remainder">9.6 Division with remainder</a></li><li><a class="sub" href="#97-a-filter-must-be-stated-at-both-ends">9.7 A filter must be stated at both ends</a></li><li><a class="sub" href="#98-exact-rationals">9.8 Exact rationals</a></li><li><a class="sub" href="#99-limits">9.9 Limits</a></li><li><a class="" href="#10-strings-and-text">10. Strings and text</a></li><li><a class="sub" href="#101-there-is-no-string-type">10.1 There is no string type</a></li><li><a class="sub" href="#102-writing-text">10.2 Writing text</a></li><li><a class="sub" href="#103-every-list-program-already-works">10.3 Every list program already works</a></li><li><a class="sub" href="#104-case-conversion-is-one-bit">10.4 Case conversion is one bit</a></li><li><a class="sub" href="#105-how-to-write-if-then-else">10.5 How to write if-then-else</a></li><li><a class="" href="#11-a-turing-machine">11. A Turing machine</a></li><li><a class="sub" href="#111-the-shape-every-machine-takes">11.1 The shape every machine takes</a></li><li><a class="sub" href="#112-the-tape-is-a-list-with-a-hole-in-it">11.2 The tape is a list with a hole in it</a></li><li><a class="sub" href="#113-the-state-is-a-label-not-a-component">11.3 The state is a label, not a component</a></li><li><a class="sub" href="#114-reading-the-head-and-writing-it-backwards">11.4 Reading the head, and writing it backwards</a></li><li><a class="sub" href="#115-the-table-one-line-per-state">11.5 The table, one line per state</a></li><li><a class="sub" href="#116-running-it">11.6 Running it</a></li><li><a class="sub" href="#117-running-the-machine-backwards">11.7 Running the machine backwards</a></li><li><a class="sub" href="#118-what-this-does-and-does-not-show">11.8 What this does and does not show</a></li><li><a class="" href="#12-programs-are-pipelines-not-functions">12. Programs are pipelines, not functions</a></li><li><a class="" href="#13-the-seven-ways-to-combine-programs">13. The seven ways to combine programs</a></li><li><a class="sub" href="#f--g--do-f-then-g">f ; g — do f, then g</a></li><li><a class="sub" href="#f--g--the-value-is-a-pair-run-f-on-the-left-half-g-on-the-right">f * g — the value is a pair; run f on the left half, g on the right</a></li><li><a class="sub" href="#f--g--the-value-is-labelled-switch-on-the-label">f + g — the value is labelled; switch on the label</a></li><li><a class="sub" href="#f--g--try-both-collect-all-answers">f | g — try both, collect all answers</a></li><li><a class="sub" href="#f--repeat-f-any-number-of-times">f^ — repeat f any number of times</a></li><li><a class="sub" href="#f--run-f-backwards">f! — run f backwards</a></li><li><a class="sub" href="#f-a--a-program-that-takes-another-program">f a — a program that takes another program</a></li><li><a class="" href="#14-plumbing-rearranging-shapes-when-you-cannot-name-things">14. Plumbing: rearranging shapes when you cannot name things</a></li><li><a class="sub" href="#pairs">Pairs</a></li><li><a class="sub" href="#labels">Labels</a></li><li><a class="sub" href="#copying">Copying</a></li><li><a class="sub" href="#mixing-pairs-and-labels">Mixing pairs and labels</a></li><li><a class="sub" href="#others">Others</a></li><li><a class="" href="#15-how-to-read-a-program">15. How to read a program</a></li><li><a class="" href="#16-how-to-write-a-program">16. How to write a program</a></li><li><a class="sub" href="#step-1--write-it-with-names-as-an-equation">Step 1 — write it with names, as an equation</a></li><li><a class="sub" href="#step-2--write-out-the-shape-you-start-with-and-the-shape-you-want">Step 2 — write out the shape you start with and the shape you want</a></li><li><a class="sub" href="#step-3--get-from-one-to-the-other-using-plumbing-one-move-at-a-time">Step 3 — get from one to the other using plumbing, one move at a time</a></li><li><a class="" href="#17-recursion">17. Recursion</a></li><li><a class="sub" href="#for-a-program-taking-one-argument">For a program taking one argument</a></li><li><a class="sub" href="#for-a-program-taking-two-arguments">For a program taking two arguments</a></li><li><a class="sub" href="#worked-example-append">Worked example: append</a></li><li><a class="" href="#18-42-interpreting-itself">18. 42 interpreting itself</a></li><li><a class="sub" href="#181-a-program-is-a-value-once-you-write-it-down">18.1 A program is a value, once you write it down</a></li><li><a class="sub" href="#182-every-construct-interprets-itself">18.2 Every construct interprets itself</a></li><li><a class="sub" href="#183-running-a-program-through-it">18.3 Running a program through it</a></li><li><a class="sub" href="#184-it-runs-backwards-and-nobody-wrote-that">18.4 It runs backwards, and nobody wrote that</a></li><li><a class="sub" href="#185-quoting-your-own">18.5 Quoting your own</a></li><li><a class="sub" href="#186-programs-that-mention-other-programs">18.6 Programs that mention other programs</a></li><li><a class="sub" href="#187-two-things-it-costs">18.7 Two things it costs</a></li><li><a class="sub" href="#188-what-this-does-and-does-not-show">18.8 What this does and does not show</a></li><li><a class="" href="#19-reference">19. Reference</a></li><li><a class="sub" href="#combining-programs">Combining programs</a></li><li><a class="sub" href="#built-in-programs">Built-in programs</a></li><li><a class="sub" href="#writing-values-on-the-command-line">Writing values on the command line</a></li><li><a class="sub" href="#command-line">Command line</a></li><li><a class="sub" href="#source-files">Source files</a></li><li><a class="" href="#20-troubleshooting">20. Troubleshooting</a></li><li><a class="sub" href="#i-got--and-expected-an-answer">&quot;I got {} and expected an answer&quot;</a></li><li><a class="sub" href="#i-got-a-result-with-a-stray-l-or-r-on-it">&quot;I got a result with a stray L or R on it&quot;</a></li><li><a class="sub" href="#it-runs-forever-or-says-the-closure-did-not-saturate">&quot;It runs forever, or says the closure did not saturate&quot;</a></li><li><a class="sub" href="#the-backward-direction-gives-loads-of-answers">&quot;The backward direction gives loads of answers&quot;</a></li><li><a class="sub" href="#empty-list-prints-as-0">&quot;Empty list prints as 0&quot;</a></li><li><a class="" href="#where-to-go-next">Where to go next</a></li><li><a class="" href="#appendix-a-program-and-its-inverse">Appendix: a program and its inverse</a></li><li><a class="sub" href="#the-program">The program</a></li><li><a class="sub" href="#the-derivation">The derivation</a></li><li><a class="sub" href="#the-two-directions">The two directions</a></li><li><a class="sub" href="#checking-it">Checking it</a></li><li><a class="sub" href="#what-was-not-written">What was not written</a></li><li><a class="sub" href="#a-second-example-towers-of-hanoi">A second example: Towers of Hanoi</a></li></ol>
   </nav>
   <main><p>For a reader with a computer science background. No prior knowledge of reversible computing is assumed, and no term is used before it is defined.</p>
+<p>The manual has two parts. <strong>Part I</strong> is how to write 42: definitions made of clauses, with names. <strong>Part II</strong> is the language those clauses compile to, which has no names at all; it is what <code>42 show</code> prints, and what to read when a result surprises you.</p>
 <hr aria-hidden="true">
 <hr aria-hidden="true">
 <h2 id="1-the-five-minute-version"><a class="anchor" href="#1-the-five-minute-version" aria-label="Link to this section">#</a>1. The five-minute version</h2>
 <p>A 42 program can be run in two directions. You write it once.</p>
-<div class="code"><pre><code>$ 42 prelude append "([1,2], [3])"
+<div class="code"><pre><code>$ 42 tour append "([1,2], [3])"
 append([1, 2], [3]) =
   [1, 2, 3]                 -- forwards: glue two lists together
 
-$ 42 prelude append "[1,2,3]" --backward
+$ 42 tour append "[1,2,3]" --backward
 append!([1, 2, 3]) =
   ([1, 2, 3], [])          -- backwards: every way to cut a list in two
   ([1, 2], [3])
   ([1], [2, 3])
   ([], [1, 2, 3])</code></pre></div>
 <p>The three words after <code>42</code> are a file, a program in it, and an input:</p>
-<div class="code"><pre><code>42   prelude   append   "([1,2], [3])"
-     ^^^^^^^   ^^^^^^   ^^^^^^^^^^^^^^
+<div class="code"><pre><code>42   tour      append   "([1,2], [3])"
+     ^^^^      ^^^^^^   ^^^^^^^^^^^^^^
      the file  a        the value to
      to read   program  run it on
                in it</code></pre></div>
-<p><code>prelude</code> is <code>prelude.42</code>, a file of worked examples that comes with 42. The <code>.42</code> is optional, so you may write either. And <code>append</code> is not built in. It is defined in that file, on one line:</p>
-<div class="code"><pre><code>def append = dist ; (unitprod + (assocprod! ; (id * append) ; inr)) ; join</code></pre></div>
-<p>which will mean nothing yet, and is meant to: unpacking that line is what §4 through §10 are for. The point for now is that <strong>only thirteen primitives are built in</strong> (listed in §15); everything else, <code>append</code> included, is written in a file you can open.</p>
-<p>Both directions ran the <em>same</em> definition. Nobody wrote the second one.</p>
-<p>Two consequences follow, and they are the whole language:</p>
-<ul><li><strong>Running backwards can give more than one answer.</strong> Gluing <code>[1,2]</code> to <code>[3]</code> loses the information about where the seam was, so running it backwards has to offer every possibility. A 42 program therefore returns a <em>set</em> of answers, which may be empty, a single answer, or many.</li><li><strong>A program may never destroy information it cannot account for.</strong> That is the price of admission, and it is why 42 has no assignment statement, no variables, and no way to simply drop a value on the floor.</li></ul>
+<p><code>tour</code> is <code>tour.42</code>, a file of worked examples that comes with 42 and follows this manual. The <code>.42</code> is optional. <code>append</code> is not built in. It is defined in that file, in two lines:</p>
+<div class="code"><pre><code>def append ([], ys)    &lt;-&gt;  ys
+def append (x:xs, ys)  &lt;-&gt;  x : append (xs, ys)</code></pre></div>
+<p>Each line is a <strong>clause</strong>. The left side describes an input and names its pieces; the right side builds the output from them. Read them as you would in any language with pattern matching: appending <code>ys</code> to the empty list gives <code>ys</code>; appending <code>ys</code> to a list with head <code>x</code> and tail <code>xs</code> gives <code>x</code> in front of <code>xs</code> appended to <code>ys</code>.</p>
+<p>Both directions ran that <em>same</em> definition. Nobody wrote the second one. Ask 42 to show the definition, and it prints the clauses, then the same clauses turned round, which is what ran backwards:</p>
+<div class="code"><pre><code>$ 42 show tour append
+append   ([], ys) &lt;-&gt; ys
+append   (x : xs, ys) &lt;-&gt; x : append (xs, ys)
+append!  ys &lt;-&gt; ([], ys)
+append!  (x : append (xs, ys)) &lt;-&gt; (x : xs, ys)
+append   = dist ; unitprod + (assocprod! ; id * append ; inr) ; join
+append!  = join! ; unitprod! + (inr! ; id * append! ; assocprod) ; dist!</code></pre></div>
+<p>The last two lines are what the clauses compile to. 42 underneath has no clauses and no names: a program is a pipeline of steps, built from only thirteen primitives (listed in §19). You do not need that language to write 42, and Part II of this manual is where it is explained, for when you want to read those lines.</p>
+<p>Two consequences of running both ways follow, and they are the whole language:</p>
+<ul><li><strong>Running backwards can give more than one answer.</strong> Gluing <code>[1,2]</code> to <code>[3]</code> loses the information about where the seam was, so running it backwards has to offer every possibility. A 42 program therefore returns a <em>set</em> of answers, which may be empty, a single answer, or many.</li><li><strong>A program may never destroy information it cannot account for.</strong> That is the price of admission. It is why 42 has no assignment statement and no way to simply drop a value on the floor.</li></ul>
 <p>Everything else in this manual is a consequence of those two facts.</p>
 <hr aria-hidden="true">
 <h2 id="2-the-one-rule-nothing-may-be-thrown-away"><a class="anchor" href="#2-the-one-rule-nothing-may-be-thrown-away" aria-label="Link to this section">#</a>2. The one rule: nothing may be thrown away</h2>
 <p>Suppose 42 had ordinary assignment:</p>
 <div class="code"><pre><code>x = 0</code></pre></div>
 <p>Run that backwards and you are stuck: <code>x</code> is <code>0</code>, but what was it before? Unanswerable. The old value is gone.</p>
-<p>So 42 has no assignment. It has no variables at all. Instead, a program is a <em>sequence of reshapings applied to one value</em>. If a step turns <code>A</code> into <code>B</code>, there must be enough information in <code>B</code> to get back to <code>A</code>; if there is not, the backward direction must be allowed to return several candidates.</p>
-<p>This is why the language looks unfamiliar. It is not stylistic. Variables are absent because assigning to a variable is exactly the operation the language cannot afford.</p>
+<p>So 42 has no assignment. That is not the same as having no names. What made <code>x = 0</code> impossible to run backwards was not the name <code>x</code>. It was that the statement <em>overwrote</em> a value and kept nothing of it. A name that is given a value once and never changed loses nothing. 42 has names of exactly that kind.</p>
+<p>A definition is written as one or more clauses. Each clause says which shape of value it accepts and which value it gives back:</p>
+<div class="code"><pre><code>def swap (a, b)  &lt;-&gt;  (b, a)</code></pre></div>
+<p>The left side is a <strong>pattern</strong>. It takes the value apart and names its pieces, here <code>a</code> and <code>b</code>. The right side is a <strong>term</strong>. It builds the answer out of those pieces. The arrow points both ways because the clause reads both ways. Read from the right, it says how to get <code>(a, b)</code> back from <code>(b, a)</code>, and that is the program run backwards. You never write the backward version. <code>42 show</code> reads it off for you:</p>
+<div class="code"><pre><code>swap   (a, b) &lt;-&gt; (b, a)
+swap!  (b, a) &lt;-&gt; (a, b)</code></pre></div>
+<p><code>swap!</code> is the clause turned round. Turning it round needs no cleverness and no second program, and that is the whole reason names are allowed. Every name is bound once, on one side, and used on the other. Swap the sides, and the names are still bound once and used once.</p>
+<h3 id="what-the-rule-forbids"><a class="anchor" href="#what-the-rule-forbids" aria-label="Link to this section">#</a>What the rule forbids</h3>
+<p>That last sentence is where the one rule bites. Turning a clause round only works if every name bound on one side is used on the other. Try to write the most ordinary function in any other language:</p>
+<div class="code"><pre><code>def fst (a, b)  &lt;-&gt;  a</code></pre></div>
+<p>and 42 refuses it:</p>
+<div class="code"><pre><code>error: line 1: in `fst (a, b) &lt;-&gt; a`, the variable `b` is bound and never used.
+42 cannot forget a value: run backwards, nothing would say what `b` was.
+Return it, or consume it in a call.</code></pre></div>
+<p>Turned round, <code>fst</code> would have to produce <code>(a, b)</code> from <code>a</code> alone, and nothing says what <code>b</code> was. The mirror-image mistake is refused for the mirror-image reason:</p>
+<div class="code"><pre><code>def make x  &lt;-&gt;  (x, y)</code></pre></div>
+<div class="code"><pre><code>error: line 1: in `make x &lt;-&gt; (x, y)`, `y` is used but never bound.  42 cannot
+invent a value: run backwards, it would have to be thrown away.  Bind it in the
+pattern.</code></pre></div>
+<p>Using a name <em>twice</em> is allowed:</p>
+<div class="code"><pre><code>def pair x  &lt;-&gt;  (x, x)</code></pre></div>
+<p>Turned round, <code>pair!</code> takes <code>(x, x)</code> and gives back <code>x</code>, which is safe because the two halves must agree. Given <code>(3, 4)</code> it gives no answer at all, because <code>(3, 4)</code> is not something <code>pair</code> could have produced.</p>
+<h3 id="where-information-can-go"><a class="anchor" href="#where-information-can-go" aria-label="Link to this section">#</a>Where information can go</h3>
+<p>So a single clause never loses anything. Information can still be lost, but only in one place, and only visibly: in the choice <em>between</em> clauses.</p>
+<div class="code"><pre><code>def drop (L ())  &lt;-&gt;  ()
+def drop (R ())  &lt;-&gt;  ()</code></pre></div>
+<p>Each clause is fine on its own. Together they forget which of the two labels was there. Turn them round and both clauses match <code>()</code>:</p>
+<div class="code"><pre><code>drop!  ()  &lt;-&gt;  L ()
+drop!  ()  &lt;-&gt;  R ()</code></pre></div>
+<p>So <code>drop!</code> on <code>()</code> gives <strong>two</strong> answers, <code>L ()</code> and <code>R ()</code>. That is the general pattern. When a program forgets, running it backwards does not fail. It offers every candidate. §6 is about this.</p>
+<h3 id="names-on-the-surface-none-underneath"><a class="anchor" href="#names-on-the-surface-none-underneath" aria-label="Link to this section">#</a>Names on the surface, none underneath</h3>
+<p>The names exist only in what you write. 42 compiles every clause to a program with no names in it at all: a pipeline of steps, each of which reshapes one value. <code>swap</code> above compiles to the single built-in step <code>swapprod</code>, and <code>pair</code> compiles to <code>copy</code>. Part II of this manual is about that underlying language, which is what 42 was before it had clauses and what it still is underneath.</p>
+<p>The core language has exactly one way to run a program backwards, and it works on every program without exception, because there is nothing in it to un-name. Clauses do not weaken that. Turning a clause round always gives the same result as running its compiled program backwards. You can write with names and still never write a backward program.</p>
 <hr aria-hidden="true">
 <h2 id="3-values"><a class="anchor" href="#3-values" aria-label="Link to this section">#</a>3. Values</h2>
 <ul><li><a href="#31-the-four-building-blocks">3.1 The four building blocks</a></li><li><a href="#32-you-already-use-this--it-just-has-names">3.2 You already use this — it just has names</a></li><li><a href="#33-why-the-labels-are-visible">3.3 Why the labels are visible</a></li><li><a href="#34-how-pairs-work">3.4 How pairs work</a></li><li><a href="#35-numbers-and-lists">3.5 Numbers and lists</a></li><li><a href="#36-what-the-encoding-costs">3.6 What the encoding costs</a></li><li><a href="#37-asking-what-shape-a-program-works-on">3.7 Asking what shape a program works on</a></li></ul>
@@ -232,49 +273,28 @@ true  = R ()</code></pre></div>
 <h3 id="33-why-the-labels-are-visible"><a class="anchor" href="#33-why-the-labels-are-visible" aria-label="Link to this section">#</a>3.3 Why the labels are visible</h3>
 <p>Minimalism is only half the reason. The other half is specific to 42.</p>
 <p>In C, <code>if (b) { ... } else { ... }</code> tests <code>b</code>, branches, and then <strong><code>b</code> is gone</strong>. Nothing downstream records which way you went. That is fine when you only ever run forwards.</p>
-<p>42 must be able to run backwards, which means that at every branch it has to answer <em>which case was this?</em> The label is that answer, stored inside the value itself. Three examples, and they are the whole story:</p>
-<div class="code"><pre><code>$ inl!  applied to  L ()   -&gt;  ()
-$ inl!  applied to  R ()   -&gt;  {}   (nothing)</code></pre></div>
-<p><code>inl!</code> removes an <code>L</code> label. It can <em>reject</em> <code>R ()</code> because the tag is right there to inspect.</p>
-<div class="code"><pre><code>$ join  applied to  L ()   -&gt;  ()
-$ join  applied to  R ()   -&gt;  ()</code></pre></div>
-<p><code>join</code> deletes the tag. Going forwards that is harmless, since both cases give <code>()</code>.</p>
-<div class="code"><pre><code>$ join!  applied to  ()    -&gt;  L ()   and   R ()</code></pre></div>
-<p>Going backwards, the tag is gone and cannot be recovered, so <code>join!</code> must offer <strong>both</strong>. This is where multiple answers come from, and it is the mechanical reason <code>append!</code> enumerates every split (§10).</p>
+<p>42 must be able to run backwards, which means that at every branch it has to answer <em>which case was this?</em> The label is that answer, stored inside the value itself. A pattern can test it:</p>
+<div class="code"><pre><code>def not (L x)  &lt;-&gt;  R x
+def not (R x)  &lt;-&gt;  L x</code></pre></div>
+<p>The first clause applies only to values labelled <code>L</code>, the second only to values labelled <code>R</code>. The label is right there in the value to look at, so nothing has to remember which clause ran: the answer's label says it.</p>
+<div class="code"><pre><code>$ not  applied to  L ()   -&gt;  R ()
+$ pred  applied to  0   -&gt;  {}   (nothing)</code></pre></div>
+<p><code>pred</code>'s only clause has the pattern <code>n + 1</code>, which is <code>R n</code>. Zero is <code>L ()</code>, so no clause applies and there is no answer.</p>
+<p>The one way to lose a label is to write clauses that give the same answer for both, as <code>drop</code> did in §2. Then the label is gone, and running backwards has to offer both. This is where multiple answers come from, and it is why <code>append!</code> enumerates every split (§6).</p>
 <blockquote><p>An ordinary language discards the tag the moment it has finished branching. 42 cannot afford to, so the tag has to live inside the value. <strong>That is why <code>L</code>/<code>R</code> are visible in 42 and invisible in C.</strong></p></blockquote>
 <h3 id="34-how-pairs-work"><a class="anchor" href="#34-how-pairs-work" aria-label="Link to this section">#</a>3.4 How pairs work</h3>
 <p>A pair <code>(a, b)</code> holds two values at once. It is a struct, a tuple, a record.</p>
 <p>There are no triples. You nest instead, and the nesting is part of the value:</p>
 <div class="code"><pre><code>(1, (2, 3))        and        ((1, 2), 3)</code></pre></div>
-<p>are <strong>different values</strong>, not two spellings of the same one. A program written for one will produce nothing at all when handed the other:</p>
-<div class="code"><pre><code>$ assocprod   on  (1, (2, 3))   -&gt;  ((1, 2), 3)
-$ assocprod   on  ((1, 2), 3)   -&gt;  {}   (nothing)
-$ assocprod!  on  ((1, 2), 3)   -&gt;  (1, (2, 3))</code></pre></div>
-<p><code>assocprod</code> converts between the two groupings. Getting the nesting wrong is one of the most common causes of an unexpected empty result (§16).</p>
-<p>Pairs are how a program takes two arguments. 42 has no multi-argument application. <code>add</code> does not take two numbers; it takes one pair <code>(m, n)</code>.</p>
-<p>To work on part of a pair, use <code>f * g</code>. It applies <code>f</code> to the left half and <code>g</code> to the right half at once:</p>
-<div class="code"><pre><code>$ id * succ   on  (1, 2)   -&gt;  (1, 3)      -- leave the left, bump the right
-$ succ * id   on  (1, 2)   -&gt;  (2, 2)      -- bump the left, leave the right</code></pre></div>
-<p><code>id</code> is the do-nothing program, so <code>id * g</code> is the idiom for "act on the second component only."</p>
-<h4 id="you-cannot-take-a-pair-apart"><a class="anchor" href="#you-cannot-take-a-pair-apart" aria-label="Link to this section">#</a>You cannot take a pair apart</h4>
-<p>In every other language, this is the most basic operation there is:</p>
-<div class="code"><pre><code>fst((a, b)) == a</code></pre></div>
-<p>42 does not have it and cannot have it. <code>fst</code> throws <code>b</code> away. Run it backwards and you would have to invent a <code>b</code> out of nothing, with no way to know what it was. Discarding is what §2 forbids.</p>
-<p>So a pair is easy to build and impossible to reduce, unless you can show that nothing is lost. There are two ways to do that:</p>
-<div class="code"><pre><code>$ unitprod  on  ((), 5)   -&gt;  5           -- () carries no information, so
-                                          -- dropping it loses nothing
-$ copy      on  5         -&gt;  (5, 5)
-$ copy!     on  (5, 5)    -&gt;  5           -- the halves agree, so one is
-$ copy!     on  (5, 6)    -&gt;  {}          -- redundant; if they differ, this
-                                          -- was not a duplicated value</code></pre></div>
-<p><code>unitprod</code> drops a <code>()</code>, which is safe because there was only ever one thing it could have been. <code>copy!</code> drops a duplicate, which is safe because the survivor tells you what the other one was.</p>
-<p>That is the complete list. Everything else you can do to a pair merely <em>rearranges</em> it:</p>
-<div class="scroller"><table><thead><tr><th>Want to</th><th>Use</th><th>Effect</th></tr></thead><tbody><tr><td>swap the halves</td><td><code>swapprod</code></td><td><code>(a, b)</code> → <code>(b, a)</code></td></tr><tr><td>regroup</td><td><code>assocprod</code></td><td><code>(a, (b, c))</code> → <code>((a, b), c)</code></td></tr><tr><td>regroup the other way</td><td><code>assocprod!</code></td><td><code>((a, b), c)</code> → <code>(a, (b, c))</code></td></tr><tr><td>work on the halves</td><td><code>f * g</code></td><td><code>(a, b)</code> → <code>(f a, g b)</code></td></tr><tr><td>add a <code>()</code></td><td><code>unitprod!</code></td><td><code>a</code> → <code>((), a)</code></td></tr><tr><td>remove a <code>()</code></td><td><code>unitprod</code></td><td><code>((), a)</code> → <code>a</code></td></tr><tr><td>duplicate</td><td><code>copy</code></td><td><code>a</code> → <code>(a, a)</code></td></tr><tr><td>remove a duplicate</td><td><code>copy!</code></td><td><code>(a, a)</code> → <code>a</code>, else nothing</td></tr><tr><td>push a pair inside a label</td><td><code>dist</code></td><td><code>(L a, c)</code> → <code>L (a, c)</code></td></tr></tbody></table></div>
-<p>Cannot be done at all: <code>fst</code>, <code>snd</code>, or anything else that silently drops a component.</p>
-<p>This is the deep reason §4 says you must "rearrange the shape until the pieces are in the right place." You are not choosing to program that way for style. You cannot pull a piece out of a pair, so moving the pair around it is the only option available.</p>
-<p>Finally, a shape mismatch is never an error, just an absence of answers:</p>
-<div class="code"><pre><code>$ swapprod  on  5   -&gt;  {}   (nothing)</code></pre></div>
-<p><code>5</code> is not a pair, so <code>swapprod</code> does not apply to it. See §16.</p>
+<p>are <strong>different values</strong>, not two spellings of the same one. A pattern for one does not match the other:</p>
+<div class="code"><pre><code>$ rot3  applied to  (1, (2, 3))   -&gt;  (3, (1, 2))
+$ rot3  applied to  ((1, 2), 3)   -&gt;  {}   (nothing)</code></pre></div>
+<p><code>rot3</code>'s clause is <code>rot3 (a, (b, c)) &lt;-&gt; (c, (a, b))</code>, and <code>((1, 2), 3)</code> has its pair on the wrong side. Getting the nesting wrong is one of the most common causes of an unexpected empty result (§20).</p>
+<p>Pairs are how a program takes two arguments. 42 has no multi-argument application. <code>append</code> does not take two lists; it takes one pair <code>(xs, ys)</code>.</p>
+<p>A pattern takes a pair apart and names both halves. §2 showed the catch: both names must be used. So a pair is easy to build and cannot be reduced to one of its halves, unless nothing is lost by it. There are two ways for that to be true:</p>
+<div class="code"><pre><code>def dropunit ((), a)  &lt;-&gt;  a          -- () carries no information
+def same (x, x)       &lt;-&gt;  x          -- the halves agree, so one is redundant</code></pre></div>
+<p><code>dropunit</code> drops a <code>()</code>, which is safe because there was only ever one thing it could have been. <code>same</code> drops a duplicate, which is safe because the survivor tells you what the other one was; given a pair whose halves differ, it has no answer. Everything else you can do to a pair keeps both halves: rearranging them, or working on each.</p>
 <h3 id="35-numbers-and-lists"><a class="anchor" href="#35-numbers-and-lists" aria-label="Link to this section">#</a>3.5 Numbers and lists</h3>
 <p>The same reasoning explains why integers are not primitive either. If <code>3</code> were an opaque machine word, <code>+1</code> would be a built-in whose inverse you would have to supply — and it would not even <em>be</em> reversible, since incrementing the largest representable value overflows and destroys information.</p>
 <p>Instead a number is a stack of labels:</p>
@@ -285,9 +305,9 @@ $ copy!     on  (5, 6)    -&gt;  {}          -- redundant; if they differ, this
 3 = R (R (R (L ())))</code></pre></div>
 <p>You may write <code>3</code> and 42 will build that for you.</p>
 <p>Which makes the successor and predecessor programs almost embarrassingly simple:</p>
-<div class="code"><pre><code>def succ = inr        -- "put an R label on"
-def pred = inr!       -- "take an R label off"</code></pre></div>
-<p><code>succ</code> is not arithmetic. It is <em>attaching a label</em>, and reversing it is <em>removing the label</em>. Nobody had to write a special case for zero either: <code>pred 0</code> yields nothing automatically, because <code>L ()</code> has no <code>R</code> to remove.</p>
+<div class="code"><pre><code>def succ n        &lt;-&gt;  n + 1      -- "put an R label on"
+def pred (n + 1)  &lt;-&gt;  n          -- "take an R label off"</code></pre></div>
+<p><code>succ</code> is not arithmetic. It is <em>attaching a label</em>, and reversing it is <em>removing the label</em>. Nobody had to write a special case for zero either: <code>pred 0</code> yields nothing automatically, because <code>L ()</code> has no <code>R</code> to remove. Each compiles to a single primitive, <code>inr</code> and <code>inr!</code>.</p>
 <blockquote><p>This is the design principle behind every encoding in the language: <strong>choose the representation so that the operations are reversible by construction, rather than reversible because you checked.</strong></p></blockquote>
 <p><strong>Lists.</strong> Empty, or a head paired with a tail:</p>
 <div class="code"><pre><code>[]      = L ()
@@ -324,7 +344,7 @@ swap  : a x b &lt;-&gt; b x a</code></pre></div>
 <p><code>mu X.</code> means "call this shape <code>X</code> while I describe it", and the <code>X</code> inside is where the shape refers back to itself. Compare it to the English and it is the same sentence. A number, <em>zero or one-more-than a number</em>, is <code>mu X. 1 + X</code>.</p>
 <p>If you know the lambda calculus, <code>mu X.</code> binds <code>X</code> the way <code>λx.</code> binds <code>x</code>: the name is local, it means nothing outside the shape it heads, and renaming it changes nothing — which is why the report below can come back with <code>X</code> on one side and <code>Y</code> on the other and mean the same shape.</p>
 <p>The resemblance stops there. <code>λ</code> builds a function you can apply; <code>mu</code> does not. <code>mu X. 1 + X</code> is not a function from shapes to shapes, it is the shape that <em>is</em> <code>1 + X</code> once you put itself back in for the <code>X</code> — a fixed point rather than an abstraction.</p>
-<p>Note also which half of the language this is. Section 4 says 42 has no names, and that stands: <code>mu</code> binds a <em>shape</em>, never a value. There is still no way to name the <code>3</code> inside a pair.</p>
+<p>Note also which half of the language this is. <code>mu</code> binds a <em>shape</em>, never a value. Names for values are the clause variables of §4, and they belong to a definition; a shape's names belong to the shape.</p>
 <p><code>mu X. 1 + X</code> is correct and unreadable. A list of numbers is a list whose heads are themselves <code>mu</code>, and comes out as <code>mu X. 1 + (mu Y. 1 + Y) x X</code>, so a file may give its shapes names:</p>
 <div class="code"><pre><code>type nat    = mu X. 1 + X
 type list a = mu X. 1 + (a x X)</code></pre></div>
@@ -335,7 +355,423 @@ rev  : list a &lt;-&gt; list a          -- was: mu X. 1 + a x X &lt;-&gt; mu Y. 
 <p>Two things to know. Inside a shape, <code>x</code> means "pair", so it cannot also be used as a name: write <code>a x b</code>, never <code>x x b</code>.</p>
 <p>And a <code>type</code> line changes nothing but the printing. It does not define a new kind of value; 42 has no such thing, and every value is still built from the same four pieces of section 3.1. It is a nickname for a shape 42 had already worked out on its own. Delete every <code>type</code> line from a file and the same programs are accepted and rejected. The reports just get harder to read.</p>
 <hr aria-hidden="true">
-<h2 id="4-programs-are-pipelines-not-functions"><a class="anchor" href="#4-programs-are-pipelines-not-functions" aria-label="Link to this section">#</a>4. Programs are pipelines, not functions</h2>
+<h2 id="4-clauses"><a class="anchor" href="#4-clauses" aria-label="Link to this section">#</a>4. Clauses</h2>
+<ul><li><a href="#41-what-a-clause-is">4.1 What a clause is</a></li><li><a href="#42-every-name-used-every-name-bound">4.2 Every name used, every name bound</a></li><li><a href="#43-calling-other-programs">4.3 Calling other programs</a></li><li><a href="#44-names-and-what-they-may-not-be">4.4 Names and what they may not be</a></li></ul>
+<h3 id="41-what-a-clause-is"><a class="anchor" href="#41-what-a-clause-is" aria-label="Link to this section">#</a>4.1 What a clause is</h3>
+<p>A clause is <code>def</code>, a name, a pattern, <code>&lt;-&gt;</code>, and a term:</p>
+<div class="code"><pre><code>def single x  &lt;-&gt;  [x]</code></pre></div>
+<p>A definition is one or more clauses with the same name, written together. The pattern and the term are written in <strong>the same notation</strong>. Whatever builds a value in a term takes it apart in a pattern:</p>
+<div class="scroller"><table><thead><tr><th>Written</th><th>In a term it builds</th><th>In a pattern it matches</th></tr></thead><tbody><tr><td><code>x</code></td><td>the value named <code>x</code></td><td>anything, and names it <code>x</code></td></tr><tr><td><code>()</code>, <code>(t, u)</code>, <code>L t</code>, <code>R t</code></td><td>the four building blocks of §3.1</td><td>exactly that shape</td></tr><tr><td><code>0</code>, <code>3</code>, <code>'a'</code>, <code>"hi"</code>, <code>[]</code>, <code>[t, u]</code></td><td>that value</td><td>exactly that value</td></tr><tr><td><code>t : u</code></td><td>a list cell, <code>R (t, u)</code></td><td>a non-empty list</td></tr><tr><td><code>t + 1</code></td><td>the number after <code>t</code>, <code>R t</code></td><td>any number but zero</td></tr><tr><td><code>f t</code></td><td>run the program <code>f</code> on <code>t</code></td><td>a value <code>f</code> could produce from <code>t</code> (§5.2)</td></tr></tbody></table></div>
+<p><code>[x]</code> is <code>x : []</code>, which is <code>R (x, L ())</code>, so <code>single</code> puts a label and an empty list round its input. Run backwards, it accepts exactly the one-element lists and returns the element:</p>
+<div class="code"><pre><code>$ single(7)  =  [7]
+$ single!([7])  =  7
+$ single!([7, 8])  =  {}</code></pre></div>
+<h3 id="42-every-name-used-every-name-bound"><a class="anchor" href="#42-every-name-used-every-name-bound" aria-label="Link to this section">#</a>4.2 Every name used, every name bound</h3>
+<p>The rule of §2 in full. Count how often each name appears in the pattern and in the term:</p>
+<div class="scroller"><table><thead><tr><th>In the pattern</th><th>In the term</th><th>What happens</th></tr></thead><tbody><tr><td>once</td><td>once</td><td>the ordinary case: the value moves to its new place</td></tr><tr><td>once</td><td>twice or more</td><td>the value is copied</td></tr><tr><td>twice or more</td><td>once</td><td><strong>an equality test</strong>: the clause matches only when the places agree</td></tr><tr><td>at least once</td><td>never</td><td>refused: the value would be forgotten</td></tr><tr><td>never</td><td>at least once</td><td>refused: the value would have to be invented</td></tr></tbody></table></div>
+<p>The rule is symmetric, because turning a clause round swaps pattern and term. A name used twice in a term becomes a name used twice in a pattern, so copying and testing for equality are the same thing read in opposite directions.</p>
+<p>A test is therefore a name used twice. <code>palin</code> in <code>tour.42</code> keeps a list only if it reads the same backwards:</p>
+<div class="code"><pre><code>def palin l  &lt;-&gt;  let (m, m) = (l, rev l) in m</code></pre></div>
+<p><code>l</code> is used twice, so it is copied; one copy is reversed (<code>let</code> is §7); the pattern <code>(m, m)</code> matches only if the two agree.</p>
+<div class="code"><pre><code>$ palin([1, 2, 1])  =  [1, 2, 1]
+$ palin([1, 2, 3])  =  {}</code></pre></div>
+<h3 id="43-calling-other-programs"><a class="anchor" href="#43-calling-other-programs" aria-label="Link to this section">#</a>4.3 Calling other programs</h3>
+<p><code>f t</code> in a term runs the program <code>f</code> on the value <code>t</code>. The program can be any definition, including the one being defined, which is how recursion is written (§8). It can also be a definition run backwards, written <code>f!</code>:</p>
+<div class="code"><pre><code>def initlast2 zs  &lt;-&gt;  let (xs, [x]) = append! zs in (xs, x)</code></pre></div>
+<p>Where a program is more than one name, put it in brackets, as in <code>(swap ; swap) x</code>; Part II explains what can go inside.</p>
+<p>There is no way to call a program on <em>some</em> of the values in hand and quietly drop its answer. A call's answer is a value like any other, and the rule of §4.2 applies to it.</p>
+<h3 id="44-names-and-what-they-may-not-be"><a class="anchor" href="#44-names-and-what-they-may-not-be" aria-label="Link to this section">#</a>4.4 Names and what they may not be</h3>
+<p>A name in a pattern may not be the name of a definition. Inside a clause, <code>f t</code> and a variable are told apart only by their names, so <code>rev</code> in a pattern would be ambiguous: a value named <code>rev</code>, or a call to <code>rev</code> run backwards (§5.2)? 42 refuses rather than guesses:</p>
+<div class="code"><pre><code>error: line 2: the pattern variable `rev` has the name of a definition.  In a
+pattern, `rev t` runs `rev` backwards, so a variable may not reuse the name.
+Rename the variable.</code></pre></div>
+<p>The words <code>L</code>, <code>R</code>, <code>let</code>, <code>in</code> and <code>def</code> are reserved.</p>
+<hr aria-hidden="true">
+<h2 id="5-running-backwards"><a class="anchor" href="#5-running-backwards" aria-label="Link to this section">#</a>5. Running backwards</h2>
+<ul><li><a href="#51-turning-clauses-round">5.1 Turning clauses round</a></li><li><a href="#52-a-call-in-a-pattern">5.2 A call in a pattern</a></li><li><a href="#53-checking-the-law">5.3 Checking the law</a></li></ul>
+<h3 id="51-turning-clauses-round"><a class="anchor" href="#51-turning-clauses-round" aria-label="Link to this section">#</a>5.1 Turning clauses round</h3>
+<p>To run a definition backwards, 42 turns every clause round: pattern and term change places. <code>42 show</code> prints the result. For <code>single</code>:</p>
+<div class="code"><pre><code>$ 42 show tour single
+single   x &lt;-&gt; [x]
+single!  [x] &lt;-&gt; x</code></pre></div>
+<p>The second line is <code>single!</code>, the program that takes a one-element list apart. Nobody wrote it. For <code>append</code>, §1 showed the turned-round clauses:</p>
+<div class="code"><pre><code>append!  ys &lt;-&gt; ([], ys)
+append!  (x : append (xs, ys)) &lt;-&gt; (x : xs, ys)</code></pre></div>
+<p>The first says: any list <code>ys</code> can be split as <code>([], ys)</code>. The second says: a non-empty list <code>x : rest</code> can be split as <code>(x : xs, ys)</code> wherever <code>rest</code> can be split as <code>(xs, ys)</code>. Both clauses match every non-empty list, so both contribute, and that is why <code>append!</code> gives every split. It can be given a name of its own:</p>
+<div class="code"><pre><code>def split = append!</code></pre></div>
+<p><code>split</code> is not a second implementation that must be kept in step with <code>append</code>. It <em>is</em> <code>append</code>, read the other way.</p>
+<h3 id="52-a-call-in-a-pattern"><a class="anchor" href="#52-a-call-in-a-pattern" aria-label="Link to this section">#</a>5.2 A call in a pattern</h3>
+<p>Turning <code>append</code> round put a call, <code>append (xs, ys)</code>, into a pattern. A call in a pattern means: a value that this program could have produced, and the input it would have produced it from. Matching it runs the program backwards.</p>
+<p>You can write such patterns yourself:</p>
+<div class="code"><pre><code>def initlast (append (xs, [x]))  &lt;-&gt;  (xs, x)</code></pre></div>
+<p><code>initlast</code> matches any list that <code>append</code> could have made from some <code>xs</code> and a one-element list. Running <code>append</code> backwards offers every split; only the one whose second half has one element matches <code>[x]</code>:</p>
+<div class="code"><pre><code>$ 42 tour initlast "[1,2,3]"
+initlast([1, 2, 3]) =
+  ([1, 2], 3)
+  -- 1 result
+
+$ 42 tour initlast "([1, 2], 3)" --backward
+initlast!([1, 2], 3) =
+  [1, 2, 3]
+  -- 1 result</code></pre></div>
+<p><code>initlast2</code> in §4.3, written with <code>let</code>, compiles to exactly the same program.</p>
+<h3 id="53-checking-the-law"><a class="anchor" href="#53-checking-the-law" aria-label="Link to this section">#</a>5.3 Checking the law</h3>
+<p>The defining law of 42 is that running a program backwards on one of its answers gets back to where it started:</p>
+<blockquote><p>if <code>y</code> is an answer of <code>f</code> on <code>x</code>, then <code>x</code> is an answer of <code>f!</code> on <code>y</code>.</p></blockquote>
+<p><code>42 law</code> runs a program forwards, runs every answer backwards, and checks:</p>
+<div class="code"><pre><code>$ 42 law tour rev "[1,2,3]"
+rev([1, 2, 3]) has 1 result(s)
+  [ok ] [3, 2, 1]: inv has 1 preimage(s), input in it
+law holds</code></pre></div>
+<p>It always holds. That is not because each program was checked, but because running backwards is built so that it must.</p>
+<hr aria-hidden="true">
+<h2 id="6-none-one-or-many-answers"><a class="anchor" href="#6-none-one-or-many-answers" aria-label="Link to this section">#</a>6. None, one, or many answers</h2>
+<ul><li><a href="#61-no-answer">6.1 No answer</a></li><li><a href="#62-many-answers">6.2 Many answers</a></li><li><a href="#63-a-definition-is-the-union-of-its-clauses">6.3 A definition is the union of its clauses</a></li><li><a href="#64-overlapping-clauses-warn">6.4 Overlapping clauses warn</a></li></ul>
+<h3 id="61-no-answer"><a class="anchor" href="#61-no-answer" aria-label="Link to this section">#</a>6.1 No answer</h3>
+<p>A 42 program returns a set. No answers, written <code>{}</code>, is normal and is not an error. It means "this input is not something I apply to":</p>
+<div class="code"><pre><code>$ 42 tour pred 0
+pred(0) =
+  {}   (empty: no result)</code></pre></div>
+<p>No clause of <code>pred</code> matches <code>0</code>, so there is nothing to return.</p>
+<p>A <strong>shape</strong> mismatch is different, and the two are worth keeping apart. As a matter of meaning, a program given a value of the wrong shape also has no answers. But you almost never mean that, so the command line checks the shape first (§3.7) and refuses:</p>
+<div class="code"><pre><code>$ 42 prelude swap 5
+error: the argument does not fit the domain of `swap`
+  swap expects : a x b
+  you gave     : 5</code></pre></div>
+<p><code>pred 0</code> above is not refused, because <code>0</code> is a perfectly good input to <code>pred</code> that happens to have no answer. Emptiness because no clause applies is normal; emptiness because the shapes never lined up was almost certainly a typo. Add <code>--untyped</code> to see the underlying answer anyway:</p>
+<div class="code"><pre><code>$ 42 prelude swap 5 --untyped
+swap(5) =
+  {}   (empty: no result)</code></pre></div>
+<h3 id="62-many-answers"><a class="anchor" href="#62-many-answers" aria-label="Link to this section">#</a>6.2 Many answers</h3>
+<p>Many answers happen when information was lost going the other way:</p>
+<div class="code"><pre><code>$ 42 prelude add 5 --backward
+add!(5) =
+  (0, 5)
+  (1, 4)
+  (2, 3)
+  (3, 2)
+  (4, 1)
+  (5, 0)
+  -- 6 results</code></pre></div>
+<p>Adding throws away how the total was split up, so the reverse offers every split.</p>
+<p>Composing can bring the number of answers back down. <code>add</code> reversed has many answers, but</p>
+<div class="code"><pre><code>def double n  &lt;-&gt;  add (n, n)</code></pre></div>
+<p>reversed has at most one, because <code>n</code> is used twice: turned round, the two halves of the pair <code>add!</code> produces must agree, and only one split of an even number has equal halves.</p>
+<div class="code"><pre><code>$ double!(6)  =  3
+$ double!(7)  =  {}</code></pre></div>
+<h3 id="63-a-definition-is-the-union-of-its-clauses"><a class="anchor" href="#63-a-definition-is-the-union-of-its-clauses" aria-label="Link to this section">#</a>6.3 A definition is the union of its clauses</h3>
+<p>Where do several answers come from in a definition made of clauses? From several clauses applying at once. A definition means <strong>every answer of every clause that matches</strong>. It is not "the first clause that matches", as it would be in Haskell or in a <code>match</code> statement.</p>
+<p>Running forwards, the clauses of most definitions cover different shapes, as <code>[]</code> and <code>x : xs</code> do, so at most one applies. Running backwards, the turned round clauses of <code>append</code> both match any non-empty list, and both contribute. That is §5.1's <code>split</code>, and §2's <code>drop!</code>.</p>
+<p>The union can also be written explicitly. <code>|</code> joins two programs, and the result has every answer of either:</p>
+<div class="code"><pre><code>def near = pred | succ</code></pre></div>
+<div class="code"><pre><code>$ 42 tour near 5
+near(5) =
+  4
+  6
+  -- 2 results</code></pre></div>
+<h3 id="64-overlapping-clauses-warn"><a class="anchor" href="#64-overlapping-clauses-warn" aria-label="Link to this section">#</a>6.4 Overlapping clauses warn</h3>
+<p>Because a definition is a union, two clauses whose patterns match the same input both apply to it. That is sometimes meant and often a mistake carried over from first-match languages, so 42 warns:</p>
+<div class="code"><pre><code>warning: line 2: clauses 1 and 2 of 'f' both match `0` (which is also `[]` and
+`false`):
+    def f [] &lt;-&gt; []
+    def f xs &lt;-&gt; xs
+42 takes the union of matching clauses, not the first match, so both give
+answers there.  If that is meant, give each its own name and write the union:
+`def f = ... | ...`.</code></pre></div>
+<p>When the overlap is meant, write it as <code>near</code> is written: each case under its own name, joined with <code>|</code>. Then there is nothing to warn about, and the source says that both answers are wanted.</p>
+<p>Only patterns are compared, never terms: two clauses that can produce the same answer are how a backward run gets several answers, and that is not a mistake. A pattern containing a call counts as matching anything, so the warning can appear where the call would in fact rule the overlap out. Turned-round definitions often have overlapping patterns, since their patterns were terms.</p>
+<hr aria-hidden="true">
+<h2 id="7-let"><a class="anchor" href="#7-let" aria-label="Link to this section">#</a>7. <code>let</code></h2>
+<p>A term may be <code>let q = t in e</code>. It builds <code>t</code> from some of the names in hand, matches the answer against the pattern <code>q</code>, and continues with the names <code>q</code> binds plus the ones not yet used:</p>
+<div class="code"><pre><code>def palin l  &lt;-&gt;  let (m, m) = (l, rev l) in m</code></pre></div>
+<p>A <code>let</code> gives an intermediate answer a name. Without it, everything a clause computes would have to be one term. <code>let</code>s chain:</p>
+<div class="code"><pre><code>let q1 = t1 in let q2 = t2 in e</code></pre></div>
+<p>and the rule of §4.2 applies across the whole chain: every name is used once after it is bound, counting copies, and a name may not be bound again while it is in hand.</p>
+<p>A <code>let</code> is a small clause inside a clause, so it turns round the same way: <code>42 show</code> prints the chain reversed, each <code>let</code>'s two sides swapped.</p>
+<div class="code"><pre><code>$ 42 show tour palin
+palin   l &lt;-&gt; let (m, m) = (l, rev l) in m
+palin!  m &lt;-&gt; let (l, rev l) = (m, m) in l</code></pre></div>
+<p>Turned round, the pattern <code>(l, rev l)</code> contains a call: it matches a pair whose second half is the first half reversed, and names the first half <code>l</code>.</p>
+<hr aria-hidden="true">
+<h2 id="8-recursion"><a class="anchor" href="#8-recursion" aria-label="Link to this section">#</a>8. Recursion</h2>
+<ul><li><a href="#81-one-clause-per-shape">8.1 One clause per shape</a></li><li><a href="#82-running-a-recursion-backwards">8.2 Running a recursion backwards</a></li></ul>
+<h3 id="81-one-clause-per-shape"><a class="anchor" href="#81-one-clause-per-shape" aria-label="Link to this section">#</a>8.1 One clause per shape</h3>
+<p>A definition may call itself. Recursive data in 42 is always "a base case, or something bigger", a label on the outside, so a recursive definition has a clause for each label:</p>
+<div class="code"><pre><code>def append ([], ys)    &lt;-&gt;  ys
+def append (x:xs, ys)  &lt;-&gt;  x : append (xs, ys)
+
+def rev []      &lt;-&gt;  []
+def rev (x:xs)  &lt;-&gt;  append (rev xs, [x])</code></pre></div>
+<p>The recursive call is on a smaller value, the tail, so forwards it reaches the base case and stops. Following one input through <code>append</code>:</p>
+<div class="code"><pre><code>append ([1, 2], [3])
+  = 1 : append ([2], [3])          -- second clause
+  = 1 : 2 : append ([], [3])       -- second clause
+  = 1 : 2 : [3]                    -- first clause
+  = [1, 2, 3]</code></pre></div>
+<p>Numbers recurse the same way, on <code>0</code> and <code>n + 1</code>:</p>
+<div class="code"><pre><code>def add (0, n)      &lt;-&gt;  n
+def add (m + 1, n)  &lt;-&gt;  add (m, n) + 1</code></pre></div>
+<h3 id="82-running-a-recursion-backwards"><a class="anchor" href="#82-running-a-recursion-backwards" aria-label="Link to this section">#</a>8.2 Running a recursion backwards</h3>
+<p>Backwards, the turned-round clauses recurse instead. <code>append!</code> on <code>[1, 2, 3]</code> offers <code>([], [1, 2, 3])</code> from the first clause, and from the second, <code>1</code> in front of every split of <code>[2, 3]</code>, and so on down. Each step is on a shorter list, so it stops too.</p>
+<p>That is not automatic. A backward run stops only if every recursive call it makes is on something smaller, and that depends on the order in which a clause does its work. In <code>rev</code>'s second clause, <code>append (rev xs, [x])</code>, the backward run first splits the list with <code>append!</code>, then needs <code>rev!</code> on the first half and a one-element check on the second. Done in that order, one of the splits is <code>(whole list, [])</code>, and <code>rev!</code> would be asked to reverse a list as long as the one it started with, forever. Done the other way round, the check rejects that split first.</p>
+<p>42 chooses the order for you: in every pair it builds, the half whose checks are cheapest is taken apart first. You do not write anything for this. It is mentioned because it explains why a backward run can occasionally fail to stop where the forward run does: when no order puts a check before the recursion, <code>42</code> reports that the call depth was exhausted rather than running forever.</p>
+<div class="code"><pre><code>$ 42 tour rev "[3,2,1]" --backward
+rev!([3, 2, 1]) =
+  [1, 2, 3]
+  -- 1 result</code></pre></div>
+<hr aria-hidden="true">
+<h2 id="9-arithmetic"><a class="anchor" href="#9-arithmetic" aria-label="Link to this section">#</a>9. Arithmetic</h2>
+<p>Everything here is in <code>arith.42</code>, and every example below is runnable.</p>
+<ul><li><a href="#91-the-governing-question">9.1 The governing question</a></li><li><a href="#92-addition">9.2 Addition</a></li><li><a href="#93-multiplication-and-what-it-must-carry">9.3 Multiplication, and what it must carry</a></li><li><a href="#94-division-is-multiplication-backwards">9.4 Division is multiplication backwards</a></li><li><a href="#95-subtraction">9.5 Subtraction</a></li><li><a href="#96-division-with-remainder">9.6 Division with remainder</a></li><li><a href="#97-a-filter-must-be-stated-at-both-ends">9.7 A filter must be stated at both ends</a></li><li><a href="#98-exact-rationals">9.8 Exact rationals</a></li><li><a href="#99-limits">9.9 Limits</a></li></ul>
+<h3 id="91-the-governing-question"><a class="anchor" href="#91-the-governing-question" aria-label="Link to this section">#</a>9.1 The governing question</h3>
+<p>You cannot write an operation that throws its inputs away. But you can nearly always write the same operation in a form that keeps just enough to reconstruct them, and that form is usually only one component bigger.</p>
+<p>So the question is never "can 42 compute this?" It is:</p>
+<blockquote><p><strong>What is the smallest thing I have to carry along?</strong></p></blockquote>
+<p>Answer that, and the operation follows. Better still, the <em>inverse</em> operation comes free, which is why <code>arith.42</code> contains algorithms for addition, multiplication and comparison, and none at all for subtraction or division.</p>
+<h3 id="92-addition"><a class="anchor" href="#92-addition" aria-label="Link to this section">#</a>9.2 Addition</h3>
+<p>The recursion skeleton from §17, unchanged:</p>
+<div class="code"><pre><code>def add = dist ; (unitprod + (add ; inr)) ; join</code></pre></div>
+<div class="code"><pre><code>$ add(2, 3)  =  5
+$ add!(5)    =  (0, 5)  (1, 4)  (2, 3)  (3, 2)  (4, 1)  (5, 0)</code></pre></div>
+<p><code>add</code> is allowed to discard how the total was split, because that information is still recoverable <em>as a set</em>: running backwards enumerates every pair. Nothing is truly lost, it is merely spread across six answers.</p>
+<h3 id="93-multiplication-and-what-it-must-carry"><a class="anchor" href="#93-multiplication-and-what-it-must-carry" aria-label="Link to this section">#</a>9.3 Multiplication, and what it must carry</h3>
+<p>Here the naive version fails. <code>(m, n) ↦ m × n</code> has base case <code>0 × n = 0</code>, which must discard <code>n</code> outright, and §3.4 established that nothing in the language can do that. Unlike <code>add</code>, you cannot even recover it as a set: <code>mul</code> would have to work for every <code>n</code>, so the base case has nowhere to put it.</p>
+<p>The fix is to carry the multiplier along:</p>
+<div class="code"><pre><code>mul : (m, n)  ↦  (n, m × n)</code></pre></div>
+<div class="code"><pre><code>def mul = dist ; ( (swapprod ; (id * inl))                        -- (0, n)   -&gt; (n, 0)
+                 + (mul ; (copy * id) ; assocprod! ; (id * add))  -- (m+1, n) -&gt; (n, p+n)
+                 ) ; join</code></pre></div>
+<div class="code"><pre><code>$ mul(4, 5)  =  (5, 20)
+$ mul(0, 7)  =  (7, 0)</code></pre></div>
+<p>One extra component in the output, and the whole thing works. Note the <code>copy</code> in the step branch: the recursive call returns <code>(n, p)</code>, and we need <code>n</code> both to add to <code>p</code> and to hand back, so we duplicate it rather than trying (and failing) to use it twice.</p>
+<h3 id="94-division-is-multiplication-backwards"><a class="anchor" href="#94-division-is-multiplication-backwards" aria-label="Link to this section">#</a>9.4 Division is multiplication backwards</h3>
+<p>Because <code>mul</code> keeps its multiplier, it is injective, and therefore:</p>
+<div class="code"><pre><code>def divexact = mul!</code></pre></div>
+<p>That is the entire implementation of exact division.</p>
+<div class="code"><pre><code>$ divexact(3, 12)  =  (4, 3)      -- 12 / 3 = 4
+$ divexact(5, 20)  =  (4, 5)
+$ divexact(3, 7)   =  {}          -- 3 does not divide 7</code></pre></div>
+<p>The "does not divide" case needs no handling either. There is no <code>m</code> with <code>m × 3 = 7</code>, so the set of answers is empty, which is exactly the right answer.</p>
+<h3 id="95-subtraction"><a class="anchor" href="#95-subtraction" aria-label="Link to this section">#</a>9.5 Subtraction</h3>
+<p>Same trick, one line each. Make addition keep its second operand:</p>
+<div class="code"><pre><code>def addk = (id * copy) ; assocprod ; (add * id)     -- (c, b) -&gt; (c + b, b)
+def sub  = addk!                                    -- (a, b) -&gt; (a - b, b)</code></pre></div>
+<div class="code"><pre><code>$ addk(2, 3)  =  (5, 3)
+$ sub(5, 3)   =  (2, 3)
+$ sub(3, 5)   =  {}       -- no natural c has c + 5 = 3</code></pre></div>
+<p>Subtraction on naturals is partial, and that partiality arrives for free.</p>
+<h3 id="96-division-with-remainder"><a class="anchor" href="#96-division-with-remainder" aria-label="Link to this section">#</a>9.6 Division with remainder</h3>
+<p>The pattern generalises: <strong>write whichever direction is easy, then invert it.</strong> Reassembling a dividend from a quotient, a remainder and a divisor is easy; dividing is not. So write the easy one.</p>
+<div class="code"><pre><code>undivmod : ((q, r), b)  ↦  (q × b + r,  b)        provided r &lt; b</code></pre></div>
+<p>The proviso matters. Without <code>r &lt; b</code>, both <code>(q=0, r=5)</code> and <code>(q=2, r=1)</code> rebuild 5 from divisor 2, and the inverse would be ambiguous. So we need a comparison, written as a filter (§3.4, §6):</p>
+<div class="code"><pre><code>def lt = dist ; ( (id * (inr! ; inr))
+                + ((id * inr!) ; lt ; (id * inr))
+                ) ; dist!</code></pre></div>
+<div class="code"><pre><code>$ lt(2, 5)  =  (2, 5)      -- passes through unchanged
+$ lt(5, 2)  =  {}          -- rejected</code></pre></div>
+<p>Two idioms there worth stealing. <code>inr! ; inr</code> means "check this is nonzero and put it back exactly as it was". And <code>dist ; (f + g) ; dist!</code> is the case-analysis skeleton for a program that must hand back its input: <code>dist!</code> rebuilds what <code>dist</code> took apart, where <code>join</code> would have discarded the label.</p>
+<p>Now the easy direction, and its inverse:</p>
+<div class="code"><pre><code>def undivmod = assocprod!            -- ((q, r), b)  -&gt;  (q, (r, b))
+             ; (id * lt)             -- keep only r &lt; b
+             ; (id * swapprod)       --              -&gt;  (q, (b, r))
+             ; assocprod             --              -&gt;  ((q, b), r)
+             ; (mul * id)            --              -&gt;  ((b, q*b), r)
+             ; assocprod!            --              -&gt;  (b, (q*b, r))
+             ; (id * add)            --              -&gt;  (b, q*b + r)
+             ; swapprod              --              -&gt;  (q*b + r, b)
+             ; (id * nonzero)        -- see §9.7
+
+def divmod = undivmod!</code></pre></div>
+<div class="code"><pre><code>$ divmod(17, 5)  =  ((3, 2), 5)      -- 17 = 3*5 + 2
+$ divmod(12, 4)  =  ((3, 0), 4)
+$ divmod(3, 5)   =  ((0, 3), 5)</code></pre></div>
+<h3 id="97-a-filter-must-be-stated-at-both-ends"><a class="anchor" href="#97-a-filter-must-be-stated-at-both-ends" aria-label="Link to this section">#</a>9.7 A filter must be stated at both ends</h3>
+<p>That last line of <code>undivmod</code> looks like dead code:</p>
+<div class="code"><pre><code>def nonzero = inr! ; inr        -- keeps n unchanged if n &gt; 0, else nothing
+
+... ; swapprod ; (id * nonzero)</code></pre></div>
+<p><code>lt</code> has already forced <code>b &gt; 0</code>, so going forwards this check can never reject anything. <strong>It is there for the backward direction, and it is essential.</strong></p>
+<p>Here is the reasoning, and it is the one piece that does not carry over from ordinary programming:</p>
+<blockquote><p>Reversing a pipeline reverses the order of its stages. A filter written early, pruning as you go forwards, ends up running last going backwards, long after the expensive work it was meant to prevent.</p></blockquote>
+<p>In <code>undivmod</code>, <code>lt</code> sits near the front and guarantees <code>b &gt; 0</code>. Reversed, it fires at the very end. By then <code>divmod(7, 0)</code> has already asked <code>mul!</code> to divide by zero, and since <code>mul(m, 0) = (0, 0)</code> for <em>every</em> <code>m</code>, that search never terminates. Repeating the constraint at the far end of the pipeline puts it <em>first</em> under reversal:</p>
+<div class="code"><pre><code>$ divmod(7, 0)  =  {}        -- immediately, with the guard
+                             -- without it: runs forever</code></pre></div>
+<blockquote><p><strong>Rule of thumb: a constraint you rely on in both directions must be stated at both ends.</strong> Forwards, one of the two statements is redundant. That redundancy is the price of a pipeline that prunes in both directions. It is not dead code; deleting it changes termination.</p></blockquote>
+<h3 id="98-exact-rationals"><a class="anchor" href="#98-exact-rationals" aria-label="Link to this section">#</a>9.8 Exact rationals</h3>
+<p>Everything here is in <code>rational.42</code>. A rational is a pair <code>(numerator, denominator)</code>, and every operation is exact. Nothing is ever rounded, because rounding is discarding and this language cannot discard.</p>
+<p>The same carrying rule as before gives the inverses free:</p>
+<div class="code"><pre><code>qadd : (a, b) ↦ (b, a + b)          so   qsub = qadd!
+qmul : (a, b) ↦ (b, a × b)          so   qdiv = qmul!</code></pre></div>
+<h4 id="multiplication-is-one-line"><a class="anchor" href="#multiplication-is-one-line" aria-label="Link to this section">#</a>Multiplication is one line</h4>
+<div class="code"><pre><code>def qmul = transpose ; (mul * mul) ; transpose</code></pre></div>
+<p><code>transpose</code> swaps the two inner components of a pair of pairs, and is its own inverse. Watch it work:</p>
+<div class="code"><pre><code>((p, q), (r, s))     transpose     -&gt;  ((p, r), (q, s))    numerators together
+((p, r), (q, s))     mul * mul     -&gt;  ((r, pr), (s, qs))  mul hands back operand 2
+((r, pr), (s, qs))   transpose     -&gt;  ((r, s), (pr, qs))  kept operand, then product</code></pre></div>
+<div class="code"><pre><code>$ qmul((1,2), (3,4))  =  ((3, 4), (3, 8))       -- 1/2 × 3/4 = 3/8
+$ qdiv((3,4), (3,8))  =  ((1, 2), (3, 4))       -- and back</code></pre></div>
+<p>Addition is the same idea over <code>(ps + qr, qs)</code>, but longer: the operands are used unevenly: <code>s</code> three times, <code>q</code> twice, <code>p</code> and <code>r</code> once each. Since <code>mul</code> hands back its second operand, <code>s</code> threads from one product into the next and only <code>q</code> needs a <code>copy</code>. See <code>rational.42</code>, where the steps are named.</p>
+<div class="code"><pre><code>$ qadd((1,2), (1,3))  =  ((1, 3), (5, 6))       -- 1/2 + 1/3 = 5/6
+$ qsub((1,3), (5,6))  =  ((1, 2), (1, 3))</code></pre></div>
+<h4 id="there-is-no-reduce-and-there-cannot-be-one"><a class="anchor" href="#there-is-no-reduce-and-there-cannot-be-one" aria-label="Link to this section">#</a>There is no <code>reduce</code>, and there cannot be one</h4>
+<p>This is the part worth understanding, because it is the language dictating the design rather than a choice.</p>
+<p>Putting a fraction in lowest terms means dividing by the gcd. Computing a gcd means Euclid's algorithm, and <strong>every step of Euclid throws away a quotient and keeps only a remainder.</strong> 42 cannot throw anything away. So a gcd program written here is forced to hand back the quotients it generated, and that sequence is the continued-fraction expansion, from which the original fraction can be rebuilt.</p>
+<p>Reduction cannot lose the thing it exists to lose, so <code>rational.42</code> keeps fractions unreduced and compares them with cross-multiplication instead:</p>
+<div class="code"><pre><code>def qeq = cross ; (id * copy!) ; withps!</code></pre></div>
+<div class="code"><pre><code>$ qeq((1,2), (2,4))  =  ((1, 2), (2, 4))     -- equal, passed through
+$ qeq((1,2), (3,4))  =  {}                   -- not equal</code></pre></div>
+<p>Note the shape of that definition, because the pattern is reusable: <code>qeq</code> is a filter, so it must return its input untouched, yet it needs two cross products to do its job. <code>cross</code> is what computes them, handing back the two fractions with <code>p×s</code> and <code>q×r</code> attached:</p>
+<div class="code"><pre><code>$ cross((1,2),(3,4))  =  (((1, 2), (3, 4)), (4, 6))</code></pre></div>
+<p>Then <code>copy!</code> demands the two agree, and one of them is <strong>recomputed backwards to cancel it</strong>: <code>withps</code> pairs a value with <code>p×s</code> injectively, so <code>withps!</code> removes a <code>p×s</code>. Computing something, using it, and then un-computing it is how you borrow a scratch value in a language with no scratch space.</p>
+<p>For scaling you supply the factor yourself, and keeping it makes the operation invertible:</p>
+<div class="code"><pre><code>$ reduceby((6,8), 2)  =  ((3, 4), 2)
+$ scaleby((3,4), 2)   =  ((6, 8), 2)
+$ reduceby((6,8), 4)  =  {}              -- 4 does not divide 6</code></pre></div>
+<h4 id="the-price-of-unreduced-fractions"><a class="anchor" href="#the-price-of-unreduced-fractions" aria-label="Link to this section">#</a>The price of unreduced fractions</h4>
+<p><code>qsub</code> is exact on <strong>representations</strong>, not on values. <code>qadd</code> produces denominator <code>q×s</code>, so its inverse recognises that denominator and no other:</p>
+<div class="code"><pre><code>$ qadd((1,2), (1,2))  =  ((1, 2), (4, 4))
+$ qsub((1,2), (4,4))  =  ((1, 2), (1, 2))     -- fine
+$ qsub((1,2), (1,1))  =  {}                   -- nothing, even though 4/4 = 1/1</code></pre></div>
+<p>There is no <code>p/q</code> with <code>q×2 = 1</code>, so the answer really is empty. If you want to subtract at the level of rational <em>values</em>, scale to a compatible denominator first. This is the honest cost of a representation the language forced on us, and it is worth knowing before you rely on <code>qsub</code>.</p>
+<h3 id="99-limits"><a class="anchor" href="#99-limits" aria-label="Link to this section">#</a>9.9 Limits</h3>
+<ul><li><strong><code>mul!(0, 0)</code> does not terminate</strong>, and correctly so: every number divides zero, so there are infinitely many answers. <code>mul</code> is injective for every multiplier except <code>0</code>. Guard with <code>nonzero</code> before running it backwards.</li><li><strong>Unary numbers are slow</strong> (§3.6). <code>divmod(40, 6)</code> takes a noticeable fraction of a second; <code>divmod(400, 6)</code> is not worth attempting. For rationals this bites sooner, since cross-multiplication builds products:</li></ul>
+<p><code>qeq((19,30), (95,150))</code> has to construct 2850 as a stack of 2850 labels, and does not finish in reasonable time.</p>
+<ul><li><strong><code>(m, n) ↦ m × n</code> remains unwritable</strong> in its discarding form. Carrying the multiplier is not a workaround you may skip; it is the only version that exists.</li><li><strong>Rationals here are non-negative.</strong> <code>qsub</code> is partial in the same way natural subtraction is. Signed rationals would need a sign bit and a canonical treatment of zero.</li></ul>
+<hr aria-hidden="true">
+<h2 id="10-strings-and-text"><a class="anchor" href="#10-strings-and-text" aria-label="Link to this section">#</a>10. Strings and text</h2>
+<p>Everything here is in <code>strings.42</code>.</p>
+<ul><li><a href="#101-there-is-no-string-type">10.1 There is no string type</a></li><li><a href="#102-writing-text">10.2 Writing text</a></li><li><a href="#103-every-list-program-already-works">10.3 Every list program already works</a></li><li><a href="#104-case-conversion-is-one-bit">10.4 Case conversion is one bit</a></li><li><a href="#105-how-to-write-if-then-else">10.5 How to write if-then-else</a></li></ul>
+<h3 id="101-there-is-no-string-type"><a class="anchor" href="#101-there-is-no-string-type" aria-label="Link to this section">#</a>10.1 There is no string type</h3>
+<p>Nothing was added to the language to support text. A string is a list, and lists already existed:</p>
+<div class="code"><pre><code>bit    = 1 + 1                    L () = 0,  R () = 1
+byte   = bit x (bit x ( … ))      eight of them, MSB first, nested right
+string = mu X. 1 + (byte x X)     exactly the list type from §3.5</code></pre></div>
+<p>So a character is a byte, and a byte is eight booleans:</p>
+<div class="code"><pre><code>'a'  =  (0, (1, (1, (0, (0, (0, (0, 1)))))))      -- 97 = 0b01100001</code></pre></div>
+<p>Why binary and not unary? Numbers in 42 are unary (§3.5), so consistency would have made <code>'a'</code> a stack of 97 labels. Binary is faster, and it also keeps the encodings distinguishable. A byte is a nest of pairs; a number is a chain of labels. Nothing can be read as both. So unlike <code>0</code>/<code>[]</code> (§3.6), text collides with nothing:</p>
+<div class="code"><pre><code>$ [72, 105]   prints as   [72, 105]        -- still a list of numbers
+$ "Hi"        prints as   "Hi"</code></pre></div>
+<p>That was the deciding factor in the encoding. An ambiguous printer is a constant low-level tax on reading output, and here it was avoidable.</p>
+<h3 id="102-writing-text"><a class="anchor" href="#102-writing-text" aria-label="Link to this section">#</a>10.2 Writing text</h3>
+<div class="scroller"><table><thead><tr><th>Written</th><th>Is</th></tr></thead><tbody><tr><td><code>'a'</code></td><td>one byte</td></tr><tr><td><code>"hello"</code></td><td>a list of bytes</td></tr><tr><td><code>"héllo"</code></td><td>its UTF-8 bytes — six of them</td></tr><tr><td><code>"a\nb"</code></td><td>escapes: <code>\n</code> <code>\t</code> <code>\r</code> <code>\\</code> <code>\0</code> <code>\"</code> <code>\'</code> <code>\xNN</code></td></tr></tbody></table></div>
+<p>A character literal must be exactly one byte, so <code>'é'</code> is rejected; write it as a string. And <code>""</code> is <code>L ()</code>, which is also <code>0</code> and <code>[]</code> (§3.6).</p>
+<h3 id="103-every-list-program-already-works"><a class="anchor" href="#103-every-list-program-already-works" aria-label="Link to this section">#</a>10.3 Every list program already works</h3>
+<p>This is the part worth pausing on. Because a string <em>is</em> a list, the list programs from §17 operate on text with no modification whatsoever:</p>
+<div class="code"><pre><code>$ concat("foo", "bar")   =  "foobar"
+$ reverse("stressed")    =  "desserts"
+$ palin("racecar")       =  "racecar"
+$ palin("apple")         =  {}</code></pre></div>
+<p>and <code>split</code> is not an implementation at all. It is <code>concat</code> read backwards:</p>
+<div class="code"><pre><code>def concat = append
+def split  = append!</code></pre></div>
+<div class="code"><pre><code>$ split("abc")  =  ("a", "bc")  ("ab", "c")  ("abc", [])  ([], "abc")</code></pre></div>
+<p>Every way to cut a string in two, and nobody wrote a string-splitting routine.</p>
+<h3 id="104-case-conversion-is-one-bit"><a class="anchor" href="#104-case-conversion-is-one-bit" aria-label="Link to this section">#</a>10.4 Case conversion is one bit</h3>
+<p>In ASCII, upper and lower case differ in one bit, the one worth 32. So changing case is not arithmetic; it is reaching into the byte and flipping a single boolean:</p>
+<div class="code"><pre><code>byte = (b7, (b6, (b5, (b4, (b3, (b2, (b1, b0)))))))
+        skip  skip  flip  ←------ leave alone ------→
+
+def flipcase = id * (id * (swapsum * id))</code></pre></div>
+<p>The <code>swapsum</code> does the work; the <code>id</code>s either side of it are pure navigation. And being a single <code>swapsum</code>, it is its own inverse: running <code>flipcase</code> backwards is <code>flipcase</code>.</p>
+<h3 id="105-how-to-write-if-then-else"><a class="anchor" href="#105-how-to-write-if-then-else" aria-label="Link to this section">#</a>10.5 How to write if-then-else</h3>
+<p>Flipping bit 5 of <em>every</em> byte would be wrong: it turns a space into a NUL and a comma into a form feed. We want to flip it only for letters, which needs a conditional, and 42 does not have one.</p>
+<p><code>|</code> is not if-then-else. It runs both branches and pools the answers, so <code>f | g</code> normally returns two results (§13). But if the branches are guarded by filters that can never both succeed, exactly one of them ever produces anything, and the union collapses into an ordinary deterministic choice:</p>
+<blockquote><div class="code"><pre><code>(guard ; then)  |  (complement-of-guard ; else)</code></pre></div>
+<p><strong>This is how you write if-then-else in 42.</strong> Making the two guards disjoint is your job, not the language's. Get it wrong in one direction and you silently get two answers; get it wrong in the other and you get none.</p></blockquote>
+<p>ASCII letters all lie in 64..127, that is <code>b7 = 0</code> and <code>b6 = 1</code>:</p>
+<div class="code"><pre><code>def bit0 = inl! ; inl           -- keeps a bit unchanged if it is 0
+def bit1 = inr! ; inr           -- keeps a bit unchanged if it is 1
+
+def hi    = bit0 * (bit1 * id)                    -- b7=0, b6=1
+def notHi = (bit1 * id) | (bit0 * (bit0 * id))    -- everything else
+
+def swapbyte = (hi ; flipcase) | notHi
+def swapcase = (inl + ((swapbyte * swapcase) ; inr)) ; join</code></pre></div>
+<div class="code"><pre><code>$ swapcase("Hello, World!")   =  "hELLO, wORLD!"
+$ swapcase("abc 123 XYZ")     =  "ABC 123 xyz"</code></pre></div>
+<p>Punctuation, spaces and digits now pass through untouched, and <code>swapcase</code> is still its own inverse.</p>
+<p>The residual inaccuracy, stated precisely rather than waved at: the sixteen bytes <code>@[\]^_`{|}~</code> and DEL share the letters' top two bits, so they still get mapped onto each other. Excluding them needs a range check on the low five bits, which is real work for very little return. (There is a test asserting this caveat is exactly true, so it cannot quietly become false.)</p>
+<hr aria-hidden="true">
+<h2 id="11-a-turing-machine"><a class="anchor" href="#11-a-turing-machine" aria-label="Link to this section">#</a>11. A Turing machine</h2>
+<p>Every program so far does one thing to a value and stops. This section builds a machine that <em>runs</em>: it keeps changing a value until it is finished, and only then gives an answer. That is the last thing a language has to be able to do, and in 42 it needs no new construct, just <code>^</code> and <code>!</code> from section 13.</p>
+<p>The file is <code>tm.42</code>. The machine adds one to a binary number.</p>
+<h3 id="111-the-shape-every-machine-takes"><a class="anchor" href="#111-the-shape-every-machine-takes" aria-label="Link to this section">#</a>11.1 The shape every machine takes</h3>
+<p>A Turing machine is a tape, a head, a control state, and a table saying what to do next. In 42 the whole of it is three programs joined by <code>;</code>:</p>
+<div class="code"><pre><code>init ; step^ ; final</code></pre></div>
+<ul><li><code>init</code> turns the input into a starting <strong>configuration</strong>: tape, head and state, all in one value.</li><li><code>step</code> is <strong>one</strong> move of the machine: <code>configuration &lt;-&gt; configuration</code>.</li><li><code>step^</code> is section 13's "repeat any number of times", so it relates the start to <em>every</em> configuration the machine can reach.</li><li><code>final</code> is a filter that lets through only configurations that have halted, and reads the answer off the tape.</li></ul>
+<p>There is no loop construct, no counter and no test for "am I done yet". <code>^</code> does the repeating, and the machine stops on its own because the halted state has no transition. <code>step</code> is empty there, and section 6 already told you what an empty result means.</p>
+<p><code>init</code>, <code>step</code> and <code>final</code> are the roles, not the identifiers you will find in the file. <code>tm.42</code> spells the same three-part shape as <code>def inc = load ; run ; unload</code>, with <code>def run = carry ; step^ ; halt!</code>: <code>load</code> and <code>carry</code> together do the job of <code>init</code>, and <code>halt!</code> and <code>unload</code> together do the job of <code>final</code>.</p>
+<h3 id="112-the-tape-is-a-list-with-a-hole-in-it"><a class="anchor" href="#112-the-tape-is-a-list-with-a-hole-in-it" aria-label="Link to this section">#</a>11.2 The tape is a list with a hole in it</h3>
+<p>The obvious way to store a tape is a list plus a number saying where the head is. Don't: every move would then be arithmetic, and moving would have to be undone by arithmetic too.</p>
+<p>Instead split the list at the head and keep the two halves, with the left half written backwards so that the cell nearest the head is at its front:</p>
+<div class="code"><pre><code>tape = bits x (sym x bits)
+       left, reversed   head   right</code></pre></div>
+<p>Now moving the head one cell right is: take the head cell and put it on the front of the left list, take the front of the right list and make it the new head. Every part of that is <code>inr</code> or <code>inr!</code> from section 14, putting something on the front of a list and taking it off:</p>
+<div class="code"><pre><code>def right = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
+def left  = right!</code></pre></div>
+<p><strong><code>left</code> is not written out.</strong> Moving left <em>is</em> moving right backwards, so it is one <code>!</code>. That is not a trick; it is what section 13 says <code>!</code> means, applied to the one place in a machine where it obviously holds.</p>
+<h3 id="113-the-state-is-a-label-not-a-component"><a class="anchor" href="#113-the-state-is-a-label-not-a-component" aria-label="Link to this section">#</a>11.3 The state is a label, not a component</h3>
+<p>A machine with three control states and a tape looks like it should be a pair, <code>state x tape</code>. Make it a labelled value instead:</p>
+<div class="code"><pre><code>conf = tape + (tape + tape)</code></pre></div>
+<p>with one branch per state:</p>
+<div class="code"><pre><code>def carry  = inl            -- still carrying a 1 leftward
+def rewind = inl ; inr      -- carry done; walk the head back to the start
+def halt   = inr ; inr      -- finished</code></pre></div>
+<p>This is the one design decision in the file worth copying. To behave differently in each state you now write <code>f + g + h</code>, which is section 13's <code>+</code> doing exactly what it is for. With a pair you would need <code>dist</code> to get at the state and more plumbing to put it back, in every branch. Sections 3.4 and 14 both make the same point in the small; here it is what keeps <code>step</code> down to one line.</p>
+<h3 id="114-reading-the-head-and-writing-it-backwards"><a class="anchor" href="#114-reading-the-head-and-writing-it-backwards" aria-label="Link to this section">#</a>11.4 Reading the head, and writing it backwards</h3>
+<p>To act on the symbol under the head you have to get at it. <code>focus</code> brings it to the front, and <code>dist</code> then splits on it, exactly as in section 14:</p>
+<div class="code"><pre><code>def focus    = assocprod ; (swapprod * id) ; assocprod!
+def readhead = focus ; dist ; (unitprod + unitprod)</code></pre></div>
+<p><code>readhead</code> turns a tape into a labelled value: the <code>L</code> branch means the head was <code>0</code>, the <code>R</code> branch means it was <code>1</code>. Run it backwards and it writes the head instead, with the label choosing what to write:</p>
+<div class="code"><pre><code>def write0 = inl ; readhead!
+def write1 = inr ; readhead!</code></pre></div>
+<p>One program, read in both directions, is the whole of reading and writing.</p>
+<h3 id="115-the-table-one-line-per-state"><a class="anchor" href="#115-the-table-one-line-per-state" aria-label="Link to this section">#</a>11.5 The table, one line per state</h3>
+<div class="code"><pre><code>def carrystep  = readhead ; ((write1 ; rewind) + (write0 ; stepover ; carry)) ; join
+def rewindstep = ((iscons * id) ; left ; rewind) | ((isnil * id) ; halt)
+
+def step = (carrystep + (rewindstep + zero)) ; (id + join) ; join</code></pre></div>
+<p>Read <code>carrystep</code> as the table it is: head is <code>0</code>, so write <code>1</code> and start rewinding; head is <code>1</code>, so write <code>0</code>, move right, and keep carrying. <code>rewindstep</code> uses the partial identities <code>iscons</code> and <code>isnil</code> from the file to ask whether there is any tape left, which is section 10.5's if-then-else with no condition to evaluate. And <code>zero</code> in the third branch is the halted state: no transition, so the machine stops.</p>
+<p><code>stepover</code> is where the tape has to grow, because a real tape is infinite and a list is not:</p>
+<div class="code"><pre><code>def stepover = ((id * (id * iscons)) ; right) | (pad ; right)</code></pre></div>
+<p>If there is a cell to the right, move onto it; if there is not, add a <code>0</code> first. Note that <code>|</code> is doing this with no requirement that the two branches be distinct. They happen to be, because <code>iscons</code> and <code>isnil</code> cannot both apply, but nothing made you prove it.</p>
+<h3 id="116-running-it"><a class="anchor" href="#116-running-it" aria-label="Link to this section">#</a>11.6 Running it</h3>
+<p>The number is written least significant bit first, so <code>[R (), R ()]</code> is <code>1,1</code>, which is 3. <code>value</code> reads a bit list as a number, <code>inc</code> is the machine, and <code>incval</code> is the two composed:</p>
+<div class="code"><pre><code>$ 42 tm inc "[R (), R ()]"
+inc([R (), R ()]) =
+  [L (), L (), R ()]
+  -- 1 result</code></pre></div>
+<p><code>0,0,1</code> is 4. Reading it as a number instead:</p>
+<div class="code"><pre><code>$ 42 tm incval "[R (), R ()]"
+incval([R (), R ()]) =
+  4
+  -- 1 result</code></pre></div>
+<p>Zero is <code>[L ()]</code>, a list of one <code>0</code> bit, not the empty list: the head has to have a cell to sit on.</p>
+<h3 id="117-running-the-machine-backwards"><a class="anchor" href="#117-running-the-machine-backwards" aria-label="Link to this section">#</a>11.7 Running the machine backwards</h3>
+<p><code>dec</code> is <code>inc!</code>. Feed it 4:</p>
+<div class="code"><pre><code>$ 42 tm dec "[L (), L (), R ()]"
+dec([L (), L (), R ()]) =
+  [R (), R (), L ()]
+  [R (), R ()]
+  -- 2 results</code></pre></div>
+<p>Two answers, and both are right. <code>1,1</code> is 3, and <code>1,1,0</code> is also 3: the same number with a trailing zero, which is a different list but the same value:</p>
+<div class="code"><pre><code>$ 42 tm value "[R (), R (), L ()]"
+value([R (), R (), L ()]) =
+  3
+  -- 1 result</code></pre></div>
+<p>So the machine is not one-to-one, and section 6 is why you get told rather than being stopped from writing it. A language that insisted on one answer backwards would have made you strip trailing zeros before this program could exist.</p>
+<p>There is a lesson in here worth the detour. The first version of <code>init</code> was just <code>carry</code>, which labels any configuration as a starting one, including ones with the head halfway along the tape. Forwards that made no difference and every test passed. Backwards it produced five answers instead of two, and the three extra ones were half-finished machines. The fix is one filter:</p>
+<div class="code"><pre><code>def load = inr! ; unitprod! ; (inl * id)</code></pre></div>
+<p>which insists the head starts at the end. <strong><code>init</code> has to be as tight as <code>final</code></strong>, and running the program backwards is how you find out that it is not. That check does not exist in a language that only runs forwards.</p>
+<h3 id="118-what-this-does-and-does-not-show"><a class="anchor" href="#118-what-this-does-and-does-not-show" aria-label="Link to this section">#</a>11.8 What this does and does not show</h3>
+<p>It shows that a Turing machine fits in 42 with nothing added, and that the shape it takes, <code>init ; step^ ; final</code>, needs only <code>;</code>, <code>^</code> and the plumbing of section 14. The transition table is a <code>+</code> over states and a <code>|</code> over the rows in each state, so a different machine is a different table in the same frame.</p>
+<p>It does not prove that 42 can compute everything computable. That would need an argument covering every machine, not one machine. <code>tm.42</code> is the evidence that the encoding works, not the proof — the proof is <a href="theorem.html">THEOREM.md</a>, which settles rather more than Turing completeness: 42 denotes <em>exactly</em> the relations a computer can enumerate, no fewer and no more. Section 18 is the other half of the same question, asked about 42 itself.</p>
+<hr aria-hidden="true">
+<h1 id="part-ii--the-language-underneath"><a class="anchor" href="#part-ii--the-language-underneath" aria-label="Link to this section">#</a>Part II — The language underneath</h1>
+<p>Everything in Part I compiles to the language described here. It has no clauses and no names: a program is a pipeline of steps, each reshaping one value, built from thirteen primitives and seven ways of combining programs. It is what 42 was before it had clauses, and what it still is underneath.</p>
+<p>You need it to read what <code>42 show</code> prints, and to see why a definition gives an answer you did not expect. You can also write in it directly, and <code>prelude.42</code> is written that way.</p>
+<hr aria-hidden="true">
+<h2 id="12-programs-are-pipelines-not-functions"><a class="anchor" href="#12-programs-are-pipelines-not-functions" aria-label="Link to this section">#</a>12. Programs are pipelines, not functions</h2>
 <p>In an ordinary language you write:</p>
 <div class="code"><pre><code>def single(x):
     return [x]</code></pre></div>
@@ -346,14 +782,14 @@ rev  : list a &lt;-&gt; list a          -- was: mu X. 1 + a x X &lt;-&gt; mu Y. 
 <div class="code"><pre><code>unitprod! ; swapprod ; (id * inl) ; inr</code></pre></div>
 <p><code>;</code> is the pipe. At every point in that pipeline <strong>exactly one value is in flight</strong>, and each stage rewrites the whole of it.</p>
 <p>That style has a name of its own: <strong>point-free</strong>. "Point" is the mathematician's word for an argument — a point of the domain — so a definition that names its argument, <code>f(x) = …</code>, is <em>pointwise</em>, and one that never does is <em>point-free</em>. The pipeline above is the everyday example: nothing in <code>cat file | sort | uniq</code> names the lines passing between the stages, and nothing needs to.</p>
-<p>In most languages going point-free is a style you may adopt. In 42 it is the only option, because the language has no way to bind a name to a value at all. Sections 5 and 6 are what you use instead, and section 8 is how to read the result.</p>
+<p>In most languages going point-free is a style you may adopt. In 42 it is the only option, because the language has no way to bind a name to a value at all. Sections 13 and 14 are what you use instead, and section 15 is how to read the result.</p>
 <p>It is also part of why <code>!</code> works on every program without exception. There is no conditional whose branches would have to be told apart when the program runs backwards — branching is <code>+</code>, and both branches are simply kept — and there is no variable whose value has to be tracked in reverse. Nothing was named, so nothing has to be un-named.</p>
 <p>So how do you write a program that takes <em>two</em> inputs? You don't. The two inputs arrive packed into one pair <code>(x, y)</code>, and it is the program's job to take the pair apart.</p>
 <p>One consequence is what makes 42 feel alien at first:</p>
 <blockquote><p>Because you cannot name the parts of a value, you cannot say <em>"take the <code>h</code> out of that pair and put it next to <code>ys</code>."</em> Instead you <strong>rearrange the shape of the value until the pieces are already in the right place.</strong></p></blockquote>
 <p>That rearranging is what most of 42's built-in programs are for. They do no arithmetic or logic; they move parentheses around. They make more sense read as plumbing than as computation.</p>
 <hr aria-hidden="true">
-<h2 id="5-the-seven-ways-to-combine-programs"><a class="anchor" href="#5-the-seven-ways-to-combine-programs" aria-label="Link to this section">#</a>5. The seven ways to combine programs</h2>
+<h2 id="13-the-seven-ways-to-combine-programs"><a class="anchor" href="#13-the-seven-ways-to-combine-programs" aria-label="Link to this section">#</a>13. The seven ways to combine programs</h2>
 <p>If <code>f</code> and <code>g</code> are programs, so are all of these.</p>
 <h3 id="f--g--do-f-then-g"><a class="anchor" href="#f--g--do-f-then-g" aria-label="Link to this section">#</a><code>f ; g</code> — do <code>f</code>, then <code>g</code></h3>
 <p>The pipe. Left to right, in the order written.</p>
@@ -371,7 +807,7 @@ f  * id       -- apply f to the left component, leave the right alone</code></pr
    f + g                      f + g
      L (f a)                    R (g b)</code></pre></div>
 <p>This is 42's <code>switch</code> / <code>match</code>. If the value is labelled left, run <code>f</code> on what's inside; if labelled right, run <code>g</code> on what's inside.</p>
-<p>The label survives: <code>f + g</code> puts the result back inside <code>L</code> or <code>R</code>. Almost always you then want to forget which branch you took, which is what <code>join</code> does (§6). This is why you constantly see:</p>
+<p>The label survives: <code>f + g</code> puts the result back inside <code>L</code> or <code>R</code>. Almost always you then want to forget which branch you took, which is what <code>join</code> does (§14). This is why you constantly see:</p>
 <div class="code"><pre><code>(f + g) ; join</code></pre></div>
 <p>Read that as: <em>switch on the label, handle each case, then discard the label.</em></p>
 <h3 id="f--g--try-both-collect-all-answers"><a class="anchor" href="#f--g--try-both-collect-all-answers" aria-label="Link to this section">#</a><code>f | g</code> — try both, collect all answers</h3>
@@ -392,7 +828,7 @@ def ctrl m = mat ; (id + m) ; mat!      -- "if the label is R, do m"
 
 def flip   = ctrl not
 def flip2  = ctrl flip</code></pre></div>
-<p>One new name there: <code>not</code> is the built-in <code>swapsum</code>, which does nothing but exchange the two labels. §6 tabulates it with the other rearrangements:</p>
+<p>One new name there: <code>not</code> is the built-in <code>swapsum</code>, which does nothing but exchange the two labels. §14 tabulates it with the other rearrangements:</p>
 <div class="code"><pre><code>$ not  on  L ()   -&gt;  R ()
 $ not  on  R ()   -&gt;  L ()</code></pre></div>
 <p><code>dist</code> and <code>unitprod</code> are the ones from §3, and <code>id</code> does nothing at all.</p>
@@ -430,7 +866,7 @@ $ cdouble!(R (), 6)  =  (R (), 3)</code></pre></div>
 error: `ctrl` is a combinator, not a relation -- it takes a parameter, so there
 is nothing to apply to a value.</code></pre></div>
 <hr aria-hidden="true">
-<h2 id="6-plumbing-rearranging-shapes-when-you-cannot-name-things"><a class="anchor" href="#6-plumbing-rearranging-shapes-when-you-cannot-name-things" aria-label="Link to this section">#</a>6. Plumbing: rearranging shapes when you cannot name things</h2>
+<h2 id="14-plumbing-rearranging-shapes-when-you-cannot-name-things"><a class="anchor" href="#14-plumbing-rearranging-shapes-when-you-cannot-name-things" aria-label="Link to this section">#</a>14. Plumbing: rearranging shapes when you cannot name things</h2>
 <p>These are 42's built-in programs. Read the table as <em>shape in → shape out</em>. None of them compute anything; they move data around.</p>
 <h3 id="pairs"><a class="anchor" href="#pairs" aria-label="Link to this section">#</a>Pairs</h3>
 <div class="scroller"><table><thead><tr><th>Program</th><th>Turns</th><th>Into</th></tr></thead><tbody><tr><td><code>swapprod</code></td><td><code>(a, b)</code></td><td><code>(b, a)</code></td></tr><tr><td><code>assocprod</code></td><td><code>(a, (b, c))</code></td><td><code>((a, b), c)</code></td></tr><tr><td><code>assocprod!</code></td><td><code>((a, b), c)</code></td><td><code>(a, (b, c))</code></td></tr><tr><td><code>unitprod</code></td><td><code>((), a)</code></td><td><code>a</code></td></tr><tr><td><code>unitprod!</code></td><td><code>a</code></td><td><code>((), a)</code></td></tr></tbody></table></div>
@@ -445,44 +881,11 @@ is nothing to apply to a value.</code></pre></div>
 <h3 id="mixing-pairs-and-labels"><a class="anchor" href="#mixing-pairs-and-labels" aria-label="Link to this section">#</a>Mixing pairs and labels</h3>
 <div class="scroller"><table><thead><tr><th>Program</th><th>Turns</th><th>Into</th></tr></thead><tbody><tr><td><code>dist</code></td><td><code>(L a, c)</code></td><td><code>L (a, c)</code></td></tr><tr><td></td><td><code>(R b, c)</code></td><td><code>R (b, c)</code></td></tr><tr><td><code>dist!</code></td><td><code>L (a, c)</code></td><td><code>(L a, c)</code></td></tr></tbody></table></div>
 <p><code>dist</code> is the one people trip over. In words: <em>you have a labelled value paired with something else; push the pairing inside the label so that each branch keeps its own copy of the extra thing.</em></p>
-<p>You need it whenever you want to switch on one component of a pair while keeping the other component available in both branches. See §10.</p>
+<p>You need it whenever you want to switch on one component of a pair while keeping the other component available in both branches. See §17.</p>
 <h3 id="others"><a class="anchor" href="#others" aria-label="Link to this section">#</a>Others</h3>
 <div class="scroller"><table><thead><tr><th>Program</th><th>Meaning</th></tr></thead><tbody><tr><td><code>id</code></td><td>do nothing</td></tr><tr><td><code>zero</code></td><td>the program with no answers, ever</td></tr><tr><td><code>unitsum</code></td><td><code>R a</code> → <code>a</code> (the <code>L</code> side is a type with no values)</td></tr><tr><td><code>assocsum</code></td><td>regroups nested labels, like <code>assocprod</code> for pairs</td></tr></tbody></table></div>
 <hr aria-hidden="true">
-<h2 id="7-none-one-or-many-answers"><a class="anchor" href="#7-none-one-or-many-answers" aria-label="Link to this section">#</a>7. None, one, or many answers</h2>
-<p>A 42 program returns a set, which takes some getting used to.</p>
-<p>No answers, written <code>{}</code>, is normal and is not an error. It means "this input is not something I apply to."</p>
-<div class="code"><pre><code>$ 42 tour pred 0
-pred(0) =
-  {}   (empty: no result)</code></pre></div>
-<p>Zero has no predecessor, so there is nothing to return.</p>
-<p>A <strong>shape</strong> mismatch is different, and the two are worth keeping apart. As a matter of meaning, <code>swapprod</code> applied to something that isn't a pair also denotes <code>{}</code>: the program does not apply there, rather than crashing. But you almost never mean that, so the command line type-checks first and refuses:</p>
-<div class="code"><pre><code>$ 42 prelude swap 5
-error: the argument does not fit the domain of `swap`
-  swap expects : a x b
-  you gave     : 5</code></pre></div>
-<p><code>pred 0</code> above is not refused, because <code>0</code> is a perfectly good input to <code>pred</code> that happens to have no image. Emptiness because a relation is partial is normal; emptiness because the shapes never lined up was almost certainly a typo.</p>
-<p>Add <code>--untyped</code> to see the underlying relational answer anyway:</p>
-<div class="code"><pre><code>$ 42 prelude swap 5 --untyped
-swap(5) =
-  {}   (empty: no result)</code></pre></div>
-<p><strong>One answer</strong> is the ordinary case.</p>
-<p><strong>Many answers</strong> happen when information was destroyed going the other way:</p>
-<div class="code"><pre><code>$ 42 prelude add 5 --backward
-add!(5) =
-  (0, 5)
-  (1, 4)
-  (2, 3)
-  (3, 2)
-  (4, 1)
-  (5, 0)
-  -- 6 results</code></pre></div>
-<p>Adding throws away how the total was split up, so the reverse offers every split.</p>
-<p>A useful thing to know: <strong>composing can bring the answer count back down.</strong> <code>add</code> reversed has many answers, but</p>
-<div class="code"><pre><code>def double = copy ; add</code></pre></div>
-<p>reversed has at most one, because <code>copy!</code> at the end throws away every pair whose halves differ. <code>double! 6</code> is <code>{3}</code>, and <code>double! 7</code> is <code>{}</code>.</p>
-<hr aria-hidden="true">
-<h2 id="8-how-to-read-a-program"><a class="anchor" href="#8-how-to-read-a-program" aria-label="Link to this section">#</a>8. How to read a program</h2>
+<h2 id="15-how-to-read-a-program"><a class="anchor" href="#15-how-to-read-a-program" aria-label="Link to this section">#</a>15. How to read a program</h2>
 <p>The technique is to write the shape of the value after each step. That is all of it; do it on paper the first few times.</p>
 <p>Take:</p>
 <div class="code"><pre><code>def single = unitprod! ; swapprod ; (id * inl) ; inr</code></pre></div>
@@ -502,7 +905,7 @@ add!(5) =
 <p>It unwraps a one-element list. Fed <code>[7, 8]</code>, the <code>inl!</code> step would find <code>R (8, ...)</code> where it wanted <code>L</code>, produce nothing, and the whole thing would return <code>{}</code>, correctly, since <code>[7,8]</code> is not a one-element list.</p>
 <p>That is the skill. Everything else is vocabulary.</p>
 <hr aria-hidden="true">
-<h2 id="9-how-to-write-a-program"><a class="anchor" href="#9-how-to-write-a-program" aria-label="Link to this section">#</a>9. How to write a program</h2>
+<h2 id="16-how-to-write-a-program"><a class="anchor" href="#16-how-to-write-a-program" aria-label="Link to this section">#</a>16. How to write a program</h2>
 <p>Work backwards from ordinary code. Three steps.</p>
 <h3 id="step-1--write-it-with-names-as-an-equation"><a class="anchor" href="#step-1--write-it-with-names-as-an-equation" aria-label="Link to this section">#</a>Step 1 — write it with names, as an equation</h3>
 <div class="code"><pre><code>single(x) = [x]</code></pre></div>
@@ -516,7 +919,7 @@ want:    R (x, L ())</code></pre></div>
 <div class="code"><pre><code>unitprod! ; swapprod ; (id * inl) ; inr</code></pre></div>
 <p>The general habit: <strong>peel the target shape from the outside in, and each layer tells you the next step to write, in reverse.</strong></p>
 <hr aria-hidden="true">
-<h2 id="10-recursion"><a class="anchor" href="#10-recursion" aria-label="Link to this section">#</a>10. Recursion</h2>
+<h2 id="17-recursion"><a class="anchor" href="#17-recursion" aria-label="Link to this section">#</a>17. Recursion</h2>
 <p>A definition may refer to itself by name.</p>
 <p>Recursive data in 42 is always "base case, or something bigger", which is to say a labelled value. So a recursive program is always a switch on that label, and it always has the same skeleton.</p>
 <h3 id="for-a-program-taking-one-argument"><a class="anchor" href="#for-a-program-taking-one-argument" aria-label="Link to this section">#</a>For a program taking one argument</h3>
@@ -548,272 +951,25 @@ want:    R (x, L ())</code></pre></div>
 <p>Correct: appending anything to the empty list gives it back.</p>
 <p>Now notice what running this backwards does. The final <code>join</code> becomes the <em>first</em> step, and <code>join!</code> cannot know which branch the answer came from, so it tries both. That is precisely why <code>append!</code> enumerates every split: each <code>join!</code> offers "the seam could have been here, or further along."</p>
 <hr aria-hidden="true">
-<h2 id="11-arithmetic"><a class="anchor" href="#11-arithmetic" aria-label="Link to this section">#</a>11. Arithmetic</h2>
-<p>Everything here is in <code>arith.42</code>, and every example below is runnable.</p>
-<ul><li><a href="#111-the-governing-question">11.1 The governing question</a></li><li><a href="#112-addition">11.2 Addition</a></li><li><a href="#113-multiplication-and-what-it-must-carry">11.3 Multiplication, and what it must carry</a></li><li><a href="#114-division-is-multiplication-backwards">11.4 Division is multiplication backwards</a></li><li><a href="#115-subtraction">11.5 Subtraction</a></li><li><a href="#116-division-with-remainder">11.6 Division with remainder</a></li><li><a href="#117-a-filter-must-be-stated-at-both-ends">11.7 A filter must be stated at both ends</a></li><li><a href="#118-exact-rationals">11.8 Exact rationals</a></li><li><a href="#119-limits">11.9 Limits</a></li></ul>
-<h3 id="111-the-governing-question"><a class="anchor" href="#111-the-governing-question" aria-label="Link to this section">#</a>11.1 The governing question</h3>
-<p>You cannot write an operation that throws its inputs away. But you can nearly always write the same operation in a form that keeps just enough to reconstruct them, and that form is usually only one component bigger.</p>
-<p>So the question is never "can 42 compute this?" It is:</p>
-<blockquote><p><strong>What is the smallest thing I have to carry along?</strong></p></blockquote>
-<p>Answer that, and the operation follows. Better still, the <em>inverse</em> operation comes free, which is why <code>arith.42</code> contains algorithms for addition, multiplication and comparison, and none at all for subtraction or division.</p>
-<h3 id="112-addition"><a class="anchor" href="#112-addition" aria-label="Link to this section">#</a>11.2 Addition</h3>
-<p>The recursion skeleton from §10, unchanged:</p>
-<div class="code"><pre><code>def add = dist ; (unitprod + (add ; inr)) ; join</code></pre></div>
-<div class="code"><pre><code>$ add(2, 3)  =  5
-$ add!(5)    =  (0, 5)  (1, 4)  (2, 3)  (3, 2)  (4, 1)  (5, 0)</code></pre></div>
-<p><code>add</code> is allowed to discard how the total was split, because that information is still recoverable <em>as a set</em>: running backwards enumerates every pair. Nothing is truly lost, it is merely spread across six answers.</p>
-<h3 id="113-multiplication-and-what-it-must-carry"><a class="anchor" href="#113-multiplication-and-what-it-must-carry" aria-label="Link to this section">#</a>11.3 Multiplication, and what it must carry</h3>
-<p>Here the naive version fails. <code>(m, n) ↦ m × n</code> has base case <code>0 × n = 0</code>, which must discard <code>n</code> outright, and §3.4 established that nothing in the language can do that. Unlike <code>add</code>, you cannot even recover it as a set: <code>mul</code> would have to work for every <code>n</code>, so the base case has nowhere to put it.</p>
-<p>The fix is to carry the multiplier along:</p>
-<div class="code"><pre><code>mul : (m, n)  ↦  (n, m × n)</code></pre></div>
-<div class="code"><pre><code>def mul = dist ; ( (swapprod ; (id * inl))                        -- (0, n)   -&gt; (n, 0)
-                 + (mul ; (copy * id) ; assocprod! ; (id * add))  -- (m+1, n) -&gt; (n, p+n)
-                 ) ; join</code></pre></div>
-<div class="code"><pre><code>$ mul(4, 5)  =  (5, 20)
-$ mul(0, 7)  =  (7, 0)</code></pre></div>
-<p>One extra component in the output, and the whole thing works. Note the <code>copy</code> in the step branch: the recursive call returns <code>(n, p)</code>, and we need <code>n</code> both to add to <code>p</code> and to hand back, so we duplicate it rather than trying (and failing) to use it twice.</p>
-<h3 id="114-division-is-multiplication-backwards"><a class="anchor" href="#114-division-is-multiplication-backwards" aria-label="Link to this section">#</a>11.4 Division is multiplication backwards</h3>
-<p>Because <code>mul</code> keeps its multiplier, it is injective, and therefore:</p>
-<div class="code"><pre><code>def divexact = mul!</code></pre></div>
-<p>That is the entire implementation of exact division.</p>
-<div class="code"><pre><code>$ divexact(3, 12)  =  (4, 3)      -- 12 / 3 = 4
-$ divexact(5, 20)  =  (4, 5)
-$ divexact(3, 7)   =  {}          -- 3 does not divide 7</code></pre></div>
-<p>The "does not divide" case needs no handling either. There is no <code>m</code> with <code>m × 3 = 7</code>, so the set of answers is empty, which is exactly the right answer.</p>
-<h3 id="115-subtraction"><a class="anchor" href="#115-subtraction" aria-label="Link to this section">#</a>11.5 Subtraction</h3>
-<p>Same trick, one line each. Make addition keep its second operand:</p>
-<div class="code"><pre><code>def addk = (id * copy) ; assocprod ; (add * id)     -- (c, b) -&gt; (c + b, b)
-def sub  = addk!                                    -- (a, b) -&gt; (a - b, b)</code></pre></div>
-<div class="code"><pre><code>$ addk(2, 3)  =  (5, 3)
-$ sub(5, 3)   =  (2, 3)
-$ sub(3, 5)   =  {}       -- no natural c has c + 5 = 3</code></pre></div>
-<p>Subtraction on naturals is partial, and that partiality arrives for free.</p>
-<h3 id="116-division-with-remainder"><a class="anchor" href="#116-division-with-remainder" aria-label="Link to this section">#</a>11.6 Division with remainder</h3>
-<p>The pattern generalises: <strong>write whichever direction is easy, then invert it.</strong> Reassembling a dividend from a quotient, a remainder and a divisor is easy; dividing is not. So write the easy one.</p>
-<div class="code"><pre><code>undivmod : ((q, r), b)  ↦  (q × b + r,  b)        provided r &lt; b</code></pre></div>
-<p>The proviso matters. Without <code>r &lt; b</code>, both <code>(q=0, r=5)</code> and <code>(q=2, r=1)</code> rebuild 5 from divisor 2, and the inverse would be ambiguous. So we need a comparison, written as a filter (§3.4, §7):</p>
-<div class="code"><pre><code>def lt = dist ; ( (id * (inr! ; inr))
-                + ((id * inr!) ; lt ; (id * inr))
-                ) ; dist!</code></pre></div>
-<div class="code"><pre><code>$ lt(2, 5)  =  (2, 5)      -- passes through unchanged
-$ lt(5, 2)  =  {}          -- rejected</code></pre></div>
-<p>Two idioms there worth stealing. <code>inr! ; inr</code> means "check this is nonzero and put it back exactly as it was". And <code>dist ; (f + g) ; dist!</code> is the case-analysis skeleton for a program that must hand back its input: <code>dist!</code> rebuilds what <code>dist</code> took apart, where <code>join</code> would have discarded the label.</p>
-<p>Now the easy direction, and its inverse:</p>
-<div class="code"><pre><code>def undivmod = assocprod!            -- ((q, r), b)  -&gt;  (q, (r, b))
-             ; (id * lt)             -- keep only r &lt; b
-             ; (id * swapprod)       --              -&gt;  (q, (b, r))
-             ; assocprod             --              -&gt;  ((q, b), r)
-             ; (mul * id)            --              -&gt;  ((b, q*b), r)
-             ; assocprod!            --              -&gt;  (b, (q*b, r))
-             ; (id * add)            --              -&gt;  (b, q*b + r)
-             ; swapprod              --              -&gt;  (q*b + r, b)
-             ; (id * nonzero)        -- see §11.7
-
-def divmod = undivmod!</code></pre></div>
-<div class="code"><pre><code>$ divmod(17, 5)  =  ((3, 2), 5)      -- 17 = 3*5 + 2
-$ divmod(12, 4)  =  ((3, 0), 4)
-$ divmod(3, 5)   =  ((0, 3), 5)</code></pre></div>
-<h3 id="117-a-filter-must-be-stated-at-both-ends"><a class="anchor" href="#117-a-filter-must-be-stated-at-both-ends" aria-label="Link to this section">#</a>11.7 A filter must be stated at both ends</h3>
-<p>That last line of <code>undivmod</code> looks like dead code:</p>
-<div class="code"><pre><code>def nonzero = inr! ; inr        -- keeps n unchanged if n &gt; 0, else nothing
-
-... ; swapprod ; (id * nonzero)</code></pre></div>
-<p><code>lt</code> has already forced <code>b &gt; 0</code>, so going forwards this check can never reject anything. <strong>It is there for the backward direction, and it is essential.</strong></p>
-<p>Here is the reasoning, and it is the one piece that does not carry over from ordinary programming:</p>
-<blockquote><p>Reversing a pipeline reverses the order of its stages. A filter written early, pruning as you go forwards, ends up running last going backwards, long after the expensive work it was meant to prevent.</p></blockquote>
-<p>In <code>undivmod</code>, <code>lt</code> sits near the front and guarantees <code>b &gt; 0</code>. Reversed, it fires at the very end. By then <code>divmod(7, 0)</code> has already asked <code>mul!</code> to divide by zero, and since <code>mul(m, 0) = (0, 0)</code> for <em>every</em> <code>m</code>, that search never terminates. Repeating the constraint at the far end of the pipeline puts it <em>first</em> under reversal:</p>
-<div class="code"><pre><code>$ divmod(7, 0)  =  {}        -- immediately, with the guard
-                             -- without it: runs forever</code></pre></div>
-<blockquote><p><strong>Rule of thumb: a constraint you rely on in both directions must be stated at both ends.</strong> Forwards, one of the two statements is redundant. That redundancy is the price of a pipeline that prunes in both directions. It is not dead code; deleting it changes termination.</p></blockquote>
-<h3 id="118-exact-rationals"><a class="anchor" href="#118-exact-rationals" aria-label="Link to this section">#</a>11.8 Exact rationals</h3>
-<p>Everything here is in <code>rational.42</code>. A rational is a pair <code>(numerator, denominator)</code>, and every operation is exact. Nothing is ever rounded, because rounding is discarding and this language cannot discard.</p>
-<p>The same carrying rule as before gives the inverses free:</p>
-<div class="code"><pre><code>qadd : (a, b) ↦ (b, a + b)          so   qsub = qadd!
-qmul : (a, b) ↦ (b, a × b)          so   qdiv = qmul!</code></pre></div>
-<h4 id="multiplication-is-one-line"><a class="anchor" href="#multiplication-is-one-line" aria-label="Link to this section">#</a>Multiplication is one line</h4>
-<div class="code"><pre><code>def qmul = transpose ; (mul * mul) ; transpose</code></pre></div>
-<p><code>transpose</code> swaps the two inner components of a pair of pairs, and is its own inverse. Watch it work:</p>
-<div class="code"><pre><code>((p, q), (r, s))     transpose     -&gt;  ((p, r), (q, s))    numerators together
-((p, r), (q, s))     mul * mul     -&gt;  ((r, pr), (s, qs))  mul hands back operand 2
-((r, pr), (s, qs))   transpose     -&gt;  ((r, s), (pr, qs))  kept operand, then product</code></pre></div>
-<div class="code"><pre><code>$ qmul((1,2), (3,4))  =  ((3, 4), (3, 8))       -- 1/2 × 3/4 = 3/8
-$ qdiv((3,4), (3,8))  =  ((1, 2), (3, 4))       -- and back</code></pre></div>
-<p>Addition is the same idea over <code>(ps + qr, qs)</code>, but longer: the operands are used unevenly: <code>s</code> three times, <code>q</code> twice, <code>p</code> and <code>r</code> once each. Since <code>mul</code> hands back its second operand, <code>s</code> threads from one product into the next and only <code>q</code> needs a <code>copy</code>. See <code>rational.42</code>, where the steps are named.</p>
-<div class="code"><pre><code>$ qadd((1,2), (1,3))  =  ((1, 3), (5, 6))       -- 1/2 + 1/3 = 5/6
-$ qsub((1,3), (5,6))  =  ((1, 2), (1, 3))</code></pre></div>
-<h4 id="there-is-no-reduce-and-there-cannot-be-one"><a class="anchor" href="#there-is-no-reduce-and-there-cannot-be-one" aria-label="Link to this section">#</a>There is no <code>reduce</code>, and there cannot be one</h4>
-<p>This is the part worth understanding, because it is the language dictating the design rather than a choice.</p>
-<p>Putting a fraction in lowest terms means dividing by the gcd. Computing a gcd means Euclid's algorithm, and <strong>every step of Euclid throws away a quotient and keeps only a remainder.</strong> 42 cannot throw anything away. So a gcd program written here is forced to hand back the quotients it generated, and that sequence is the continued-fraction expansion, from which the original fraction can be rebuilt.</p>
-<p>Reduction cannot lose the thing it exists to lose, so <code>rational.42</code> keeps fractions unreduced and compares them with cross-multiplication instead:</p>
-<div class="code"><pre><code>def qeq = cross ; (id * copy!) ; withps!</code></pre></div>
-<div class="code"><pre><code>$ qeq((1,2), (2,4))  =  ((1, 2), (2, 4))     -- equal, passed through
-$ qeq((1,2), (3,4))  =  {}                   -- not equal</code></pre></div>
-<p>Note the shape of that definition, because the pattern is reusable: <code>qeq</code> is a filter, so it must return its input untouched, yet it needs two cross products to do its job. <code>cross</code> is what computes them, handing back the two fractions with <code>p×s</code> and <code>q×r</code> attached:</p>
-<div class="code"><pre><code>$ cross((1,2),(3,4))  =  (((1, 2), (3, 4)), (4, 6))</code></pre></div>
-<p>Then <code>copy!</code> demands the two agree, and one of them is <strong>recomputed backwards to cancel it</strong>: <code>withps</code> pairs a value with <code>p×s</code> injectively, so <code>withps!</code> removes a <code>p×s</code>. Computing something, using it, and then un-computing it is how you borrow a scratch value in a language with no scratch space.</p>
-<p>For scaling you supply the factor yourself, and keeping it makes the operation invertible:</p>
-<div class="code"><pre><code>$ reduceby((6,8), 2)  =  ((3, 4), 2)
-$ scaleby((3,4), 2)   =  ((6, 8), 2)
-$ reduceby((6,8), 4)  =  {}              -- 4 does not divide 6</code></pre></div>
-<h4 id="the-price-of-unreduced-fractions"><a class="anchor" href="#the-price-of-unreduced-fractions" aria-label="Link to this section">#</a>The price of unreduced fractions</h4>
-<p><code>qsub</code> is exact on <strong>representations</strong>, not on values. <code>qadd</code> produces denominator <code>q×s</code>, so its inverse recognises that denominator and no other:</p>
-<div class="code"><pre><code>$ qadd((1,2), (1,2))  =  ((1, 2), (4, 4))
-$ qsub((1,2), (4,4))  =  ((1, 2), (1, 2))     -- fine
-$ qsub((1,2), (1,1))  =  {}                   -- nothing, even though 4/4 = 1/1</code></pre></div>
-<p>There is no <code>p/q</code> with <code>q×2 = 1</code>, so the answer really is empty. If you want to subtract at the level of rational <em>values</em>, scale to a compatible denominator first. This is the honest cost of a representation the language forced on us, and it is worth knowing before you rely on <code>qsub</code>.</p>
-<h3 id="119-limits"><a class="anchor" href="#119-limits" aria-label="Link to this section">#</a>11.9 Limits</h3>
-<ul><li><strong><code>mul!(0, 0)</code> does not terminate</strong>, and correctly so: every number divides zero, so there are infinitely many answers. <code>mul</code> is injective for every multiplier except <code>0</code>. Guard with <code>nonzero</code> before running it backwards.</li><li><strong>Unary numbers are slow</strong> (§3.6). <code>divmod(40, 6)</code> takes a noticeable fraction of a second; <code>divmod(400, 6)</code> is not worth attempting. For rationals this bites sooner, since cross-multiplication builds products:</li></ul>
-<p><code>qeq((19,30), (95,150))</code> has to construct 2850 as a stack of 2850 labels, and does not finish in reasonable time.</p>
-<ul><li><strong><code>(m, n) ↦ m × n</code> remains unwritable</strong> in its discarding form. Carrying the multiplier is not a workaround you may skip; it is the only version that exists.</li><li><strong>Rationals here are non-negative.</strong> <code>qsub</code> is partial in the same way natural subtraction is. Signed rationals would need a sign bit and a canonical treatment of zero.</li></ul>
-<hr aria-hidden="true">
-<h2 id="12-strings-and-text"><a class="anchor" href="#12-strings-and-text" aria-label="Link to this section">#</a>12. Strings and text</h2>
-<p>Everything here is in <code>strings.42</code>.</p>
-<ul><li><a href="#121-there-is-no-string-type">12.1 There is no string type</a></li><li><a href="#122-writing-text">12.2 Writing text</a></li><li><a href="#123-every-list-program-already-works">12.3 Every list program already works</a></li><li><a href="#124-case-conversion-is-one-bit">12.4 Case conversion is one bit</a></li><li><a href="#125-how-to-write-if-then-else">12.5 How to write if-then-else</a></li></ul>
-<h3 id="121-there-is-no-string-type"><a class="anchor" href="#121-there-is-no-string-type" aria-label="Link to this section">#</a>12.1 There is no string type</h3>
-<p>Nothing was added to the language to support text. A string is a list, and lists already existed:</p>
-<div class="code"><pre><code>bit    = 1 + 1                    L () = 0,  R () = 1
-byte   = bit x (bit x ( … ))      eight of them, MSB first, nested right
-string = mu X. 1 + (byte x X)     exactly the list type from §3.5</code></pre></div>
-<p>So a character is a byte, and a byte is eight booleans:</p>
-<div class="code"><pre><code>'a'  =  (0, (1, (1, (0, (0, (0, (0, 1)))))))      -- 97 = 0b01100001</code></pre></div>
-<p>Why binary and not unary? Numbers in 42 are unary (§3.5), so consistency would have made <code>'a'</code> a stack of 97 labels. Binary is faster, and it also keeps the encodings distinguishable. A byte is a nest of pairs; a number is a chain of labels. Nothing can be read as both. So unlike <code>0</code>/<code>[]</code> (§3.6), text collides with nothing:</p>
-<div class="code"><pre><code>$ [72, 105]   prints as   [72, 105]        -- still a list of numbers
-$ "Hi"        prints as   "Hi"</code></pre></div>
-<p>That was the deciding factor in the encoding. An ambiguous printer is a constant low-level tax on reading output, and here it was avoidable.</p>
-<h3 id="122-writing-text"><a class="anchor" href="#122-writing-text" aria-label="Link to this section">#</a>12.2 Writing text</h3>
-<div class="scroller"><table><thead><tr><th>Written</th><th>Is</th></tr></thead><tbody><tr><td><code>'a'</code></td><td>one byte</td></tr><tr><td><code>"hello"</code></td><td>a list of bytes</td></tr><tr><td><code>"héllo"</code></td><td>its UTF-8 bytes — six of them</td></tr><tr><td><code>"a\nb"</code></td><td>escapes: <code>\n</code> <code>\t</code> <code>\r</code> <code>\\</code> <code>\0</code> <code>\"</code> <code>\'</code> <code>\xNN</code></td></tr></tbody></table></div>
-<p>A character literal must be exactly one byte, so <code>'é'</code> is rejected; write it as a string. And <code>""</code> is <code>L ()</code>, which is also <code>0</code> and <code>[]</code> (§3.6).</p>
-<h3 id="123-every-list-program-already-works"><a class="anchor" href="#123-every-list-program-already-works" aria-label="Link to this section">#</a>12.3 Every list program already works</h3>
-<p>This is the part worth pausing on. Because a string <em>is</em> a list, the list programs from §10 operate on text with no modification whatsoever:</p>
-<div class="code"><pre><code>$ concat("foo", "bar")   =  "foobar"
-$ reverse("stressed")    =  "desserts"
-$ palin("racecar")       =  "racecar"
-$ palin("apple")         =  {}</code></pre></div>
-<p>and <code>split</code> is not an implementation at all. It is <code>concat</code> read backwards:</p>
-<div class="code"><pre><code>def concat = append
-def split  = append!</code></pre></div>
-<div class="code"><pre><code>$ split("abc")  =  ("a", "bc")  ("ab", "c")  ("abc", [])  ([], "abc")</code></pre></div>
-<p>Every way to cut a string in two, and nobody wrote a string-splitting routine.</p>
-<h3 id="124-case-conversion-is-one-bit"><a class="anchor" href="#124-case-conversion-is-one-bit" aria-label="Link to this section">#</a>12.4 Case conversion is one bit</h3>
-<p>In ASCII, upper and lower case differ in one bit, the one worth 32. So changing case is not arithmetic; it is reaching into the byte and flipping a single boolean:</p>
-<div class="code"><pre><code>byte = (b7, (b6, (b5, (b4, (b3, (b2, (b1, b0)))))))
-        skip  skip  flip  ←------ leave alone ------→
-
-def flipcase = id * (id * (swapsum * id))</code></pre></div>
-<p>The <code>swapsum</code> does the work; the <code>id</code>s either side of it are pure navigation. And being a single <code>swapsum</code>, it is its own inverse: running <code>flipcase</code> backwards is <code>flipcase</code>.</p>
-<h3 id="125-how-to-write-if-then-else"><a class="anchor" href="#125-how-to-write-if-then-else" aria-label="Link to this section">#</a>12.5 How to write if-then-else</h3>
-<p>Flipping bit 5 of <em>every</em> byte would be wrong: it turns a space into a NUL and a comma into a form feed. We want to flip it only for letters, which needs a conditional, and 42 does not have one.</p>
-<p><code>|</code> is not if-then-else. It runs both branches and pools the answers, so <code>f | g</code> normally returns two results (§5). But if the branches are guarded by filters that can never both succeed, exactly one of them ever produces anything, and the union collapses into an ordinary deterministic choice:</p>
-<blockquote><div class="code"><pre><code>(guard ; then)  |  (complement-of-guard ; else)</code></pre></div>
-<p><strong>This is how you write if-then-else in 42.</strong> Making the two guards disjoint is your job, not the language's. Get it wrong in one direction and you silently get two answers; get it wrong in the other and you get none.</p></blockquote>
-<p>ASCII letters all lie in 64..127, that is <code>b7 = 0</code> and <code>b6 = 1</code>:</p>
-<div class="code"><pre><code>def bit0 = inl! ; inl           -- keeps a bit unchanged if it is 0
-def bit1 = inr! ; inr           -- keeps a bit unchanged if it is 1
-
-def hi    = bit0 * (bit1 * id)                    -- b7=0, b6=1
-def notHi = (bit1 * id) | (bit0 * (bit0 * id))    -- everything else
-
-def swapbyte = (hi ; flipcase) | notHi
-def swapcase = (inl + ((swapbyte * swapcase) ; inr)) ; join</code></pre></div>
-<div class="code"><pre><code>$ swapcase("Hello, World!")   =  "hELLO, wORLD!"
-$ swapcase("abc 123 XYZ")     =  "ABC 123 xyz"</code></pre></div>
-<p>Punctuation, spaces and digits now pass through untouched, and <code>swapcase</code> is still its own inverse.</p>
-<p>The residual inaccuracy, stated precisely rather than waved at: the sixteen bytes <code>@[\]^_`{|}~</code> and DEL share the letters' top two bits, so they still get mapped onto each other. Excluding them needs a range check on the low five bits, which is real work for very little return. (There is a test asserting this caveat is exactly true, so it cannot quietly become false.)</p>
-<hr aria-hidden="true">
-<h2 id="13-a-turing-machine"><a class="anchor" href="#13-a-turing-machine" aria-label="Link to this section">#</a>13. A Turing machine</h2>
-<p>Every program so far does one thing to a value and stops. This section builds a machine that <em>runs</em>: it keeps changing a value until it is finished, and only then gives an answer. That is the last thing a language has to be able to do, and in 42 it needs no new construct, just <code>^</code> and <code>!</code> from section 5.</p>
-<p>The file is <code>tm.42</code>. The machine adds one to a binary number.</p>
-<h3 id="131-the-shape-every-machine-takes"><a class="anchor" href="#131-the-shape-every-machine-takes" aria-label="Link to this section">#</a>13.1 The shape every machine takes</h3>
-<p>A Turing machine is a tape, a head, a control state, and a table saying what to do next. In 42 the whole of it is three programs joined by <code>;</code>:</p>
-<div class="code"><pre><code>init ; step^ ; final</code></pre></div>
-<ul><li><code>init</code> turns the input into a starting <strong>configuration</strong>: tape, head and state, all in one value.</li><li><code>step</code> is <strong>one</strong> move of the machine: <code>configuration &lt;-&gt; configuration</code>.</li><li><code>step^</code> is section 5's "repeat any number of times", so it relates the start to <em>every</em> configuration the machine can reach.</li><li><code>final</code> is a filter that lets through only configurations that have halted, and reads the answer off the tape.</li></ul>
-<p>There is no loop construct, no counter and no test for "am I done yet". <code>^</code> does the repeating, and the machine stops on its own because the halted state has no transition. <code>step</code> is empty there, and section 7 already told you what an empty result means.</p>
-<p><code>init</code>, <code>step</code> and <code>final</code> are the roles, not the identifiers you will find in the file. <code>tm.42</code> spells the same three-part shape as <code>def inc = load ; run ; unload</code>, with <code>def run = carry ; step^ ; halt!</code>: <code>load</code> and <code>carry</code> together do the job of <code>init</code>, and <code>halt!</code> and <code>unload</code> together do the job of <code>final</code>.</p>
-<h3 id="132-the-tape-is-a-list-with-a-hole-in-it"><a class="anchor" href="#132-the-tape-is-a-list-with-a-hole-in-it" aria-label="Link to this section">#</a>13.2 The tape is a list with a hole in it</h3>
-<p>The obvious way to store a tape is a list plus a number saying where the head is. Don't: every move would then be arithmetic, and moving would have to be undone by arithmetic too.</p>
-<p>Instead split the list at the head and keep the two halves, with the left half written backwards so that the cell nearest the head is at its front:</p>
-<div class="code"><pre><code>tape = bits x (sym x bits)
-       left, reversed   head   right</code></pre></div>
-<p>Now moving the head one cell right is: take the head cell and put it on the front of the left list, take the front of the right list and make it the new head. Every part of that is <code>inr</code> or <code>inr!</code> from section 6, putting something on the front of a list and taking it off:</p>
-<div class="code"><pre><code>def right = assocprod ; ((swapprod ; inr) * id) ; (id * inr!)
-def left  = right!</code></pre></div>
-<p><strong><code>left</code> is not written out.</strong> Moving left <em>is</em> moving right backwards, so it is one <code>!</code>. That is not a trick; it is what section 5 says <code>!</code> means, applied to the one place in a machine where it obviously holds.</p>
-<h3 id="133-the-state-is-a-label-not-a-component"><a class="anchor" href="#133-the-state-is-a-label-not-a-component" aria-label="Link to this section">#</a>13.3 The state is a label, not a component</h3>
-<p>A machine with three control states and a tape looks like it should be a pair, <code>state x tape</code>. Make it a labelled value instead:</p>
-<div class="code"><pre><code>conf = tape + (tape + tape)</code></pre></div>
-<p>with one branch per state:</p>
-<div class="code"><pre><code>def carry  = inl            -- still carrying a 1 leftward
-def rewind = inl ; inr      -- carry done; walk the head back to the start
-def halt   = inr ; inr      -- finished</code></pre></div>
-<p>This is the one design decision in the file worth copying. To behave differently in each state you now write <code>f + g + h</code>, which is section 5's <code>+</code> doing exactly what it is for. With a pair you would need <code>dist</code> to get at the state and more plumbing to put it back, in every branch. Sections 3.4 and 6 both make the same point in the small; here it is what keeps <code>step</code> down to one line.</p>
-<h3 id="134-reading-the-head-and-writing-it-backwards"><a class="anchor" href="#134-reading-the-head-and-writing-it-backwards" aria-label="Link to this section">#</a>13.4 Reading the head, and writing it backwards</h3>
-<p>To act on the symbol under the head you have to get at it. <code>focus</code> brings it to the front, and <code>dist</code> then splits on it, exactly as in section 6:</p>
-<div class="code"><pre><code>def focus    = assocprod ; (swapprod * id) ; assocprod!
-def readhead = focus ; dist ; (unitprod + unitprod)</code></pre></div>
-<p><code>readhead</code> turns a tape into a labelled value: the <code>L</code> branch means the head was <code>0</code>, the <code>R</code> branch means it was <code>1</code>. Run it backwards and it writes the head instead, with the label choosing what to write:</p>
-<div class="code"><pre><code>def write0 = inl ; readhead!
-def write1 = inr ; readhead!</code></pre></div>
-<p>One program, read in both directions, is the whole of reading and writing.</p>
-<h3 id="135-the-table-one-line-per-state"><a class="anchor" href="#135-the-table-one-line-per-state" aria-label="Link to this section">#</a>13.5 The table, one line per state</h3>
-<div class="code"><pre><code>def carrystep  = readhead ; ((write1 ; rewind) + (write0 ; stepover ; carry)) ; join
-def rewindstep = ((iscons * id) ; left ; rewind) | ((isnil * id) ; halt)
-
-def step = (carrystep + (rewindstep + zero)) ; (id + join) ; join</code></pre></div>
-<p>Read <code>carrystep</code> as the table it is: head is <code>0</code>, so write <code>1</code> and start rewinding; head is <code>1</code>, so write <code>0</code>, move right, and keep carrying. <code>rewindstep</code> uses the partial identities <code>iscons</code> and <code>isnil</code> from the file to ask whether there is any tape left, which is section 12.5's if-then-else with no condition to evaluate. And <code>zero</code> in the third branch is the halted state: no transition, so the machine stops.</p>
-<p><code>stepover</code> is where the tape has to grow, because a real tape is infinite and a list is not:</p>
-<div class="code"><pre><code>def stepover = ((id * (id * iscons)) ; right) | (pad ; right)</code></pre></div>
-<p>If there is a cell to the right, move onto it; if there is not, add a <code>0</code> first. Note that <code>|</code> is doing this with no requirement that the two branches be distinct. They happen to be, because <code>iscons</code> and <code>isnil</code> cannot both apply, but nothing made you prove it.</p>
-<h3 id="136-running-it"><a class="anchor" href="#136-running-it" aria-label="Link to this section">#</a>13.6 Running it</h3>
-<p>The number is written least significant bit first, so <code>[R (), R ()]</code> is <code>1,1</code>, which is 3. <code>value</code> reads a bit list as a number, <code>inc</code> is the machine, and <code>incval</code> is the two composed:</p>
-<div class="code"><pre><code>$ 42 tm inc "[R (), R ()]"
-inc([R (), R ()]) =
-  [L (), L (), R ()]
-  -- 1 result</code></pre></div>
-<p><code>0,0,1</code> is 4. Reading it as a number instead:</p>
-<div class="code"><pre><code>$ 42 tm incval "[R (), R ()]"
-incval([R (), R ()]) =
-  4
-  -- 1 result</code></pre></div>
-<p>Zero is <code>[L ()]</code>, a list of one <code>0</code> bit, not the empty list: the head has to have a cell to sit on.</p>
-<h3 id="137-running-the-machine-backwards"><a class="anchor" href="#137-running-the-machine-backwards" aria-label="Link to this section">#</a>13.7 Running the machine backwards</h3>
-<p><code>dec</code> is <code>inc!</code>. Feed it 4:</p>
-<div class="code"><pre><code>$ 42 tm dec "[L (), L (), R ()]"
-dec([L (), L (), R ()]) =
-  [R (), R (), L ()]
-  [R (), R ()]
-  -- 2 results</code></pre></div>
-<p>Two answers, and both are right. <code>1,1</code> is 3, and <code>1,1,0</code> is also 3: the same number with a trailing zero, which is a different list but the same value:</p>
-<div class="code"><pre><code>$ 42 tm value "[R (), R (), L ()]"
-value([R (), R (), L ()]) =
-  3
-  -- 1 result</code></pre></div>
-<p>So the machine is not one-to-one, and section 7 is why you get told rather than being stopped from writing it. A language that insisted on one answer backwards would have made you strip trailing zeros before this program could exist.</p>
-<p>There is a lesson in here worth the detour. The first version of <code>init</code> was just <code>carry</code>, which labels any configuration as a starting one, including ones with the head halfway along the tape. Forwards that made no difference and every test passed. Backwards it produced five answers instead of two, and the three extra ones were half-finished machines. The fix is one filter:</p>
-<div class="code"><pre><code>def load = inr! ; unitprod! ; (inl * id)</code></pre></div>
-<p>which insists the head starts at the end. <strong><code>init</code> has to be as tight as <code>final</code></strong>, and running the program backwards is how you find out that it is not. That check does not exist in a language that only runs forwards.</p>
-<h3 id="138-what-this-does-and-does-not-show"><a class="anchor" href="#138-what-this-does-and-does-not-show" aria-label="Link to this section">#</a>13.8 What this does and does not show</h3>
-<p>It shows that a Turing machine fits in 42 with nothing added, and that the shape it takes, <code>init ; step^ ; final</code>, needs only <code>;</code>, <code>^</code> and the plumbing of section 6. The transition table is a <code>+</code> over states and a <code>|</code> over the rows in each state, so a different machine is a different table in the same frame.</p>
-<p>It does not prove that 42 can compute everything computable. That would need an argument covering every machine, not one machine. <code>tm.42</code> is the evidence that the encoding works, not the proof — the proof is <a href="theorem.html">THEOREM.md</a>, which settles rather more than Turing completeness: 42 denotes <em>exactly</em> the relations a computer can enumerate, no fewer and no more. Section 14 is the other half of the same question, asked about 42 itself.</p>
-<hr aria-hidden="true">
-<h2 id="14-42-interpreting-itself"><a class="anchor" href="#14-42-interpreting-itself" aria-label="Link to this section">#</a>14. 42 interpreting itself</h2>
-<p>Section 13 built a program that <em>runs</em>: it keeps changing a value until it is finished. This section builds one that runs <strong>42 programs</strong>. The file is <code>meta.42</code>, and it is an interpreter for 42, written in 42.</p>
+<h2 id="18-42-interpreting-itself"><a class="anchor" href="#18-42-interpreting-itself" aria-label="Link to this section">#</a>18. 42 interpreting itself</h2>
+<p>Section 11 built a program that <em>runs</em>: it keeps changing a value until it is finished. This section builds one that runs <strong>42 programs</strong>. The file is <code>meta.42</code>, and it is an interpreter for 42, written in 42.</p>
 <p>That sounds like a stunt, and half of it is. The other half is not, and it is worth the section: <strong>you write the interpreter once and get the backward one for nothing</strong>, the same way you have got every backward program in this manual. Nobody writes a "reverse interpreter" here. It is <code>!</code> applied to the forward one.</p>
-<h3 id="141-a-program-is-a-value-once-you-write-it-down"><a class="anchor" href="#141-a-program-is-a-value-once-you-write-it-down" aria-label="Link to this section">#</a>14.1 A program is a value, once you write it down</h3>
+<h3 id="181-a-program-is-a-value-once-you-write-it-down"><a class="anchor" href="#181-a-program-is-a-value-once-you-write-it-down" aria-label="Link to this section">#</a>18.1 A program is a value, once you write it down</h3>
 <p>Section 3 said every value is built from four things: the unit <code>()</code>, the two tags <code>L</code> and <code>R</code>, and the pair. A <em>program</em> is not a value — but a written-down description of one is. So the first job is to pick shapes.</p>
 <p>There are two. One holds any 42 value at all:</p>
 <div class="code"><pre><code>type val = mu V. 1 + (V + (V + (V x V)))</code></pre></div>
 <p>Read it as "a value is a unit, or an <code>L</code> of one, or an <code>R</code> of one, or a pair of two" — which is exactly what section 3 says a value is. Four constructors, one per line, and <code>meta.42</code> gives them names: <code>vunit</code>, <code>vinl</code>, <code>vinr</code>, <code>vpair</code>.</p>
-<p>The other holds a written-down program. It has one case for each structural way of combining programs — <code>;</code>, <code>|</code>, <code>+</code>, <code>*</code> and <code>^</code> — plus one for the built-ins and one for naming a definition. Two of section 5's seven do not need a case of their own: a <code>!</code> rides along as a flag on the built-in or the reference it was written on, and parameters are expanded away before a program is ever quoted.</p>
+<p>The other holds a written-down program. It has one case for each structural way of combining programs — <code>;</code>, <code>|</code>, <code>+</code>, <code>*</code> and <code>^</code> — plus one for the built-ins and one for naming a definition. Two of section 13's seven do not need a case of their own: a <code>!</code> rides along as a flag on the built-in or the reference it was written on, and parameters are expanded away before a program is ever quoted.</p>
 <div class="scroller"><table><thead><tr><th>case</th><th>what it describes</th></tr></thead><tbody><tr><td>a primitive</td><td><code>copy</code>, <code>join</code>, <code>swapsum</code>, … and whether a <code>!</code> was written on it</td></tr><tr><td>a reference</td><td>"the definition at slot <em>n</em>", so recursion works</td></tr><tr><td><code>t ; u</code></td><td>the two parts</td></tr><tr><td><code>t | u</code></td><td>the two parts</td></tr><tr><td><code>t + u</code></td><td>the two parts</td></tr><tr><td><code>t * u</code></td><td>the two parts</td></tr><tr><td><code>t^</code></td><td>the one part</td></tr></tbody></table></div>
-<p>That is the whole language. You do not have to read the encoding to use the interpreter — sections 14.3 onwards never open it up — but it helps to know that nothing is hidden in there.</p>
-<h3 id="142-every-construct-interprets-itself"><a class="anchor" href="#142-every-construct-interprets-itself" aria-label="Link to this section">#</a>14.2 Every construct interprets itself</h3>
-<p>Here is the part worth seeing. Ask how the interpreter runs <code>t^</code>, the hardest of section 5's seven. This is the whole answer:</p>
+<p>That is the whole language. You do not have to read the encoding to use the interpreter — sections 18.3 onwards never open it up — but it helps to know that nothing is hidden in there.</p>
+<h3 id="182-every-construct-interprets-itself"><a class="anchor" href="#182-every-construct-interprets-itself" aria-label="Link to this section">#</a>18.2 Every construct interprets itself</h3>
+<p>Here is the part worth seeing. Ask how the interpreter runs <code>t^</code>, the hardest of section 13's seven. This is the whole answer:</p>
 <div class="code"><pre><code>$ 42 show meta evstar
 evstar   = toframe! ; eval^ ; toframe ; tagstar * id</code></pre></div>
-<p>Ignore the <code>toframe</code> plumbing, which just moves components into place — that is section 6, and nothing more. What is left is <code>eval^</code>. <strong>To interpret <code>^</code>, the interpreter uses <code>^</code>.</strong> There is no loop, no counter, no "have we finished yet", for the same reason section 13's Turing machine needed none.</p>
-<p>It goes the whole way down. <code>;</code> is interpreted by <code>;</code>, <code>|</code> by <code>|</code>, <code>+</code> by <code>+</code>, <code>*</code> by <code>*</code>. Object-level <code>copy</code> is meta-level <code>copy</code>, so the "these agree" test of section 7 is inherited rather than rebuilt, and object-level <code>join</code> is meta-level <code>join</code>, so <strong>every many-answered program in the interpreted language still traces back to <code>join!</code></strong>, exactly as section 7 said it does in the language itself.</p>
-<p>One thing that is <em>not</em> there is worth naming too. A language whose <code>if</code> has to be undone must record which branch it took, or the backward run cannot tell. The union case here is <code>onleft | onright</code> and records nothing, because section 7 already allows two answers. Keeping both branches is cheaper than separating them.</p>
-<h3 id="143-running-a-program-through-it"><a class="anchor" href="#143-running-a-program-through-it" aria-label="Link to this section">#</a>14.3 Running a program through it</h3>
+<p>Ignore the <code>toframe</code> plumbing, which just moves components into place — that is section 14, and nothing more. What is left is <code>eval^</code>. <strong>To interpret <code>^</code>, the interpreter uses <code>^</code>.</strong> There is no loop, no counter, no "have we finished yet", for the same reason section 11's Turing machine needed none.</p>
+<p>It goes the whole way down. <code>;</code> is interpreted by <code>;</code>, <code>|</code> by <code>|</code>, <code>+</code> by <code>+</code>, <code>*</code> by <code>*</code>. Object-level <code>copy</code> is meta-level <code>copy</code>, so the "these agree" test of section 6 is inherited rather than rebuilt, and object-level <code>join</code> is meta-level <code>join</code>, so <strong>every many-answered program in the interpreted language still traces back to <code>join!</code></strong>, exactly as section 6 said it does in the language itself.</p>
+<p>One thing that is <em>not</em> there is worth naming too. A language whose <code>if</code> has to be undone must record which branch it took, or the backward run cannot tell. The union case here is <code>onleft | onright</code> and records nothing, because section 6 already allows two answers. Keeping both branches is cheaper than separating them.</p>
+<h3 id="183-running-a-program-through-it"><a class="anchor" href="#183-running-a-program-through-it" aria-label="Link to this section">#</a>18.3 Running a program through it</h3>
 <p>To hand the interpreter a program you have to write that program down as a value. <code>meta.42</code> has short names that build one — a <strong>quotation</strong>:</p>
 <div class="scroller"><table><thead><tr><th>you write</th><th>you get</th></tr></thead><tbody><tr><td><code>qid</code>, <code>qnot</code>, <code>qcopy</code>, <code>qjoin</code>, <code>qinl</code>, <code>qinr</code>, <code>qswap</code>, <code>qdist</code>, <code>qzero</code></td><td>that built-in, quoted</td></tr><tr><td><code>qinv n12</code></td><td><code>copy!</code>, quoted — any built-in with a <code>!</code> on it</td></tr><tr><td><code>qseq a b</code></td><td><code>a ; b</code>, quoted</td></tr><tr><td><code>qalt a b</code></td><td><code>a | b</code>, quoted</td></tr><tr><td><code>qsum a b</code>, <code>qprod a b</code></td><td><code>a + b</code> and <code>a * b</code>, quoted</td></tr><tr><td><code>qstar a</code></td><td><code>a^</code>, quoted</td></tr></tbody></table></div>
 <p>and <code>runq</code> wraps one up so you can run it on an ordinary value:</p>
@@ -821,7 +977,7 @@ evstar   = toframe! ; eval^ ; toframe ; tagstar * id</code></pre></div>
 <p><code>metanot</code> is <code>not</code>, reached the long way round: the bit is encoded, paired with the quotation, handed to <code>eval</code>, and unpacked again. It behaves like <code>not</code> because it <em>is</em> <code>not</code>, one level up:</p>
 <div class="code"><pre><code>$ 42 meta metanot "L ()" --untyped
 metanot(0) =
-  R ()                      -- L () prints as 0; section 16 says why
+  R ()                      -- L () prints as 0; section 20 says why
   -- 1 result</code></pre></div>
 <p>Bigger ones work the same way. <code>runq (qseq qnot qnot)</code> is <code>not ; not</code>, and <code>runq (qstar qnot)</code> is prelude.42's <code>toggle = not^</code> — many-answered, through two levels of interpretation:</p>
 <div class="code"><pre><code>$ 42 meta metatoggle "L ()" --untyped
@@ -829,14 +985,14 @@ metatoggle(0) =
   0
   R ()
   -- 2 results</code></pre></div>
-<h3 id="144-it-runs-backwards-and-nobody-wrote-that"><a class="anchor" href="#144-it-runs-backwards-and-nobody-wrote-that" aria-label="Link to this section">#</a>14.4 It runs backwards, and nobody wrote that</h3>
+<h3 id="184-it-runs-backwards-and-nobody-wrote-that"><a class="anchor" href="#184-it-runs-backwards-and-nobody-wrote-that" aria-label="Link to this section">#</a>18.4 It runs backwards, and nobody wrote that</h3>
 <p>Everything in this manual so far has run both ways. So does this:</p>
 <div class="code"><pre><code>$ 42 meta metanot "R ()" --backward --untyped
 metanot!(R ()) =
   0
   -- 1 result</code></pre></div>
-<p>Look at what that is. <code>--backward</code> daggered <code>metanot</code>, which is <code>load q ; eval ; (load q)!</code> — so the dagger is <code>load q ; eval! ; (load q)!</code>. <strong>The same interpreter, reading the same quotation, run the other way.</strong> There is no second definition anywhere in <code>meta.42</code> for the backward direction. There could not be: section 5's <code>!</code> had already turned the forward one into it before anything ran.</p>
-<p>And the three cases of section 7 survive the trip. <code>metasink</code> interprets <code>join ; inl</code>, which throws the bit away:</p>
+<p>Look at what that is. <code>--backward</code> daggered <code>metanot</code>, which is <code>load q ; eval ; (load q)!</code> — so the dagger is <code>load q ; eval! ; (load q)!</code>. <strong>The same interpreter, reading the same quotation, run the other way.</strong> There is no second definition anywhere in <code>meta.42</code> for the backward direction. There could not be: section 13's <code>!</code> had already turned the forward one into it before anything ran.</p>
+<p>And the three cases of section 6 survive the trip. <code>metasink</code> interprets <code>join ; inl</code>, which throws the bit away:</p>
 <div class="code"><pre><code>$ 42 meta metasink "L ()" --untyped
 metasink(0) =
   0                         -- forwards: both bits go to the same answer
@@ -852,7 +1008,7 @@ $ 42 meta metasink "R ()" --backward --untyped
 metasink!(R ()) =
   {}   (empty: no result)   -- and nothing at all for the answer it never gives</code></pre></div>
 <p>None, one, or many — at the interpreted level, coming out of an interpreter that was never told about any of it.</p>
-<h3 id="145-quoting-your-own"><a class="anchor" href="#145-quoting-your-own" aria-label="Link to this section">#</a>14.5 Quoting your own</h3>
+<h3 id="185-quoting-your-own"><a class="anchor" href="#185-quoting-your-own" aria-label="Link to this section">#</a>18.5 Quoting your own</h3>
 <p>Two things to know and you can run your own programs through it.</p>
 <p><strong>Build the quotation.</strong> Compose the names from 14.3 exactly as you would compose the programs. <code>copy ; copy!</code> becomes:</p>
 <div class="code"><pre><code>def metaeq = runq (qseq qcopy quncopy)</code></pre></div>
@@ -867,19 +1023,19 @@ metaswap(0, R ()) =
   (R (), 0)
   -- 1 result</code></pre></div>
 <p>— and an encoder for any other shape is written the same way, out of the four constructors of 14.1. That is the whole extension mechanism.</p>
-<h3 id="146-programs-that-mention-other-programs"><a class="anchor" href="#146-programs-that-mention-other-programs" aria-label="Link to this section">#</a>14.6 Programs that mention other programs</h3>
+<h3 id="186-programs-that-mention-other-programs"><a class="anchor" href="#186-programs-that-mention-other-programs" aria-label="Link to this section">#</a>18.6 Programs that mention other programs</h3>
 <p>Everything so far quoted a program written out in full. Real files are not like that: <code>arith.42</code>'s <code>mul</code> calls itself, <code>divmod</code> is <code>undivmod!</code> and <code>undivmod</code> calls <code>mul</code>, <code>add</code> and <code>lt</code>. A quotation built by <code>runq</code> is read against an <em>empty</em> set of definitions, so it cannot reach any of them.</p>
 <p>For those there is a subcommand, which encodes the whole file and hands the interpreter the definition you name:</p>
 <div class="code"><pre><code>$ 42 quote arith mul "(3, 4)"
 eval mul(3, 4) =
-  (4, 12)                   -- mul keeps the multiplier; see §11.3
+  (4, 12)                   -- mul keeps the multiplier; see §9.3
   -- 1 result</code></pre></div>
 <p><code>--backward</code> daggers the <strong>interpreter</strong> — the program it is reading is still <code>mul</code>, which is why only the <code>eval</code> gets the <code>!</code>:</p>
 <div class="code"><pre><code>$ 42 quote arith mul "(4, 12)" --backward
 eval! mul(4, 12) =
   (3, 4)
   -- 1 result</code></pre></div>
-<p>Read that one twice. It divided 12 by 4. §11.4 makes the point that <code>arith.42</code> contains no division algorithm, because <code>divexact</code> is <code>mul!</code> — and now there is no division algorithm in the <em>interpreter</em> either. <code>meta.42</code> knows thirteen built-ins and five ways of combining them, and nothing else. The division came out of <code>!</code>.</p>
+<p>Read that one twice. It divided 12 by 4. §9.4 makes the point that <code>arith.42</code> contains no division algorithm, because <code>divexact</code> is <code>mul!</code> — and now there is no division algorithm in the <em>interpreter</em> either. <code>meta.42</code> knows thirteen built-ins and five ways of combining them, and nothing else. The division came out of <code>!</code>.</p>
 <p>The whole file is reachable the same way:</p>
 <div class="code"><pre><code>$ 42 quote arith divmod "(7, 2)"
 eval divmod(7, 2) =
@@ -901,24 +1057,24 @@ eval! add(5) =
   (5, 0)
   -- 6 results</code></pre></div>
 <p>Every one of those six answers came out of <code>join!</code>, two levels down.</p>
-<p>And leaving the value off shows you the thing itself — the program of §11.3, as a value of the shape §14.1 describes:</p>
+<p>And leaving the value off shows you the thing itself — the program of §9.3, as a value of the shape §18.1 describes:</p>
 <div class="code"><pre><code>$ 42 quote arith mul
 mul, as a value meta.42 can read:</code></pre></div>
 <p>which prints 174 nodes of <code>L</code>s, <code>R</code>s and pairs, read against an environment of nine definitions. That is what "a program is a value" means when you cash it out.</p>
-<h3 id="147-two-things-it-costs"><a class="anchor" href="#147-two-things-it-costs" aria-label="Link to this section">#</a>14.7 Two things it costs</h3>
+<h3 id="187-two-things-it-costs"><a class="anchor" href="#187-two-things-it-costs" aria-label="Link to this section">#</a>18.7 Two things it costs</h3>
 <p><strong>It is slow.</strong> Every step of the interpreted program is many steps of the interpreter, and the state it carries is a deep tree. For a quotation with no definitions in it, reckon on about a hundredfold. Once a file's definitions are encoded too, it is three to four orders of magnitude: <code>mul (3, 4)</code> takes about a tenth of a millisecond run directly and about two thirds of a second through <code>42 quote</code>, and <code>divmod (7, 2)</code> about a millisecond against about eight seconds. This is an interpreter to think with, not one to compute with.</p>
 <p><strong>Pass <code>--untyped</code> when running <code>meta.42</code> itself.</strong> Every <code>42 meta</code> transcript above carries it, and the reason is worth a sentence. <code>meta.42</code> type-checks perfectly well —</p>
 <div class="code"><pre><code>$ 42 type meta
 -- 97/97 typed</code></pre></div>
-<p>— but <code>42 run</code> infers types over the program <em>after</em> combinators have been substituted away, and <code>meta.42</code> substitutes one combinator in thirteen places. The types it then has to solve get very large. The check is skipped, not failed; section 15 has the flag. <code>42 quote</code> needs no such thing — it checks the <em>interpreted</em> program against the file it came from, which is an ordinary type check on an ordinary file.</p>
-<h3 id="148-what-this-does-and-does-not-show"><a class="anchor" href="#148-what-this-does-and-does-not-show" aria-label="Link to this section">#</a>14.8 What this does and does not show</h3>
+<p>— but <code>42 run</code> infers types over the program <em>after</em> combinators have been substituted away, and <code>meta.42</code> substitutes one combinator in thirteen places. The types it then has to solve get very large. The check is skipped, not failed; section 19 has the flag. <code>42 quote</code> needs no such thing — it checks the <em>interpreted</em> program against the file it came from, which is an ordinary type check on an ordinary file.</p>
+<h3 id="188-what-this-does-and-does-not-show"><a class="anchor" href="#188-what-this-does-and-does-not-show" aria-label="Link to this section">#</a>18.8 What this does and does not show</h3>
 <p>It shows that 42 can interpret 42 with nothing added to the language, and that the interpreter's backward direction costs nothing to obtain, because it is not a separate program.</p>
 <p>It also closes. <code>meta.42</code> is a 42 program, so it is one of the programs <code>meta.42</code> interprets — and it does, if you are patient: <code>eval</code> reading its own encoding takes about forty seconds to work out what <code>not</code> does to a bit, and about eighty to work it out backwards. <code>tools/selfinterp.py</code> runs it. That is useless as computation and is the whole point as a demonstration, because the thing being interpreted two levels down is the interpreter itself.</p>
 <p>It does not show the interpreter is <em>correct</em> — that it interprets every program rather than the ones tried here. That claim, the encoding in full, and a second one that does not follow from it are in <a href="theorem.html#7-self-interpretation">THEOREM.md section 7</a>:</p>
 <ul><li><strong>Proposition 17</strong> is the correctness claim, and is checked rather than proved; section 8 there says so plainly.</li><li><strong>Corollary 18</strong> is 14.4 stated properly: given the forward interpreter is right, the backward one is too, with nothing further to prove.</li><li><strong>Theorem 19</strong> is the one worth the trip. <code>meta.42</code> also contains <code>dag</code>, which is 42's own <code>!</code> written <em>in</em> 42 — seven lines, one per case of 14.1. There are now two ways to run a program backwards: dagger the interpreter, or dagger the written-down program and run it forwards. The theorem says they agree.</li></ul>
 <p>That last one is the section's real content, and it is not the sort of thing the defining law can tell you. <code>x ∈ P(y) ⟺ y ∈ P!(x)</code> holds for <code>eval</code> — but it holds for <em>every</em> 42 program, including a badly written interpreter, so passing it is no evidence of anything. Theorem 19 is where a wrong <code>dag</code> would be caught, and it is the only place.</p>
 <hr aria-hidden="true">
-<h2 id="15-reference"><a class="anchor" href="#15-reference" aria-label="Link to this section">#</a>15. Reference</h2>
+<h2 id="19-reference"><a class="anchor" href="#19-reference" aria-label="Link to this section">#</a>19. Reference</h2>
 <h3 id="combining-programs"><a class="anchor" href="#combining-programs" aria-label="Link to this section">#</a>Combining programs</h3>
 <div class="scroller"><table><thead><tr><th>Syntax</th><th>Name</th><th>Meaning</th></tr></thead><tbody><tr><td><code>f ; g</code></td><td>sequence</td><td>do <code>f</code>, then <code>g</code></td></tr><tr><td><code>f * g</code></td><td>pair-wise</td><td>value is a pair: <code>f</code> on the left half, <code>g</code> on the right</td></tr><tr><td><code>f + g</code></td><td>switch</td><td>value is labelled: <code>f</code> on <code>L</code>, <code>g</code> on <code>R</code>, label kept</td></tr><tr><td><code>f | g</code></td><td>choice</td><td>do both, pool the answers</td></tr><tr><td><code>f^</code></td><td>repeat</td><td>apply <code>f</code> zero or more times, collect everything reachable</td></tr><tr><td><code>f!</code></td><td>reverse</td><td>run <code>f</code> backwards</td></tr><tr><td><code>(...)</code></td><td>grouping</td><td></td></tr></tbody></table></div>
 <p>Binding strength, loosest first: <code>|</code> then <code>;</code> then <code>+</code> then <code>*</code> then <code>!</code> <code>^</code>. So <code>a ; b + c ; d</code> means <code>a ; (b + c) ; d</code>.</p>
@@ -931,17 +1087,17 @@ L x   R x     labelled
 (a, b)        pair
 0  1  2  3    numbers        (unary)
 []  [1, 2]    lists
-'a'           one byte       (§12)
+'a'           one byte       (§10)
 "hello"       text           (a list of bytes)</code></pre></div>
 <h3 id="command-line"><a class="anchor" href="#command-line" aria-label="Link to this section">#</a>Command line</h3>
 <div class="code"><pre><code>42      FILE NAME VALUE [--backward]    apply a definition
 42 law  FILE NAME VALUE                 check reversibility
 42 show FILE [NAME]                     print a definition and its reverse
 42 type FILE [NAME]                     report the shapes (section 3.7)
-42 quote FILE NAME [VALUE]              run it through meta.42 (section 14)</code></pre></div>
+42 quote FILE NAME [VALUE]              run it through meta.42 (section 18)</code></pre></div>
 <p><code>42</code> is shorthand. It assumes <code>run</code> when you do not name a subcommand, and the <code>.42</code> on a file name is optional, so <code>42 prelude append "([1,2], [3])"</code> is the whole thing.</p>
 <p>It is a script in the repository root, so either put that directory on your <code>PATH</code> (<code>export PATH="/path/to/42:$PATH"</code>) or run it in place as <code>./42</code>. The long form <code>python3 -m rel42 run prelude.42 append "..."</code> does exactly the same and needs no setup at all.</p>
-<p>Options: <code>--raw</code> turns off number/list display sugar (useful when you are not sure what shape you actually have), <code>--limit</code> bounds recursion depth, <code>--orbit</code> bounds how far <code>^</code> will search before giving up, and <code>--untyped</code> skips the domain check and prints the bare relational answer (§7, §14).</p>
+<p>Options: <code>--raw</code> turns off number/list display sugar (useful when you are not sure what shape you actually have), <code>--limit</code> bounds recursion depth, <code>--orbit</code> bounds how far <code>^</code> will search before giving up, and <code>--untyped</code> skips the domain check and prints the bare relational answer (§6, §18).</p>
 <p><code>show</code> is handy for building intuition. It prints what a program's reverse is:</p>
 <div class="code"><pre><code>$ 42 show prelude double
 double   = copy ; add
@@ -954,12 +1110,12 @@ def  name p = program               -- p is a parameter, standing for a program
 -- comments run to end of line</code></pre></div>
 <p>Definitions may refer to each other and to themselves, in any order.</p>
 <hr aria-hidden="true">
-<h2 id="16-troubleshooting"><a class="anchor" href="#16-troubleshooting" aria-label="Link to this section">#</a>16. Troubleshooting</h2>
+<h2 id="20-troubleshooting"><a class="anchor" href="#20-troubleshooting" aria-label="Link to this section">#</a>20. Troubleshooting</h2>
 <h3 id="i-got--and-expected-an-answer"><a class="anchor" href="#i-got--and-expected-an-answer" aria-label="Link to this section">#</a>"I got <code>{}</code> and expected an answer"</h3>
 <p><code>{}</code> means no answer. In order of likelihood:</p>
 <ol><li><strong>Shape mismatch.</strong> The most common cause by far. A program got a value of the wrong shape: <code>swapprod</code> on something that isn't a pair, <code>unitprod</code> on something that isn't a pair-with-unit-on-the-left.</li></ol>
-<p><em>Diagnosis:</em> ask for the type. <code>42 type FILE</code> reports any definition whose shapes cannot line up at all, and <code>run</code> refuses an argument that does not fit the domain (§7), so this class of bug now announces itself rather than yielding <code>{}</code>. If you got <code>{}</code> in spite of that, the mismatch is <em>inside</em> a definition whose two ends still agree, and the type of each piece is the way in: <code>type FILE NAME</code> prints one.</p>
-<p>Failing that, run with <code>--raw</code> to see the true shape of your input, then walk the pipeline writing down shapes as in §8. The step where your written shape stops matching the table in §15 is the bug. If a pair is involved, check the nesting first: <code>(a, (b, c))</code> and <code>((a, b), c)</code> are different values (§3.4).</p>
+<p><em>Diagnosis:</em> ask for the type. <code>42 type FILE</code> reports any definition whose shapes cannot line up at all, and <code>run</code> refuses an argument that does not fit the domain (§6), so this class of bug now announces itself rather than yielding <code>{}</code>. If you got <code>{}</code> in spite of that, the mismatch is <em>inside</em> a definition whose two ends still agree, and the type of each piece is the way in: <code>type FILE NAME</code> prints one.</p>
+<p>Failing that, run with <code>--raw</code> to see the true shape of your input, then walk the pipeline writing down shapes as in §15. The step where your written shape stops matching the table in §19 is the bug. If a pair is involved, check the nesting first: <code>(a, (b, c))</code> and <code>((a, b), c)</code> are different values (§3.4).</p>
 <ol><li><strong>A label was wrong.</strong> <code>inl!</code> on an <code>R</code>-labelled value gives nothing, and vice versa. This is on purpose; it is how case analysis rejects.</li></ol>
 <ol><li><strong><code>copy!</code> on a mismatched pair.</strong> It only succeeds when both halves are equal.</li></ol>
 <ol><li><strong>Missing <code>dist</code>.</strong> You wrote <code>(f + g)</code> where the value is a <em>pair</em> whose first component is labelled, rather than a labelled value. <code>+</code> needs a labelled value. Insert <code>dist</code> first.</li></ol>
@@ -969,7 +1125,7 @@ def  name p = program               -- p is a parameter, standing for a program
 <p>You used <code>^</code> on something that keeps producing new values. <code>pred^</code> terminates because it hits zero; <code>succ^</code> does not, because there is always a bigger number. 42 reports this rather than hanging, but it cannot predict it in advance.</p>
 <p>Note that a program can be fine in one direction and not the other: <code>downfrom = pred^</code> works forwards and diverges backwards.</p>
 <h3 id="the-backward-direction-gives-loads-of-answers"><a class="anchor" href="#the-backward-direction-gives-loads-of-answers" aria-label="Link to this section">#</a>"The backward direction gives loads of answers"</h3>
-<p>Expected, and it is information-theoretic rather than a bug: every extra answer corresponds to a <code>join</code> that discarded which branch was taken. If you want fewer, arrange for the forward direction to destroy less. <code>copy</code> before an operation, then <code>copy!</code> after, is the standard trick (see <code>double</code> in §7).</p>
+<p>Expected, and it is information-theoretic rather than a bug: every extra answer corresponds to a <code>join</code> that discarded which branch was taken. If you want fewer, arrange for the forward direction to destroy less. <code>copy</code> before an operation, then <code>copy!</code> after, is the standard trick (see <code>double</code> in §6).</p>
 <h3 id="empty-list-prints-as-0"><a class="anchor" href="#empty-list-prints-as-0" aria-label="Link to this section">#</a>"Empty list prints as <code>0</code>"</h3>
 <p>They really are the same value: <code>L ()</code> is the empty list, the nat zero, and <code>false</code> all at once (§3.6). What tells them apart is the type, so <code>run</code> and <code>law</code> print using the type they inferred and get this right:</p>
 <div class="code"><pre><code>$ 42 prelude append "[1,2,3]" -b
@@ -979,24 +1135,26 @@ append!([1, 2, 3]) =
 <p>Two cases still print <code>0</code>. Under <code>--raw</code> and <code>--untyped</code> there is no type to consult, by design. And where the inferred type is more general than the one you had in mind, there may be nothing to consult either: <code>succ = inr</code> has type <code>a &lt;-&gt; b + a</code>, which does not say "nat", so the printer falls back to guessing and guesses <code>0</code>.</p>
 <hr aria-hidden="true">
 <h2 id="where-to-go-next"><a class="anchor" href="#where-to-go-next" aria-label="Link to this section">#</a>Where to go next</h2>
-<p>The programs below are files in the 42 repository, at <a href="https://github.com/ubrowz/42">https://github.com/ubrowz/42</a>, along with the interpreter itself. Clone it and each one runs with the <code>42</code> command of §15: <code>42 tour swap "(1, 2)"</code> reads <code>tour.42</code>, finds <code>swap</code> in it, and applies it. Python 3.12 is the only requirement.</p>
-<ul><li><code>tour.42</code> — the same ground as this manual, in runnable form. It should read easily once §§4–6 have sunk in.</li><li><code>arith.42</code> — the arithmetic of §11, heavily commented.</li><li><code>rational.42</code> — the exact rationals of §11.8.</li><li><code>strings.42</code> — the text of §12.</li><li><code>tm.42</code> — the Turing machine of §13.</li><li><code>meta.42</code> — the interpreter for 42 written in 42, of §14.</li><li><code>prelude.42</code> — shorter, denser examples.</li><li><code>qft.42</code> — a 42 program that writes <em>Q42</em> programs: a circuit family, generated. It uses nothing beyond §§4–9, and is the clearest example in the project of a recursive definition doing real work.</li><li><a href="qmanual.html">The Q42 manual</a> — the same language over the complex numbers, which makes it a quantum one. Read this manual first; that one assumes it.</li></ul>
+<p>The programs below are files in the 42 repository, at <a href="https://github.com/ubrowz/42">https://github.com/ubrowz/42</a>, along with the interpreter itself. Clone it and each one runs with the <code>42</code> command of §19: <code>42 tour swap "(1, 2)"</code> reads <code>tour.42</code>, finds <code>swap</code> in it, and applies it. Python 3.12 is the only requirement.</p>
+<ul><li><code>tour.42</code> — the ground of Part I, in runnable form, written in clauses.</li></ul>
+<p><code>42 show tour NAME</code> prints any definition three ways.</p>
+<ul><li><code>arith.42</code> — the arithmetic of §9, heavily commented.</li><li><code>rational.42</code> — the exact rationals of §9.8.</li><li><code>strings.42</code> — the text of §10.</li><li><code>tm.42</code> — the Turing machine of §11.</li><li><code>meta.42</code> — the interpreter for 42 written in 42, of §18.</li><li><code>prelude.42</code> — shorter, denser examples.</li><li><code>qft.42</code> — a 42 program that writes <em>Q42</em> programs: a circuit family, generated. It uses nothing beyond §§12–16, and is the clearest example in the project of a recursive definition doing real work.</li><li><a href="qmanual.html">The Q42 manual</a> — the same language over the complex numbers, which makes it a quantum one. Read this manual first; that one assumes it.</li></ul>
 <hr aria-hidden="true">
 <h2 id="appendix-a-program-and-its-inverse"><a class="anchor" href="#appendix-a-program-and-its-inverse" aria-label="Link to this section">#</a>Appendix: a program and its inverse</h2>
-<p>The claim this manual opens with is that you write a program once and get both directions. Section 8 shows you reading a program backwards by hand. This appendix shows the machine doing it, on a recursive definition, where the backward direction is not the forward one run in reverse but a different algorithm altogether.</p>
+<p>The claim this manual opens with is that you write a program once and get both directions. Section 15 shows you reading a program backwards by hand. This appendix shows the machine doing it, on a recursive definition, where the backward direction is not the forward one run in reverse but a different algorithm altogether.</p>
 <h3 id="the-program"><a class="anchor" href="#the-program" aria-label="Link to this section">#</a>The program</h3>
-<p>Addition, from §11.2, is six operators:</p>
+<p>Addition, from §9.2, is six operators:</p>
 <div class="code"><pre><code>$ 42 show prelude add
 add   = dist ; unitprod + (add ; inr) ; join
 add!  = join! ; (unitprod! + (inr! ; add!) ; dist!)</code></pre></div>
 <p>The second line is not in <code>prelude.42</code>. It was computed from the first.</p>
 <h3 id="the-derivation"><a class="anchor" href="#the-derivation" aria-label="Link to this section">#</a>The derivation</h3>
-<p>Two rules produce it. Reversing a composite reverses the order of its parts, <code>(f ; g)! = g! ; f!</code>, and reversing a part is reversing whatever it is made of. Section 8 applies them by hand to a program that does not call itself; applied to <code>add</code>, they give:</p>
+<p>Two rules produce it. Reversing a composite reverses the order of its parts, <code>(f ; g)! = g! ; f!</code>, and reversing a part is reversing whatever it is made of. Section 15 applies them by hand to a program that does not call itself; applied to <code>add</code>, they give:</p>
 <div class="scroller"><table><thead><tr><th>in <code>add</code>, in order</th><th>in <code>add!</code>, in order</th></tr></thead><tbody><tr><td><code>dist</code></td><td><code>join!</code></td></tr><tr><td><code>unitprod + (add ; inr)</code></td><td><code>unitprod! + (inr! ; add!)</code></td></tr><tr><td><code>join</code></td><td><code>dist!</code></td></tr></tbody></table></div>
 <p>Three things are worth noticing in that table.</p>
 <p>The first column read downwards is the second column read upwards. That is contravariance, and it is what keeps the pipeline fitting together: <code>join</code> produced the value that <code>join!</code> now consumes.</p>
 <p>Inside the sum, <code>add ; inr</code> becomes <code>inr! ; add!</code>. The same reversal applies at every depth, including to the recursive call, which is what makes <code>add!</code> recursive too.</p>
-<p>And <code>unitprod!</code> becomes <code>unitprod</code>, not <code>unitprod!!</code>, because <code>f!!</code> is <code>f</code> (§5). The operator that discards a <code>()</code> and the one that invents it trade places.</p>
+<p>And <code>unitprod!</code> becomes <code>unitprod</code>, not <code>unitprod!!</code>, because <code>f!!</code> is <code>f</code> (§13). The operator that discards a <code>()</code> and the one that invents it trade places.</p>
 <h3 id="the-two-directions"><a class="anchor" href="#the-two-directions" aria-label="Link to this section">#</a>The two directions</h3>
 <p>Forwards, <code>add</code> is a function:</p>
 <div class="code"><pre><code>$ 42 prelude add "(2, 3)"
@@ -1013,14 +1171,14 @@ add!(5) =
   (4, 1)
   (5, 0)
   -- 6 results</code></pre></div>
-<p>Those are different computations. One walks a number down to zero; the other enumerates a set whose size depends on the input. No line of <code>prelude.42</code> describes the second, and <code>arith.42</code> contains no subtraction (§11.1).</p>
+<p>Those are different computations. One walks a number down to zero; the other enumerates a set whose size depends on the input. No line of <code>prelude.42</code> describes the second, and <code>arith.42</code> contains no subtraction (§9.1).</p>
 <h3 id="checking-it"><a class="anchor" href="#checking-it" aria-label="Link to this section">#</a>Checking it</h3>
 <p>The defining law says that running forwards and then backwards returns a set containing where you started. That is checkable on any input:</p>
 <div class="code"><pre><code>$ 42 law prelude add "(2, 3)"
 add(2, 3) has 1 result(s)
   [ok ] 5: inv has 6 preimage(s), input in it
 law holds</code></pre></div>
-<p>Six preimages, and <code>(2, 3)</code> is among them. The check is not that the answer is unique, which it is not, but that nothing was lost: §7 is the section on why those are different statements.</p>
+<p>Six preimages, and <code>(2, 3)</code> is among them. The check is not that the answer is unique, which it is not, but that nothing was lost: §6 is the section on why those are different statements.</p>
 <p>The type comes from the same definition, with no annotation anywhere in the file:</p>
 <div class="code"><pre><code>$ 42 type prelude add
 add  : nat x (mu Y. a + Y) &lt;-&gt; mu Y. a + Y</code></pre></div>
@@ -1049,7 +1207,7 @@ def hanoi = ( inl
 hanoi(3) =
   [(0, R R ()), (0, 1), (R R (), 1), (0, R R ()), (1, 0), (1, R R ()), (0, R R ())]
   -- 1 result</code></pre></div>
-<p>The seven-move solution, <code>0→2, 0→1, 2→1, 0→2, 1→0, 1→2, 0→2</code>. Read <code>R R ()</code> as peg 2: the printer knows the first two values of <code>1 + (1 + 1)</code> as 0 and 1 and has no name for the third (§3.6, §16).</p>
+<p>The seven-move solution, <code>0→2, 0→1, 2→1, 0→2, 1→0, 1→2, 0→2</code>. Read <code>R R ()</code> as peg 2: the printer knows the first two values of <code>1 + (1 + 1)</code> as 0 and 1 and has no name for the third (§3.6, §20).</p>
 <p>Backwards, <code>hanoi!</code> reads a move list and returns the number of disks it solves, or nothing if the list is not the optimal solution for any <code>n</code>:</p>
 <div class="code"><pre><code>$ 42 tour hanoi "[(0, 1), (0, R R ()), (1, R R ())]" --backward
 hanoi!([(0, 1), (0, R R ()), (1, R R ())]) =

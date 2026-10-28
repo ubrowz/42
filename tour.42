@@ -118,6 +118,14 @@ def rev (x:xs)  <->  append (rev xs, [x])
 
 def split = append!
 
+-- A call inside a pattern runs that program backwards.  `initlast` matches
+-- any list that `append` could have made from some `xs` and a one-element
+-- list, so it takes the last element off:
+--
+--   ./42 tour initlast "[1,2,3]"      ->  ([1, 2], 3)
+
+def initlast (append (xs, [x]))  <->  (xs, x)
+
 
 -- ===========================================================================
 -- 7.  A test is a name used twice.

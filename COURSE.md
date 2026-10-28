@@ -5,7 +5,7 @@ bounced off 42 at least once. It assumes you have read §1–§3 of the
 [manual](MANUAL.md) (values, and the one rule) and stalled somewhere around
 "how do I actually *write* one of these."
 
-The manual's §8 and §9 are the two-paragraph version of this course. If those
+The manual's §15 and §16 are the two-paragraph version of this course. If those
 worked for you, you do not need this. If they did not, the problem is almost
 always the same one, and it is not a lack of cleverness:
 
@@ -78,7 +78,7 @@ The three words after `42` are the same three words every 42 command takes:
 ```
 
 (`42` is a script in the repository root; run it as `./42` or put that
-directory on your `PATH` — manual §15. Everything below writes it bare.)
+directory on your `PATH` — manual §19. Everything below writes it bare.)
 
 You must name a **definition** — `id` on its own will not do, because the
 command line resolves a name in a file, not an arbitrary expression. That is
@@ -92,7 +92,7 @@ What this already teaches:
 - There is no `print`. The value that comes out is the whole result.
 - `"hello, world"` is not a string. 42 has no string type; it is a list of
   bytes, and the printer shows lists of printable bytes in quotes as a
-  convenience (manual §12).
+  convenience (manual §10).
 
 The Python you are comparing this to:
 
@@ -646,7 +646,7 @@ emptyOrReverse([]) =
 ```
 
 For a full worked conditional over byte values — flip the case of letters only,
-leaving punctuation alone — see manual §12.5.
+leaving punctuation alone — see manual §10.5.
 
 ---
 

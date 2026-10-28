@@ -194,7 +194,7 @@ tbody tr:last-child td { border-bottom: 0; }
 <div class="code"><pre><code>        to  L ()  R ()
   from
     ()        *     *</code></pre></div>
-<p>Nothing new has been said yet. This is the same "a program returns a set" from the 42 manual's §7, written as a picture instead of as a list.</p>
+<p>Nothing new has been said yet. This is the same "a program returns a set" from the 42 manual's §6, written as a picture instead of as a list.</p>
 <h3 id="12-running-backwards-is-reading-the-other-way"><a class="anchor" href="#12-running-backwards-is-reading-the-other-way" aria-label="Link to this section">#</a>1.2 Running backwards is reading the other way</h3>
 <p>Now the useful part. To run a program backwards you ask, of an output, which inputs could have produced it, which is reading the grid down a column instead of along a row.</p>
 <p>So <code>!</code> <strong>is the grid, flipped about its diagonal.</strong> Compare <code>join!</code> above with <code>join</code>:</p>
@@ -240,7 +240,7 @@ hh |0&gt;
 <div class="code"><pre><code>c = a AND b</code></pre></div>
 <p>destroys information, since knowing <code>c = 0</code> tells you almost nothing about <code>a</code> and <code>b</code>, so there is no two-input AND gate. What exists instead is the <strong>Toffoli</strong> gate, which keeps its inputs and writes the answer into a third wire:</p>
 <div class="code"><pre><code>(a, b, c)  |-&gt;  (a, b, c XOR (a AND b))</code></pre></div>
-<p>Set <code>c = 0</code> and the third component becomes <code>a AND b</code>, with <code>a</code> and <code>b</code> still there. This is the padding trick from the 42 manual's §11.3, where <code>mul</code> keeps its multiplier in order to stay invertible; the same pressure produces the same answer in both places.</p>
+<p>Set <code>c = 0</code> and the third component becomes <code>a AND b</code>, with <code>a</code> and <code>b</code> still there. This is the padding trick from the 42 manual's §9.3, where <code>mul</code> keeps its multiplier in order to stay invertible; the same pressure produces the same answer in both places.</p>
 <h3 id="uncomputation"><a class="anchor" href="#uncomputation" aria-label="Link to this section">#</a>Uncomputation</h3>
 <p>Padding has a cost: the kept-around values pile up. If you compute an intermediate <code>x</code>, use it, and no longer want it, you cannot drop it, since that would be erasing information. You must <strong>uncompute</strong> it by running its producer backwards.</p>
 <p>The pattern is <code>P ; Q ; P!</code>: do the work, use it, undo the work. In Q42 that is an ordinary term, because <code>!</code> is part of the language, and because every Q42 term is invertible <code>P!</code> really is <code>P</code>'s inverse. Languages like Silq spend considerable machinery on <em>inferring</em> where this goes, so that the programmer never has to decide. Q42 does not infer: you decide, and then writing it costs three characters. What the language gives you is that what you wrote is exact.</p>
@@ -399,7 +399,7 @@ h : qubit &lt;-&gt; qubit
      |0&gt;  [  0.707107   0.707107 ]
      |1&gt;  [  0.707107  -0.707107 ]</code></pre></div>
 <h3 id="64-control-is-dist-which-you-have-already-met"><a class="anchor" href="#64-control-is-dist-which-you-have-already-met" aria-label="Link to this section">#</a>6.4 Control is <code>dist</code>, which you have already met</h3>
-<p>A <strong>controlled</strong> gate applies its target gate only when the control qubit is <code>|1&gt;</code>. That is a conditional, and 42 does conditionals with <code>dist</code> (the 42 manual, §12.5). So:</p>
+<p>A <strong>controlled</strong> gate applies its target gate only when the control qubit is <code>|1&gt;</code>. That is a conditional, and 42 does conditionals with <code>dist</code> (the 42 manual, §10.5). So:</p>
 <div class="code"><pre><code>def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  &lt;-&gt;  A + A
 def ctrl m = mat ; (id + m) ; mat!</code></pre></div>
 <p>split on the control bit, apply <code>m</code> on the <code>R</code> branch only, put it back. Every controlled gate is one line:</p>
@@ -491,7 +491,7 @@ step 10: register = (3, 1)     F_10 = 55, mod 4 = 3</code></pre></div>
 <h3 id="84-deutschs-algorithm-and-what-q42-shows-you"><a class="anchor" href="#84-deutschs-algorithm-and-what-q42-shows-you" aria-label="Link to this section">#</a>8.4 Deutsch's algorithm, and what Q42 shows you</h3>
 <p>Fibonacci is arithmetic. Deutsch's algorithm is a real quantum algorithm, the smallest one there is and the first found to beat its classical rival.</p>
 <p>The problem: you are handed a black box computing an unknown one-bit function <code>f</code>, and asked whether <code>f</code> is <strong>constant</strong> (<code>f(0) = f(1)</code>) or <strong>balanced</strong> (<code>f(0) ≠ f(1)</code>). Classically you must evaluate <code>f</code> twice, since one evaluation tells you nothing about the other. Deutsch's algorithm answers after one.</p>
-<p>The oracle has to be reversible like everything else, so it takes the standard shape <code>(x, y) ↦ (x, y XOR f(x))</code>. That is the Toffoli trick from §2, which is also <code>mul</code> keeping its multiplier in the 42 manual's §11.3. There are only four one-bit functions, so <code>q42/deutsch.42</code> writes all four out:</p>
+<p>The oracle has to be reversible like everything else, so it takes the standard shape <code>(x, y) ↦ (x, y XOR f(x))</code>. That is the Toffoli trick from §2, which is also <code>mul</code> keeping its multiplier in the 42 manual's §9.3. There are only four one-bit functions, so <code>q42/deutsch.42</code> writes all four out:</p>
 <div class="code"><pre><code>def orc0   = id                              -- f(x) = 0       constant
 def orc1   = id * x                          -- f(x) = 1       constant
 def orcid  = ctrl x                          -- f(x) = x       balanced
