@@ -41,23 +41,37 @@ Before the physics, the engineering reason a computer scientist should care.
 ### Erasing a bit costs energy
 
 **Landauer's principle** (1961): erasing one bit of information in a computer at
-temperature `T` must dissipate at least `kT ln 2` joules as heat, where `k` is
-Boltzmann's constant. At room temperature that is about `2.9 × 10⁻²¹` joules,
-negligible per bit today, and a floor that no cleverness removes.
+temperature `T` must turn at least `kT ln 2` joules of energy into heat. `T` is
+the absolute temperature, in kelvin, and `k` is Boltzmann's constant, a fixed
+number from physics that converts temperature into energy. At room temperature
+the product is about `2.9 × 10⁻²¹` joules, negligible per bit today, and a floor
+that no cleverness removes.
 
-The point is *why* there is a floor. Information that is destroyed has to go
-somewhere; it becomes entropy in the environment. A computation that never
-destroys information has no such floor, and Bennett showed in 1973 that any
-computation can be rearranged into one that doesn't. That is the origin of
+The point is *why* there is a floor. Information that is destroyed does not
+vanish: it is pushed out into the computer's surroundings as disorder, which
+physicists call entropy, and producing entropy costs heat. A computation that
+never destroys information has no such floor. Bennett showed in 1973 that any
+computation can be rearranged into one that destroys nothing, by keeping a
+record of whatever an ordinary program would have thrown away: the same trick
+as `mul` keeping its multiplier in the 42 manual's §9.3. That is the origin of
 reversible computing as a field, and of 42.
 
 ### Quantum mechanics has no choice at all
 
-For quantum computers this stops being an efficiency argument and becomes a
-constraint. The evolution of an isolated quantum system is described by a
-**unitary** matrix (§2), and every unitary has an inverse. There is no such
-thing as an irreversible quantum gate, in the way that there is no such thing as
-a triangle with four sides. It is not a design decision anyone made.
+A quantum computer stores information in **qubits**, the quantum counterpart of
+bits, which §2.1 introduces. Like a classical computer it works by applying a
+sequence of elementary operations to them, and these are called **gates**, as
+in a classical logic circuit; a drawing of the sequence is a **circuit**, in
+which each qubit is a horizontal line, a **wire**, and each gate a box on the
+wires it acts on.
+
+For a quantum computer, reversibility stops being an efficiency argument and
+becomes a constraint. Physics says that an isolated quantum system changes in a
+way described by a particular kind of matrix, a **unitary** one (§2.3 defines
+it), and every unitary matrix has an inverse. So every quantum gate can be
+undone. There is no such thing as an irreversible quantum gate, in the way that
+there is no such thing as a triangle with four sides. It is not a design
+decision anyone made.
 
 So the familiar irreversible operations are simply unavailable:
 
@@ -67,16 +81,18 @@ c = a AND b
 
 destroys information, since knowing `c = 0` tells you almost nothing about `a`
 and `b`, so there is no two-input AND gate. What exists instead is the **Toffoli**
-gate, which keeps its inputs and writes the answer into a third wire:
+gate, which keeps its two inputs and writes the answer into a third wire, by
+exclusive-or (`XOR`, addition mod 2):
 
 ```
 (a, b, c)  |->  (a, b, c XOR (a AND b))
 ```
 
 Set `c = 0` and the third component becomes `a AND b`, with `a` and `b` still
-there. This is the padding trick from the 42 manual's §9.3, where `mul` keeps its
-multiplier in order to stay invertible; the same pressure produces the same
-answer in both places.
+there. Nothing is lost, so the gate can be undone: in fact it undoes itself,
+since applying it twice XORs the same value in twice. This is the padding trick
+of the 42 manual's §9.3 again; the same pressure produces the same answer in
+both places.
 
 ### Uncomputation
 
@@ -87,10 +103,11 @@ backwards.
 
 The pattern is `P ; Q ; P!`: do the work, use it, undo the work. In Q42 that
 is an ordinary term, because `!` is part of the language, and because every Q42
-term is invertible `P!` really is `P`'s inverse. Languages like Silq spend
-considerable machinery on *inferring* where this goes, so that the programmer
-never has to decide. Q42 does not infer: you decide, and then writing it costs
-three characters. What the language gives you is that what you wrote is exact.
+term is invertible `P!` really is `P`'s inverse. Some quantum languages decide
+for you where the undo goes: Silq (Bichsel et al., 2020) infers it, so that the
+programmer never has to. Q42 does not infer: you decide, and then writing it
+costs three characters. What the language gives you is that what you wrote is
+exact.
 
 ---
 
@@ -105,7 +122,19 @@ three characters. What the language gives you is that what you wrote is exact.
 - [2.7 What Q42 does not model](#27-what-q42-does-not-model)
 
 Enough to read Q42 programs, and no more. Everything here is finite-dimensional
-linear algebra; nothing requires an understanding of physics.
+linear algebra over the complex numbers; nothing requires an understanding of
+physics.
+
+**Complex numbers, in one paragraph.** A complex number is `c = a + bi`, with
+`a` and `b` real and `i² = −1`. Its **magnitude** `|c|` is its distance from 0
+in the plane, `√(a² + b²)`, so `|c|² = a² + b²`. Its **conjugate** is
+`a − bi`, written `conj(c)` or `c*`; and `c × conj(c) = |c|²`. A complex number
+of magnitude 1 lies on the unit circle and can be written `e^{iθ} = cos θ +
+i sin θ`, the point at angle `θ` (in radians) from the positive real axis.
+Multiplying by such a number rotates by `θ` and changes no magnitude; it is
+called a **phase**. Four of them recur below: `1` (angle 0), `i` (a quarter
+turn, `π/2`), `−1` (a half turn, `π`), and `e^{iπ/4} = (1 + i)/√2`, an eighth
+of a turn.
 
 ### 2.1 A state is a vector of amplitudes
 
@@ -129,34 +158,66 @@ what they mean. When `c1` is 0 the state is just `|0>`, and when `c0` is 0 it is
 just `|1>`. When both are nonzero, the qubit is in both basis states at once,
 in proportions the amplitudes give: a *superposition*, which §2.4 takes up.
 
-For `n` qubits there are `2ⁿ` basis states, `|000…>` through `|111…>`, and a
-state is `2ⁿ` amplitudes. That exponential is the whole reason simulating
-quantum computers is expensive, and the whole reason building them might be
-worth it.
+As a computer scientist would store it, the state is the array `[c0, c1]`, a
+vector of length two. That is all a ket is: `|0>` is `[1, 0]`, `|1>` is
+`[0, 1]`, and `c0 |0> + c1 |1>` is `[c0, c1]`.
+
+For `n` qubits there are `2ⁿ` basis states, `|000…>` through `|111…>`, one for
+each `n`-bit string, and a state is a vector of `2ⁿ` amplitudes, one per string.
+That exponential is the whole reason simulating quantum computers is expensive,
+and the whole reason building them might be worth it.
 
 ### 2.2 Amplitudes are not probabilities
 
-The probability of seeing outcome `x` if you look is `|cₓ|²`, the squared
-magnitude. This is the **Born rule**, and it is where the physics enters; the
-rest is linear algebra.
+You cannot read the amplitudes off a real qubit. What you can do is **measure**
+it: a measurement returns a classical bit string, one of the basis states, at
+random, and afterwards the qubits are left in exactly the basis state that was
+returned, so measuring again gives the same answer. The probability of each
+outcome comes from its amplitude: you see outcome `x` with probability `|cₓ|²`,
+the squared magnitude. This is the **Born rule**, and it is where the physics
+enters; the rest is linear algebra.
 
 Two consequences a computer scientist should internalise:
 
-- Probabilities must sum to `1`, so `Σ |cᵢ|² = 1`. A state is a **unit vector**.
+- Probabilities must sum to `1`, so `Σ |cᵢ|² = 1`: the squared magnitudes of a
+  state's amplitudes add up to one. In other words a state is a vector of length
+  1, a **unit vector**.
 - Amplitudes can be **negative**, or complex. Probabilities cannot. This is the
   entire difference between a quantum computer and a randomised classical one,
   and everything interesting comes from it.
 
 ### 2.3 A gate is a unitary matrix
 
-A gate on `n` qubits is a `2ⁿ × 2ⁿ` complex matrix `U` satisfying
+A gate on `n` qubits is a `2ⁿ × 2ⁿ` matrix of complex numbers, and applying it
+to a state is multiplying the matrix by the state's vector: output amplitude
+number `r` is the sum, over every input `c`, of matrix entry `(r, c)` times input
+amplitude `c`. Column `c` of the matrix is therefore what basis state `c` turns
+into. Physicists write the result of applying gate `U` to state `|ψ>` as
+`U|ψ>`.
+
+The simplest example is **NOT**, written `X` and in Q42 called `x`. It swaps the
+two amplitudes, so `|0>` becomes `|1>` and `|1>` becomes `|0>`:
+
+```
+$ 42q matrix gates x
+x : qubit <-> qubit
+     |0>  [ 0  1 ]
+     |1>  [ 1  0 ]
+```
+
+Read the column for `|0>` (the first): its 1 is in the row for `|1>`.
+(`42q matrix gates x` prints the matrix of the definition `x` in the Q42 library
+file `q42/gates.42`; §7.4 lists the commands.)
+
+Not every matrix is allowed. A gate must satisfy
 
 ```
 U† U  =  U U†  =  I
 ```
 
-where `U†` ("U dagger") is the **adjoint**: transpose the matrix and conjugate
-every entry. Such a matrix is called **unitary**.
+where `I` is the identity matrix, 1 on the diagonal and 0 elsewhere, and `U†`
+("U dagger") is the **adjoint** of `U`: swap rows and columns (transpose) and
+replace every entry by its conjugate. Such a matrix is called **unitary**.
 
 Two things follow, and they are why the condition is the one physics imposes:
 
@@ -197,8 +258,17 @@ listed but not counted as failures.
 
 ### 2.4 Superposition
 
-A state with more than one nonzero amplitude is in **superposition**. The
-Hadamard gate makes one from a definite input:
+A state with more than one nonzero amplitude is in **superposition**. The gate
+that makes one is the **Hadamard** gate, written `H` and in Q42 called `h`. Its
+matrix is
+
+```
+H  =  1/√2 × [ 1   1 ]          H|0>  =  ( |0> + |1> ) / √2
+             [ 1  -1 ]          H|1>  =  ( |0> - |1> ) / √2
+```
+
+so it sends `|0>` to an equal superposition of both basis states, and `|1>` to
+the same with a minus sign on the second. Applied to `|0>`:
 
 ```
 $ 42q gates h "|0>"
@@ -206,7 +276,9 @@ h |0>
   = 0.707107|0>  +  0.707107|1>
 ```
 
-`0.707107` is `1/√2`, so both outcomes have probability `(1/√2)² = 1/2`.
+(`42q gates h "|0>"` runs `h` from `q42/gates.42` on the state `|0>` and prints
+the resulting state.) `0.707107` is `1/√2`, so both outcomes have probability
+`(1/√2)² = 1/2`: measure this qubit and you get 0 or 1, each half the time.
 
 It is tempting, and wrong, to read this as "the qubit is secretly 0 or 1 and we
 don't know which". The next section is why.
@@ -214,7 +286,7 @@ don't know which". The next section is why.
 ### 2.5 Interference — the one that matters
 
 Apply `h` a second time. Classically, randomising a coin twice leaves it random.
-Here:
+Here (`hh` is defined in `gates.42` as `h ; h`):
 
 ```
 $ 42q gates hh "|0>"
@@ -232,14 +304,19 @@ The randomness is *gone*. Follow the arithmetic. `H|0>` is `0.7071|0> +
     from |1> -> |1> :  +0.7071 x -0.7071  =  -0.5      sum:  0.0
 ```
 
-Two routes lead to `|1>` and they arrive with **opposite signs**, so they cancel.
-This is **destructive interference**, and it has no classical counterpart:
-probabilities are non-negative and adding more routes to an outcome can only
-make it likelier. Amplitudes are not so constrained.
+Each line follows one route: the amplitude the first `H` gave a basis state,
+times the amplitude the second `H` sends it on with (the `-0.7071` is the
+`H|1>` minus sign). Two routes lead to `|1>` and they arrive with **opposite
+signs**, so they cancel. This is **destructive interference**, and it has no
+classical counterpart: probabilities are non-negative and adding more routes to
+an outcome can only make it likelier. Amplitudes are not so constrained.
 
 Every quantum algorithm that beats its classical rival does it this way, by
 arranging for the wrong answers' amplitudes to cancel and the right answer's to
-reinforce. Grover's search and Shor's factoring are both this, elaborately.
+reinforce. The two famous ones are both this, elaborately: Grover's algorithm,
+which searches `N` unsorted items in about `√N` steps instead of `N`, and Shor's
+algorithm, which factors integers in polynomial time, where no classical
+algorithm is known to.
 
 This is what 42 cannot express. Over the booleans the two routes to `|1>` would
 be `1 ∨ 1 = 1`, still possible, and there is no `−1` to cancel with.
@@ -251,7 +328,7 @@ reaching one annihilate.
 Two qubits have four basis states, `|00>`, `|01>`, `|10>` and `|11>`, so a state
 of the pair is four amplitudes, `c00`, `c01`, `c10` and `c11`. Sometimes those
 four come from two separate qubits, "this one is in state `ψ` and that one in
-state `φ`". Sometimes they do not, and then the qubits are **entangled**: the
+state `φ`" (`φ`, phi, is just a second name for a state). Sometimes they do not, and then the qubits are **entangled**: the
 pair has a state, but neither qubit has one of its own.
 
 The standard example is `bell`, two gates in a row: the Hadamard of §2.4 on the
@@ -335,10 +412,12 @@ which is not zero, so it does not factor.
 time, and never `01` or `10` (§7.6 shows `42q sample` doing this). Each qubit on
 its own is a fair coin; together they always agree. So far that is no stranger
 than two sealed envelopes holding copies of one randomly chosen card. The
-strangeness appears when each qubit is rotated before it is measured: the
-agreement then follows the angle between the two rotations in a way no
-envelopes can reproduce. That is Bell's theorem, which the state is named
-after. It does not let either side send a message to the other, but it is a
+strangeness appears when, before measuring, each side applies its own one-qubit
+gate that mixes `|0>` and `|1>` by some angle (a *rotation* of the qubit, of
+which the Hadamard is one). How often the two answers then agree depends on the
+angle between the two rotations, and for some pairs of angles the agreement is
+stronger than any envelopes, prepared in any way, could produce. That is Bell's
+theorem, which the state is named after. It does not let either side send a message to the other, but it is a
 resource quantum algorithms use, and §8.5's teleportation is built on exactly
 this state.
 
@@ -356,10 +435,17 @@ Stated plainly, because a manual that quietly omits these would be misleading.
 - **Normalisation.** Q42 does not enforce `Σ|cᵢ|² = 1`. It does not need to: a
   ket you type in is a unit vector, and unitary maps preserve length, so a
   well-formed program cannot leave that set.
-- **Noise, decoherence, error correction.** Nothing here is modelled.
-- **Global phase.** Multiplying an entire state by a unit complex number is
-  physically undetectable. Q42 tracks it faithfully anyway, which is why some
-  gate identities hold only "up to phase" (§6.3).
+- **Noise, decoherence, error correction.** Real qubits are disturbed by their
+  surroundings and gradually lose their state, which is called *decoherence*;
+  real gates are slightly inaccurate, which is *noise*; and *error correction*
+  spreads each logical qubit over many physical ones so that such errors can be
+  detected and repaired. None of this is modelled: Q42's qubits and gates are
+  perfect.
+- **Global phase.** Multiplying an *entire* state by a phase, a complex number
+  `e^{iθ}` of magnitude 1, changes no squared magnitude and so no measurement
+  outcome: the two states are physically indistinguishable. Q42 tracks such a
+  factor faithfully anyway, which is why some gate identities hold only "up to
+  phase", that is, only up to such a factor (§6.3).
 
 ---
 
