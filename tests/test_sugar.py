@@ -728,6 +728,35 @@ class Q42General(unittest.TestCase):
                                          set(self.basis(self.Q, name, bits, back)))
 
 
+class Q42Emit(unittest.TestCase):
+    """QSUGAR.md section 5 (plan step 3): the aligned case emits, the general
+    construction runs but is refused by the emitter, with the reason."""
+
+    def emit(self, src, name):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "e.42")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(src)
+            out = subprocess.run([sys.executable, "-m", "q42", "emit", path, name],
+                                 capture_output=True, text=True, cwd=ROOT)
+        return out.stdout + out.stderr
+
+    def test_an_aligned_clause_definition_emits_as_one_gate(self):
+        out = self.emit("def x = swapsum\n"
+                        "def cx (L (), q) <-> (L (), q)\n"
+                        "def cx (R (), q) <-> (R (), x q)\n", "cx")
+        self.assertIn("cx q[0], q[1];", out)
+
+    def test_the_general_construction_is_refused_with_its_reason(self):
+        out = self.emit(GENERAL_SRC, "sw")
+        self.assertIn("`sw` runs in the evaluator but cannot be emitted yet", out)
+        self.assertIn("QSUGAR.md section 4.2", out)
+
+    def test_so_is_a_definition_that_calls_one(self):
+        out = self.emit(GENERAL_SRC + "\ndef sw2 = sw ; sw\n", "sw2")
+        self.assertIn("because it calls `sw`", out)
+
+
 class Errors(unittest.TestCase):
     def rejects(self, src, *fragments):
         with self.assertRaises(Rel42Error) as cm:

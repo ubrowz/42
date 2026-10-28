@@ -435,9 +435,9 @@ generate the whole symmetric group. Q42 has them all, by nesting `ctrl`. But
 existence is not a compiler: turning an arbitrary permutation into a short
 circuit is a hard optimisation problem.
 
-**Proposal for a first version:** the evaluator accepts every definition §3
-allows; the emitter accepts what stays at register types, which includes every
-aligned definition, and says why when it refuses. A register-level compilation
+**As built:** the evaluator accepts every definition §3 allows; the emitter
+accepts what stays at register types, which includes every aligned definition,
+and says why when it refuses (§6). A register-level compilation
 of the general case is left for later (§9, item 4).
 
 ## 6. Messages
@@ -453,7 +453,7 @@ As implemented in `q42/sugar.py` (step 1 of §7), each triggered by a test:
 | the same, on the output side | ``no clause of `f` produces …`` and ``the terms of clauses i and j of `f` both produce …`` |
 | a `let` pattern that can fail | ``in `f …`, a `let` pattern can fail.  A call's result may be a superposition, so a pattern after a call may contain only names, pairs and ().`` |
 | a call in a pattern | ``in `f …`, the pattern calls a program.  Calls in patterns are 42-only for now; match first, then call the program backwards in a `let`.`` |
-| emitter, general case | (step 3) ``f compiles, but not at register types (QMANUAL §9.4); it runs in the evaluator and cannot be emitted yet.`` |
+| emitter, general case | ``` `sw` runs in the evaluator but cannot be emitted yet: `sw` is a clause definition whose input and output do not split alike, so it is compiled by the general construction of QSUGAR.md section 4.2, and that reorders sums of different widths, which are not registers (QMANUAL section 9.4).``` A definition that calls one gets the same, with ``, because it calls `sw` ``. |
 
 Values in Q42 messages are written with `L` and `R`: in Q42, `L ()` is a qubit,
 not the number `0` that 42's messages would call it.
@@ -485,7 +485,11 @@ Each step is a commit with every test passing, as for the 42 sugar.
    accepts every clause definition §3 allows.
 3. **The emitter.** Definitions whose compiled form stays at register types
    emit, which includes every aligned one. The rest run in the evaluator, and
-   the emitter refuses them with §6's message.
+   the emitter refuses them with §6's message. *Done.* The emitter needed no
+   change to refuse them: its own register check already rejects `assocsum`
+   at a register type, as §5 predicted. Step 3 added the reason in clause
+   terms, for a general-construction definition and for anything that calls
+   one; `cx` written as clauses emits as the single gate `cx q[0], q[1]`.
 4. **The Q42 manual**, rewritten as the 42 manual was: clauses first, the core
    as what they compile to. The five fixes found while reviewing it (who it is
    for, §4.2's "42's syntax", clauses in §5, §6.4's reference, the reference's

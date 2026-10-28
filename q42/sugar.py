@@ -246,6 +246,29 @@ def _outside(t: Term) -> set:
     return set()
 
 
+def not_emittable(name: str, env, general: set) -> Optional[str]:
+    """Section 5's reason, if `name` is or calls a general-construction term."""
+    from rel42.types import references
+
+    seen, todo = set(), [name]
+    while todo:
+        n = todo.pop()
+        if n in seen or n not in env:
+            continue
+        seen.add(n)
+        if n in general:
+            via = "" if n == name else f", because it calls `{n}`"
+            return (
+                f"`{name}` runs in the evaluator but cannot be emitted yet{via}: "
+                f"`{n}` is a clause definition whose input and output do not split "
+                f"alike, so it is compiled by the general construction of "
+                f"QSUGAR.md section 4.2, and that reorders sums of different widths, "
+                f"which are not registers (QMANUAL section 9.4)."
+            )
+        todo.extend(references(env[n]) & set(env))
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Section 4.2: the general construction.
 #
@@ -540,7 +563,14 @@ def general(clauses: List[S.Clause]) -> Term:
 
 
 class Rules:
-    """The hook `rel42.syntax.parse_program` calls for each clause definition."""
+    """The hook `rel42.syntax.parse_program` calls for each clause definition.
+
+    `general` collects the names compiled by section 4.2's construction, so that
+    the emitter can say why it cannot emit them (section 5).
+    """
+
+    def __init__(self):
+        self.general: set = set()
 
     def check(self, name: str, params: List[str], clauses: List[S.Clause]) -> None:
         renamed = [S.rebindings_apart(c) for c in clauses]
@@ -553,6 +583,7 @@ class Rules:
         """42's compilation if it stays in the shared core; else section 4.2's."""
         if not _outside(term):
             return term
+        self.general.add(name)
         out = general([S.rebindings_apart(c) for c in clauses])
         for p in reversed(params):
             out = Fun(p, out)

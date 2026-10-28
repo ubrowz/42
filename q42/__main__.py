@@ -71,7 +71,10 @@ def _load_reduced(path: str):
     one.  The combinators remain, as `Fun`s, and are refused if you try to run
     them against a state.
     """
-    return expand_env(_load(path))
+    env = _load(path)
+    out = expand_env(env)
+    out.general = getattr(env, "general", set())
+    return out
 
 
 def _resolve(env, main: str):
@@ -311,7 +314,10 @@ def cmd_emit(args) -> int:
             at = ground(scheme, args.qubits)
             gates, wires = emit(term, at.dom, env)
         except (NotEmittable, Rel42Error) as e:
-            print(f"{name}: {e}")
+            from .sugar import not_emittable
+
+            why = not_emittable(name, env, getattr(env, "general", set()))
+            print(f"{name}: {why or e}")
             continue
         if args.gates:
             print(f"{name} : {wires} qubit(s), {len(gates)} gate(s)")

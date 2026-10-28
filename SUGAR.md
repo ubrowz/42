@@ -567,7 +567,7 @@ What a relational target changes:
   warnings (`Program.warnings`); the command line prints warnings on stderr.
   `42 show` prints the three blocks of §5.
 - **Q42** parses with clauses switched off, and the refusal names §9.
-- **Tests** (`tests/test_sugar.py`, 77). Every example is checked against its
+- **Tests** (`tests/test_sugar.py`, 80). Every example is checked against its
   hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
   forwards and backwards. Turned-round clauses compile to the inverse. Printed
   clauses parse back. Case trees agree with the plain union on 34 untyped

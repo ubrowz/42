@@ -49,7 +49,10 @@ def parse_program(src: str) -> Dict[str, Term]:
     # still be loading.
     from .sugar import Rules
 
-    return _parse_program(src, PRIMS, clause_rules=Rules())
+    rules = Rules()
+    env = _parse_program(src, PRIMS, clause_rules=rules)
+    env.general = rules.general     # for the emitter's message (QSUGAR section 5)
+    return env
 
 
 def ket(bits: str) -> Value:
