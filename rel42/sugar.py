@@ -347,7 +347,7 @@ def _has_hole(s: Shape) -> bool:
     return _has_hole(s[0]) or _has_hole(s[1])
 
 
-def route(s: Shape, t: Shape) -> Term:
+def route(s: Shape, t: Shape, units: bool = True) -> Term:
     """From shape `s` to shape `t`.
 
     It is also where a matched constant is checked.  A hole stands where the
@@ -358,12 +358,15 @@ def route(s: Shape, t: Shape) -> Term:
 
     When the shapes are the same, with no hole to check and no variable
     repeated, nothing needs to happen at all.
+
+    `units=False` leaves the holes unchecked.  That is only ever used where
+    the types already make every hole `()` (`drop_dead_checks`).
     """
     leaves = _leaves(s)
-    if s == t and not _has_hole(s) and len(set(leaves)) == len(leaves):
+    if s == t and (not units or not _has_hole(s)) and len(set(leaves)) == len(leaves):
         return ID
     out = flatten(s)
-    if not leaves:
+    if not leaves and units:
         out = Seq(out, UNIT_TEST)
     return Seq(Seq(out, permute(leaves, _leaves(t))), dagger(flatten(t)))
 
@@ -447,7 +450,7 @@ def _flat_shape(names: List[str]) -> Shape:
     return s
 
 
-def compile_clause(c: Clause) -> Term:
+def compile_clause(c: Clause, units: bool = True) -> Term:
     """One clause, unchecked: `compile_clauses` runs the checks first."""
     sp, bp = build(c.pattern)
     out: Term = dagger(bp)
@@ -461,18 +464,19 @@ def compile_clause(c: Clause) -> Term:
         step = Seq(br, dagger(bq))
         if keep:
             keep_shape = _flat_shape(keep)
-            out = Seq(Seq(out, route(env, (sr, keep_shape))), Prod(step, ID))
+            out = Seq(Seq(out, route(env, (sr, keep_shape), units)), Prod(step, ID))
             env = (sq, keep_shape)
         else:
-            out = Seq(Seq(out, route(env, sr)), step)
+            out = Seq(Seq(out, route(env, sr, units)), step)
             env = sq
         body = body.body
     se, be = build(body)
-    out = Seq(Seq(out, route(env, se)), be)
+    out = Seq(Seq(out, route(env, se, units)), be)
     return simplify(out)
 
 
-def compile_clauses(params: List[str], clauses: List[Clause], defined=frozenset()) -> Term:
+def compile_clauses(params: List[str], clauses: List[Clause], defined=frozenset(),
+                    units: bool = True) -> Term:
     """A definition from its clauses, under its parameters.
 
     It means the union of the clauses; `_cases` compiles that union as a case
@@ -480,7 +484,7 @@ def compile_clauses(params: List[str], clauses: List[Clause], defined=frozenset(
     """
     for c in clauses:
         _check(c, defined)
-    out = simplify(_cases(clauses))
+    out = simplify(_cases(clauses, units))
     for p in reversed(params):
         out = Fun(p, out)
     return out
@@ -595,14 +599,14 @@ def _split_position(terms):
     return None, None
 
 
-def _cases(clauses: List[Clause]) -> Term:
+def _cases(clauses: List[Clause], units: bool = True) -> Term:
     if len(clauses) == 1:
-        return compile_clause(clauses[0])
+        return compile_clause(clauses[0], units)
     path, labels = _split_position([c.pattern for c in clauses])
     if path is None:
-        out = compile_clause(clauses[0])
+        out = compile_clause(clauses[0], units)
         for c in clauses[1:]:
-            out = Union(out, compile_clause(c))
+            out = Union(out, compile_clause(c, units))
         return out
 
     # Bring the input position forward and strip its label.
@@ -640,7 +644,7 @@ def _cases(clauses: List[Clause]) -> Term:
             for p, b, c, l in zip(pats, bodies, clauses, labels) if l == "L"]
     right = [Clause(p, b, c.line, c.text)
              for p, b, c, l in zip(pats, bodies, clauses, labels) if l == "R"]
-    body = Sum(_cases(left), _cases(right))
+    body = Sum(_cases(left, units), _cases(right, units))
     if front == (0,):
         body = Seq(_p("dist"), body)
     return Seq(Seq(pre, body), post)
@@ -746,6 +750,50 @@ def overlaps(clauses: List[Clause]):
             if w is not None:
                 out.append((i, j, w))
     return out
+
+
+# ---------------------------------------------------------------------------
+# Dead unit checks.  A matched constant leaves a hole that must hold `()`, and
+# the route checks it (see `route`).  Often the types already guarantee it:
+# in `rev`, the payload under `[]`'s label is `()` because `append` makes it so.
+# There the check can never fail on a well-typed value, and it only makes the
+# compiled term harder to read.
+#
+# The rule: compile each definition again without the checks, and keep that
+# version only if *every* definition's inferred type is unchanged by it.  The
+# command line refuses an argument outside the inferred type, so on every input
+# it accepts, the two versions agree.  Where the checked version's type is
+# narrower -- `ctrl`, whose clauses say `L ()` but whose body does not care,
+# or `forget` -- the checks stay, because there they are what makes it narrower.
+#
+# The cost, stated in SUGAR.md section 3: run with `--untyped`, a definition
+# whose checks were dropped accepts ill-typed values its clauses would refuse.
+# ---------------------------------------------------------------------------
+
+
+def drop_dead_checks(env, unchecked: Dict[str, Term]) -> List[str]:
+    """Swap in each unchecked definition whose checks the types make dead.
+
+    `env` is changed in place; returns the names swapped, in order.
+    """
+    from .types import infer_program, show_scheme
+
+    def types_of(defs):
+        schemes, errors = infer_program(defs)
+        return {n: show_scheme(s) for n, s in schemes.items()}, set(errors)
+
+    want, broken = types_of(env)
+    done = []
+    for name, term in unchecked.items():
+        if name in broken or term == env[name]:
+            continue
+        trial = dict(env)
+        trial[name] = term
+        got, now_broken = types_of(trial)
+        if got == want and now_broken == broken:
+            env[name] = term
+            done.append(name)
+    return done
 
 
 # ---------------------------------------------------------------------------

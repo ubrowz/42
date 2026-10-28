@@ -273,6 +273,51 @@ def whole (L ()) <-> 0
         self.assertEqual(run(Ref("whole"), parse_value("L ()"), env), {parse_value("0")})
 
 
+class DeadChecks(unittest.TestCase):
+    """A matched constant's unit check is dropped exactly where the types
+    already make it `()` (SUGAR.md section 3)."""
+
+    def test_dropped_where_the_types_force_it(self):
+        # rev's `[]` payload is () because append makes it so.
+        self.assertTrue(show_term(ENV["rev"]).startswith("inl + "))
+        self.assertNotIn("unitprod! ; swapprod ; unitprod", show_term(ENV["rev"]))
+
+    def test_kept_where_it_narrows_the_type(self):
+        # ctrl's clauses say `L ()` and forget's say `0`; nothing else in their
+        # bodies does, so there the check is what makes the type narrower.
+        self.assertIn("unitprod ; unitprod!", show_term(ENV["ctrl"]))
+        self.assertIn("unitprod! ; swapprod ; unitprod", show_term(ENV["forget"]))
+
+    def test_no_definitions_type_changes(self):
+        checked = dict(ENV)
+        for name, (params, group) in ENV.clauses.items():
+            checked[name] = compile_clauses(params, group)
+        a, _ = infer_program(checked)
+        b, _ = infer_program(ENV)
+        from rel42.types import show_scheme
+        self.assertEqual({n: show_scheme(s) for n, s in a.items()},
+                         {n: show_scheme(s) for n, s in b.items()})
+
+    def test_the_stated_untyped_cost(self):
+        # Untyped, the dropped check is visible: rev passes `L 5` through.
+        # The command line refuses `L 5` for rev before running it.
+        v = parse_value("L 5")
+        self.assertEqual(run(Ref("rev"), v, _runnable(ENV)), {v})
+        params, group = ENV.clauses["rev"]
+        strict = dict(_runnable(ENV), strict=compile_clauses(params, group))
+        self.assertEqual(run(Ref("strict"), v, strict), set())
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "r.42")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(SRC)
+            out = subprocess.run(
+                [sys.executable, "-m", "rel42", "run", path, "rev", "L 5"],
+                capture_output=True, text=True, cwd=ROOT,
+            )
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("does not fit the domain", out.stdout + out.stderr)
+
+
 class TurnedRound(unittest.TestCase):
     """`show` prints each definition's clauses turned round.  They must mean the
     inverse, and print as source that parses back to the same clauses."""

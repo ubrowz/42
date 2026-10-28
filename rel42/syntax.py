@@ -1006,8 +1006,10 @@ def parse_program(src: str, prims=None, allow_clauses: bool = True) -> "Program"
             body = Fun(name_, body)
         env[name] = body
     warnings: List[str] = []
+    unchecked: Dict[str, Term] = {}
     for name, (params, group) in clauses.items():
         env[name] = S.compile_clauses(params, group)
+        unchecked[name] = S.compile_clauses(params, group, units=False)
         for i, j, witness in S.overlaps(group):
             warnings.append(
                 f"line {group[j].line}: clauses {i + 1} and {j + 1} of '{name}' both "
@@ -1018,6 +1020,8 @@ def parse_program(src: str, prims=None, allow_clauses: bool = True) -> "Program"
                 f"both give answers there.  If that is meant, give each its own "
                 f"name and write the union: `def {name} = ... | ...`."
             )
+    if unchecked:
+        S.drop_dead_checks(env, unchecked)
     return Program(env, types, clauses, warnings)
 
 

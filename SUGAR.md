@@ -157,6 +157,18 @@ shape gets an explicit test, `unitprod! ; swapprod ; unitprod`, which passes
 `()` and nothing else. Without this, `def f (L ()) <-> 0` would accept `L 5`.
 The first implementation had exactly that bug (§11).
 
+**Where the types already guarantee it, the check is dropped.** In `rev`, the
+payload under `[]`'s label is `()` because `append` makes it so, and a check
+there can never fail on a well-typed value. The rule: each definition is also
+compiled without its checks, and that version is kept only if it leaves *every*
+definition's inferred type unchanged. The command line refuses an argument
+outside the inferred type, so on every input it accepts, the two versions agree.
+So `rev`'s empty branch compiles to `inl`, as the course writes it. `ctrl` and
+`forget` keep their checks, because there the check is what makes the type
+narrower: their clauses say `L ()` and `0`, and nothing else in their bodies
+does. The cost: run with `--untyped`, a definition whose checks were dropped
+accepts ill-typed values its clauses would refuse (`rev` passes `L 5` through).
+
 **Worked: `single x <-> [x]`.** The pattern `x` has shape `x` and
 `⟦x⟧! = id`. The term `[x]` has shape `(x, •)` and
 `⟦[x]⟧ = (id * inl) ; inr`. The route from `x` to `(x, •)` is
@@ -524,7 +536,7 @@ What a relational target changes:
   warnings (`Program.warnings`); the command line prints warnings on stderr.
   `42 show` prints the three blocks of §5.
 - **Q42** parses with clauses switched off, and the refusal names §9.
-- **Tests** (`tests/test_sugar.py`, 51). Every example is checked against its
+- **Tests** (`tests/test_sugar.py`, 55). Every example is checked against its
   hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
   forwards and backwards. Turned-round clauses compile to the inverse. Printed
   clauses parse back. Case trees agree with the plain union on 34 untyped
@@ -547,9 +559,9 @@ What a relational target changes:
    such a shape. Fixed as §3 describes, with a regression test.
 2. **The hand-written `ctrl` was looser than its clauses** (§6). What the
    compiler emits agrees with the prelude; the spike file has been corrected.
-3. **Checking constants costs some readability.** `rev`'s empty-list branch
-   compiles to `unitprod! ; swapprod ; unitprod ; inl` where the course writes
-   `nil`. Once a definition type-checks, the test cannot fail (§12).
+3. **Checking constants cost some readability**, until the checks the types
+   make dead were dropped (§3). `rev`'s empty-list branch went from
+   `unitprod! ; swapprod ; unitprod ; inl` back to `inl`.
 4. **The order rule matters, as §8 predicted.** Without it `rev!` written as
    clauses exhausts the call depth. With it, it answers at once.
 5. **Overlap warnings on turned-round definitions** (§6).
@@ -569,9 +581,4 @@ What a relational target changes:
    could look at what the called definition can return: its clauses' outputs
    when it has clauses, or its inferred type. More precise, but the warning
    would then depend on another definition's body.
-5. **Dropping the unit test where types make it dead.** After inference, a
-   hole whose type is `1` cannot hold anything but `()`, so the test could go
-   from the emitted term. It changes no typed behaviour and makes `show`
-   cleaner, but the emitted term would then mean less than its clauses on
-   untyped values.
-6. **Source positions on generated nodes** (§11).
+5. **Source positions on generated nodes** (§11).
