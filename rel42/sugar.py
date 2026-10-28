@@ -20,7 +20,7 @@ clause group to `compile_clauses`; this module depends on `core` alone.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple, Union as U
+from typing import Dict, List, Optional, Tuple, Union as U
 
 from .core import (
     App,
@@ -334,16 +334,38 @@ def permute(src: List[str], dst: List[str]) -> Term:
     return out
 
 
+# Passes `()` and nothing else: v -> ((), v) -> (v, ()) -> (), which `unitprod`
+# allows only when v is ().  Its own converse.
+UNIT_TEST = Seq(Seq(Prim("unitprod", True), Prim("swapprod")), Prim("unitprod"))
+
+
+def _has_hole(s: Shape) -> bool:
+    if s is None:
+        return True
+    if isinstance(s, str):
+        return False
+    return _has_hole(s[0]) or _has_hole(s[1])
+
+
 def route(s: Shape, t: Shape) -> Term:
     """From shape `s` to shape `t`.
 
-    Only ever applied to what a match produced, which has shape `s`; so when the
-    two shapes are the same and no variable repeats, nothing needs to move.
+    It is also where a matched constant is checked.  A hole stands where the
+    pattern had a constant, and matching the constant left whatever value was
+    there in its place.  Flattening removes every hole with `unitprod`, which
+    accepts only `()`, except a hole that is all there is: that one gets
+    UNIT_TEST.  Without this, `f (L ()) <-> 0` would accept `L 5`.
+
+    When the shapes are the same, with no hole to check and no variable
+    repeated, nothing needs to happen at all.
     """
     leaves = _leaves(s)
-    if s == t and len(set(leaves)) == len(leaves):
+    if s == t and not _has_hole(s) and len(set(leaves)) == len(leaves):
         return ID
-    return Seq(Seq(flatten(s), permute(_leaves(s), _leaves(t))), dagger(flatten(t)))
+    out = flatten(s)
+    if not leaves:
+        out = Seq(out, UNIT_TEST)
+    return Seq(Seq(out, permute(leaves, _leaves(t))), dagger(flatten(t)))
 
 
 # ---------------------------------------------------------------------------
@@ -425,8 +447,8 @@ def _flat_shape(names: List[str]) -> Shape:
     return s
 
 
-def compile_clause(c: Clause, defined=frozenset()) -> Term:
-    _check(c, defined)
+def compile_clause(c: Clause) -> Term:
+    """One clause, unchecked: `compile_clauses` runs the checks first."""
     sp, bp = build(c.pattern)
     out: Term = dagger(bp)
     env: Shape = sp
@@ -451,14 +473,177 @@ def compile_clause(c: Clause, defined=frozenset()) -> Term:
 
 
 def compile_clauses(params: List[str], clauses: List[Clause], defined=frozenset()) -> Term:
-    """A definition from its clauses: their union, under its parameters."""
-    terms = [compile_clause(c, defined) for c in clauses]
-    out = terms[0]
-    for t in terms[1:]:
-        out = Union(out, t)
+    """A definition from its clauses, under its parameters.
+
+    It means the union of the clauses; `_cases` compiles that union as a case
+    tree where the patterns allow it (SUGAR.md section 6).
+    """
+    for c in clauses:
+        _check(c, defined)
+    out = simplify(_cases(clauses))
     for p in reversed(params):
         out = Fun(p, out)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Case trees (SUGAR.md section 6).  When every clause's pattern has a label at
+# the same position, the union splits on it:
+#
+#     (inl! * id) ; A  |  (inr! * id) ; B   =   dist ; (A + B) ; join
+#
+# and when the outputs also carry a label at a common position, sorted the
+# same way, `join` gives way to the mirror image and the backward run no longer
+# guesses there:
+#
+#     dist ; (A' + B') ; dist!
+#
+# A position is a path of pair steps, 0 for the left component and 1 for the
+# right; it is first brought to the root or to the root's left by plumbing, so
+# that one `dist` (or none) reaches it.  Both rewrites are equalities of
+# relations, so this changes how a definition runs, never what it means.
+# ---------------------------------------------------------------------------
+
+
+def _expose(t: DTerm) -> DTerm:
+    """One layer of a literal as constructors, so it can be split on."""
+    if isinstance(t, DConst):
+        match t.value:
+            case Inl(x):
+                return DInl(DConst(x))
+            case Inr(x):
+                return DInr(DConst(x))
+            case Pair(a, b):
+                return DPair(DConst(a), DConst(b))
+    return t
+
+
+def _at_path(t: DTerm, path) -> Optional[DTerm]:
+    """The subterm at `path`, if every step on the way is a pair."""
+    for step in path:
+        t = _expose(t)
+        if not isinstance(t, DPair):
+            return None
+        t = t.a if step == 0 else t.b
+    return _expose(t)
+
+
+def _label(t: DTerm, path) -> Optional[str]:
+    node = _at_path(t, path)
+    if isinstance(node, DInl):
+        return "L"
+    if isinstance(node, DInr):
+        return "R"
+    return None
+
+
+def _paths(t: DTerm, prefix=()):
+    """Positions of labels in `t` reachable through pairs, shallowest first."""
+    out, frontier = [], [(t, prefix)]
+    while frontier:
+        nxt = []
+        for node, path in frontier:
+            node = _expose(node)
+            if isinstance(node, (DInl, DInr)):
+                out.append(path)
+            elif isinstance(node, DPair):
+                nxt += [(node.a, path + (0,)), (node.b, path + (1,))]
+        frontier = nxt
+    return out
+
+
+def _strip(t: DTerm, path) -> DTerm:
+    """`t` with the label at `path` removed."""
+    t = _expose(t)
+    if not path:
+        return t.t
+    if path[0] == 0:
+        return DPair(_strip(t.a, path[1:]), t.b)
+    return DPair(t.a, _strip(t.b, path[1:]))
+
+
+def _to_front(t: DTerm, path):
+    """Rearrange `t` so the node at `path` sits at the root or the root's left.
+
+    Returns (program, rearranged term, new path).  The program maps a value of
+    the old arrangement to the new one.
+    """
+    prog: Term = ID
+    while len(path) > 1 or path == (1,):
+        t = _expose(t)
+        if path[0] == 1:  # (a, b) -> (b, a)
+            prog, t, path = Seq(prog, _p("swapprod")), DPair(t.b, t.a), (0,) + path[1:]
+            continue
+        inner = _expose(t.a)
+        if path[1] == 1:  # ((a, b), c) -> ((b, a), c)
+            prog = Seq(prog, Prod(_p("swapprod"), ID))
+            inner = DPair(inner.b, inner.a)
+            path = (0, 0) + path[2:]
+        # ((a, b), c) -> (a, (b, c))
+        prog = Seq(prog, _p("assocprod", True))
+        t = DPair(inner.a, DPair(inner.b, t.b))
+        path = (0,) + path[2:]
+    return prog, t, path
+
+
+def _split_position(terms):
+    """A position where every term has a label and both labels occur."""
+    for path in _paths(terms[0]):
+        labels = [_label(x, path) for x in terms]
+        if None not in labels and len(set(labels)) == 2:
+            return path, labels
+    return None, None
+
+
+def _cases(clauses: List[Clause]) -> Term:
+    if len(clauses) == 1:
+        return compile_clause(clauses[0])
+    path, labels = _split_position([c.pattern for c in clauses])
+    if path is None:
+        out = compile_clause(clauses[0])
+        for c in clauses[1:]:
+            out = Union(out, compile_clause(c))
+        return out
+
+    # Bring the input position forward and strip its label.
+    moved = [_to_front(c.pattern, path) for c in clauses]
+    pre, front = moved[0][0], moved[0][2]
+    pats = [_strip(m[1], front) for m in moved]
+
+    # Is there an output position sorted the same way (or exactly opposite)?
+    out_path = out_labels = None
+    if not any(isinstance(c.body, DLet) for c in clauses):
+        bodies = [c.body for c in clauses]
+        for cand in _paths(bodies[0]):
+            got = [_label(b, cand) for b in bodies]
+            if None in got or len(set(got)) != 2:
+                continue
+            if all((g == "L") == (l == "L") for g, l in zip(got, labels)) or \
+               all((g == "L") != (l == "L") for g, l in zip(got, labels)):
+                out_path, out_labels = cand, got
+                break
+
+    if out_path is None:
+        bodies = [c.body for c in clauses]
+        post: Term = _p("join")
+        out_front = None
+    else:
+        moved_out = [_to_front(c.body, out_path) for c in clauses]
+        out_front = moved_out[0][2]
+        bodies = [_strip(m[1], out_front) for m in moved_out]
+        crossed = out_labels[0] != labels[0]
+        post = Seq(_p("swapsum") if crossed else ID,
+                   _p("dist", True) if out_front == (0,) else ID)
+        post = Seq(post, dagger(moved_out[0][0]))
+
+    left = [Clause(p, b, c.line, c.text)
+            for p, b, c, l in zip(pats, bodies, clauses, labels) if l == "L"]
+    right = [Clause(p, b, c.line, c.text)
+             for p, b, c, l in zip(pats, bodies, clauses, labels) if l == "R"]
+    body = Sum(_cases(left), _cases(right))
+    if front == (0,):
+        body = Seq(_p("dist"), body)
+    return Seq(Seq(pre, body), post)
 
 
 def turned_round(c: Clause) -> Clause:
@@ -621,6 +806,12 @@ def _simplify_chain(items: List[Term]) -> Term:
                         and prev.name == y.name and prev.inv != y.inv
                         and (prev.name, prev.inv) in _TOTAL_INJECTIVE):
                     out.pop()
+                    continue
+                # unitprod! ; (id * f)  =  f ; unitprod!   (naturality)
+                if (isinstance(prev, Prim) and prev.name == "unitprod" and prev.inv
+                        and isinstance(y, Prod) and _is_id(y.s)):
+                    out[-1] = y.t
+                    out.append(prev)
                     continue
                 # (a * id) ; (b * id)  =  (a ; b) * id, and the mirror.  Never
                 # fuses across components, so the section 8 order survives.

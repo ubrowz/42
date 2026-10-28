@@ -20,7 +20,8 @@ import tempfile  # noqa: E402
 
 from rel42 import Ref, dagger, parse_program, parse_value, run, show_term  # noqa: E402
 from rel42.core import Rel42Error, expand_env  # noqa: E402
-from rel42.sugar import compile_clauses, turned_round  # noqa: E402
+from rel42.core import Union  # noqa: E402
+from rel42.sugar import compile_clause, compile_clauses, turned_round  # noqa: E402
 from rel42.syntax import show_clause  # noqa: E402
 from rel42.types import infer_program  # noqa: E402
 
@@ -198,6 +199,71 @@ class Emission(unittest.TestCase):
 
     def test_source_order_is_kept(self):
         self.assertEqual(list(ENV)[:3], ["single", "append", "split"])
+
+
+class CaseTrees(unittest.TestCase):
+    """SUGAR.md section 6: the case tree is the union, compiled better."""
+
+    SRC = """
+def neg (L x) <-> R x
+def neg (R x) <-> L x
+def deep ((a, L b), c) <-> (c, (a, L b))
+def deep ((a, R b), c) <-> R (c, (b, a))
+def right (x, L ()) <-> (L (), x)
+def right (x, R y) <-> (R (y, y), x)
+def two (L x, L y) <-> L (x, y)
+def two (L x, R y) <-> R (L (x, y))
+def two (R x, y) <-> R (R (x, y))
+def consts (L (), 3) <-> [1]
+def consts (R (), 3) <-> [2]
+def consts (L (), 4) <-> []
+def cross (L x, y) <-> (y, R x)
+def cross (R x, y) <-> (y, L x)
+def whole (L ()) <-> 0
+"""
+    VALUES = [
+        "()", "0", "1", "[]", "[1]", "[2]", "L ()", "R ()", "L 5", "R 5",
+        "L (L ())", "R (L ())", "(L (), L ())", "(R (), L ())", "(L (), R ())",
+        "(L 5, L ())", "(1, L ())", "(1, R 2)", "((1, L 2), 3)", "((1, R 2), 3)",
+        "(L 1, L 2)", "(L 1, R 2)", "(R 1, 2)", "(R (), R ())", "(L (), 3)",
+        "(R (), 3)", "(L (), 4)", "(L 1, 3)", "(R 1, 4)", "(3, R 1)", "(4, L 1)",
+        "(1, L (1, 2))", "(2, R (2, 1))", "(1, (2, L 3))",
+    ]
+
+    def test_case_trees_mean_the_union(self):
+        # Untyped on purpose: the two must agree on every value, not only on
+        # values of the right type.
+        env = parse_program(self.SRC)
+        runnable = expand_env(env)
+        for name, (_, group) in env.clauses.items():
+            union = compile_clause(group[0])
+            for c in group[1:]:
+                union = Union(union, compile_clause(c))
+            both = dict(runnable, union=union)
+            for v in self.VALUES:
+                for back in (False, True):
+                    with self.subTest(name=name, value=v, backward=back):
+                        self.assertEqual(
+                            run(Ref(name, back), parse_value(v), both),
+                            run(Ref("union", back), parse_value(v), both),
+                        )
+
+    def test_append_and_add_are_the_preludes_exactly(self):
+        self.assertEqual(ENV["append"], PRELUDE["append"])
+        self.assertEqual(ENV["add"], PRELUDE["add"])
+
+    def test_labels_on_both_sides_need_no_join(self):
+        env = parse_program(self.SRC)
+        self.assertEqual(show_term(env["neg"]), "swapsum")
+        self.assertEqual(show_term(env["cross"]), "dist ; swapsum ; dist! ; swapprod")
+        self.assertNotIn("join", show_term(ENV["ctrl"]))
+
+    def test_a_matched_constant_is_checked(self):
+        # Regression: a pattern that is a constant and nothing else was matched
+        # without looking at the value under its label, so `L 5` passed for `L ()`.
+        env = expand_env(parse_program(self.SRC))
+        self.assertEqual(run(Ref("whole"), parse_value("L 5"), env), set())
+        self.assertEqual(run(Ref("whole"), parse_value("L ()"), env), {parse_value("0")})
 
 
 class TurnedRound(unittest.TestCase):
