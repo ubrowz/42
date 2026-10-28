@@ -252,6 +252,13 @@ def whole (L ()) <-> 0
         self.assertEqual(ENV["append"], PRELUDE["append"])
         self.assertEqual(ENV["add"], PRELUDE["add"])
 
+    def test_ctrl_is_the_corrected_hand_version_exactly(self):
+        # SUGAR.md section 6: the earlier hand version was looser than these
+        # clauses; this one checks the label's payload, as they do.
+        self.assertEqual(ENV["ctrl"], SPIKE["ctrl"])
+        v = parse_value("(L 5, L ())")
+        self.assertEqual(run(Ref("flip"), v, _runnable(ENV)), set())
+
     def test_labels_on_both_sides_need_no_join(self):
         env = parse_program(self.SRC)
         self.assertEqual(show_term(env["neg"]), "swapsum")

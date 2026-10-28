@@ -1,8 +1,10 @@
 -- spike/sugar.42 -- the examples of SUGAR.md, desugared by hand.
 --
--- Nothing here is new language.  Each definition is what the proposed
--- desugarer would emit for the clauses in the comment above it, written out
--- by hand so the note's claims can be run today:
+-- Written before the compiler existed, so the note's claims could be run;
+-- kept as the reference tests/test_sugar.py checks the compiler against.
+-- Each definition is the clauses in the comment above it, written point-free
+-- by hand.  The compiler's own output can differ in form (`42 show` prints
+-- it); what the tests require is that they mean the same.
 --
 --     ./42 spike/sugar <name> <value>
 --     ./42 spike/sugar <name> <value> --backward
@@ -75,8 +77,11 @@ def same = copy!
 -- ctrl m (L (), a)  <->  (L (), a)
 -- ctrl m (R (), a)  <->  (R (), m a)
 -- Both sides split on the same label, so the case tree needs no `join`
--- (section 6).  prelude.42 writes this  mat ; (id + m) ; mat! .
-def ctrl m = dist ; (id + (id * m)) ; dist!
+-- (section 6).  This is prelude.42's  mat ; (id + m) ; mat!  with `mat`
+-- written out.  An earlier version here read  dist ; (id + (id * m)) ; dist! ,
+-- which never checks that the label's payload is (): untyped, it accepted
+-- (L 5, x), which the clauses do not.
+def ctrl m = dist ; (unitprod ; unitprod!) + (unitprod ; m ; unitprod!) ; dist!
 def flip   = ctrl swapsum
 
 

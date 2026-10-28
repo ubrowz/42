@@ -1,8 +1,11 @@
 # 42 with Names — a design note on pointful syntax
 
-*Draft design note, 2026-10-28. Nothing here is implemented. Every compiled
-example in it has been written out by hand in `spike/sugar.42` and run against
-the current interpreter. Where this note says "checked", that is what it means.*
+*Design note, 2026-10-28. Implemented in `rel42/sugar.py`, with the parser
+changes in `rel42/syntax.py`; §11 describes what exists and what building it
+turned up. Every example here compiles and runs, and `tests/test_sugar.py`
+checks them. `spike/sugar.42` keeps the hand-desugared versions written before
+the compiler existed, as a reference. Where this note says "checked", a test
+does it.*
 
 *Decided 2026-10-28: the clause arrow is `<->` (§2); a pattern variable may not
 share a name with a definition (§2, "Names"); overlapping input patterns warn,
@@ -20,7 +23,7 @@ and an intended overlap is written as `f = g | h` (§6, "Overlap warns").*
 8. [Same relation, different search](#8-same-relation-different-search)
 9. [Q42: the same notation under Theseus's rule](#9-q42-the-same-notation-under-theseuss-rule)
 10. [Precedents, and what is particular here](#10-precedents-and-what-is-particular-here)
-11. [Where it would live](#11-where-it-would-live)
+11. [Where it lives, and what building it found](#11-where-it-lives-and-what-building-it-found)
 12. [Open questions](#12-open-questions)
 
 ---
@@ -101,9 +104,9 @@ told apart only by name. In `def f (rev, x) <-> …` it would be unclear whether
 (§5). The rule settles it before any reader has to:
 
 ```
-error: in `f (rev, x) <-> …`, the pattern variable `rev` has the name of a
-definition.  In a pattern, `rev t` runs `rev` backwards, so a variable may not
-reuse the name.  Rename the variable.
+error: line 2: the pattern variable `rev` has the name of a definition.  In a
+pattern, `rev t` runs `rev` backwards, so a variable may not reuse the name.
+Rename the variable.
 ```
 
 ## 3. How one clause compiles
@@ -146,6 +149,14 @@ A clause `p <-> e` then compiles to:
 That is: match the pattern by *building it backwards*, rearrange, build the
 result. Matching is not a separate mechanism. It is `⟦·⟧` run through `!`.
 
+**A matched constant is checked in the route.** Building a closed term starts
+from `()`, so building it backwards *ends* at a hole, and whatever value stood
+under the constant's label is left in that hole. The route removes every hole
+with `unitprod`, which accepts only `()`. A hole that is the whole of the
+shape gets an explicit test, `unitprod! ; swapprod ; unitprod`, which passes
+`()` and nothing else. Without this, `def f (L ()) <-> 0` would accept `L 5`.
+The first implementation had exactly that bug (§11).
+
 **Worked: `single x <-> [x]`.** The pattern `x` has shape `x` and
 `⟦x⟧! = id`. The term `[x]` has shape `(x, •)` and
 `⟦[x]⟧ = (id * inl) ; inr`. The route from `x` to `(x, •)` is
@@ -167,7 +178,7 @@ the match is `inr! * id`. The route from `((x, xs), ys)` to `(x, (xs, ys))` is
 ```
 
 After the case-tree step of §6, both `append` clauses together produce
-prelude.42's `append` exactly (checked: `appendt` in the spike file).
+prelude.42's `append` exactly, term for term (checked).
 
 ## 4. The use-count rule
 
@@ -193,9 +204,9 @@ The two error rows are where the essential difficulty surfaces. They should
 read as explanations:
 
 ```
-error: in `length xs <-> n`, the variable `xs` is bound by the pattern and
-never used.  42 cannot forget a value: run backwards, nothing would say what
-`xs` was.  Return it (e.g. `(xs, n)`), or consume it in a call.
+error: line 1: in `length xs <-> 0`, the variable `xs` is bound and never
+used.  42 cannot forget a value: run backwards, nothing would say what `xs`
+was.  Return it, or consume it in a call.
 ```
 
 **Forgetting on purpose** is still possible, the same way 42 does it: one
@@ -249,6 +260,21 @@ offers every split, and the match keeps the one whose right half has length
 one. Forward it returns `([1, 2], 3)` for `[1, 2, 3]`, and backward it rebuilds
 the list (checked; `law holds`).
 
+`42 show` prints every clause definition three ways: the clauses, the same
+clauses turned round, and the compiled term with its reverse. The middle block
+is the inverse, read off the page:
+
+```
+$ ./42 show FILE single
+single   x <-> [x]
+single!  [x] <-> x
+single   = unitprod! ; swapprod ; id * inl ; inr
+single!  = inr! ; id * inl! ; swapprod ; unitprod
+```
+
+The tests check, for every definition, that the turned-round clauses compile
+to the inverse and that both printed blocks parse back to the same clauses.
+
 ## 6. Several clauses: a union, then a case tree
 
 **Meaning.** A definition with clauses `c₁ … cₙ` denotes `c₁ | … | cₙ`.
@@ -271,11 +297,12 @@ overlapping clauses by accident and expect the first one to win. So when two
 clauses' **input** patterns can match the same value, the compiler warns:
 
 ```
-warning: clauses 1 and 2 of `f` both match `[]`:
-    def f []  <->  …
-    def f xs  <->  …
-42 takes the union of matching clauses, not the first match, so `f []` gets
-the answers of both.
+warning: line 2: clauses 1 and 2 of 'f' both match `0` (which is also `[]` and `false`):
+    def f [] <-> []
+    def f xs <-> xs
+42 takes the union of matching clauses, not the first match, so both give
+answers there.  If that is meant, give each its own name and write the union:
+`def f = ... | ...`.
 ```
 
 - **Inputs only.** Overlapping *outputs* never warn in 42, because they are
@@ -290,6 +317,12 @@ the answers of both.
   general. Treating it as matching anything makes the check conservative: it can
   warn when no value actually lies in both patterns, and it never misses an
   overlap that does exist.
+- **Turned-round definitions often warn, and mostly they should.** Turning
+  clauses round makes the outputs the inputs. `split` is `append` turned round:
+  its two clauses really do overlap, and that overlap is its several answers.
+  But `unrev [] <-> []` beside `unrev (append (rev xs, [x])) <-> x:xs` warns
+  too, although the call cannot produce `[]`. That warning is the wildcard
+  rule's cost (§12).
 
 It is a warning and not an error, because overlap is sometimes intended: it is
 how a definition says "both". In Q42 it is an error (§9).
@@ -322,13 +355,31 @@ equation that licenses this, for the first component of a pair, is:
 ```
 
 Both sides denote the same relation, and the right-hand side is what the course
-teaches. If the clause *outputs* also differ by `L`/`R` at a common position,
-the trailing `join` can become `dist!` and the label is carried through
-instead of being forgotten. `ctrl`'s two clauses compile that way to
-`dist ; (id + (id * m)) ; dist!`, which equals prelude.42's
-`mat ; (id + m) ; mat!` (checked on all four inputs of `flip`). For 42 this is
-an optimisation: the backward run no longer guesses at that point. For Q42 it
-is mandatory (§9).
+teaches. The compiler looks for the shallowest such position, reaching into
+pairs; a position other than the root or the root's left is first brought
+forward with `swapprod` and `assocprod!`. Each branch is then compiled the same
+way, recursively.
+
+If the clause *outputs* also differ by `L`/`R` at a common position, sorted
+the same way as the inputs, the trailing `join` becomes `dist!` and the label
+is carried through instead of being forgotten. Sorted exactly the opposite way,
+it becomes `swapsum ; dist!`. For 42 this is an optimisation: the backward run
+no longer guesses at that point. For Q42 it is mandatory (§9). What comes out:
+
+```
+append = dist ; unitprod + (assocprod! ; id * append ; inr) ; join   -- prelude.42's, exactly
+add    = dist ; unitprod + (add ; inr) ; join                         -- prelude.42's, exactly
+neg    = swapsum                                    -- neg (L x) <-> R x ;  neg (R x) <-> L x
+cross  = dist ; swapsum ; dist! ; swapprod          -- cross (L x, y) <-> (y, R x) ; …
+ctrl   = fun m -> dist ; (unitprod ; unitprod!) + (unitprod ; m ; unitprod!) ; dist!
+```
+
+`ctrl` is prelude.42's `mat ; (id + m) ; mat!` with `mat` written out. An
+earlier draft of this note gave it as `dist ; (id + (id * m)) ; dist!`. That
+agrees on the four well-typed inputs, but it never checks that the label's
+payload is `()`, so untyped it accepts `(L 5, x)`, which the clauses do not.
+Case trees are checked against the plain union on untyped values in both
+directions, which is the test that would have caught it.
 
 ## 7. `let`: a clause in the middle
 
@@ -374,7 +425,10 @@ The course's hand-written `rev` puts `(id * single)` after `swapprod` for the
 same reason, though it never says so.
 
 **Rule:** serialise every `f * g` so that recursive calls sit nearest the
-middle of the clause and constructor tests sit at its edges. Since the clause
+middle of the clause and constructor tests sit at its edges. As implemented: in
+a pair, a side that contains a call is built before a side made only of
+constructors, `(call * id) ; (id * constructors)`. Running that backwards puts
+the constructor test first by itself. Since the clause
 is `match ; route ; build`, the tests at the front of the match and at the end
 of the build run first in their own direction, and both directions get them
 early. This is a heuristic, not a termination guarantee (backward termination is
@@ -408,6 +462,10 @@ exactly on the line the literature already draws between PInj languages and
 42. This is reported as a finding, not as a reason to keep the two front ends
 the same. If Q42 later wants, say, Silq-style automatic uncomputation in its
 `let`, that belongs to Q42 alone.
+
+As implemented, Q42 refuses clause definitions outright and says why: what a
+clause compiles to uses `inl`, `inr`, `copy` and `|`. The rule-2 compiler
+described above does not exist yet.
 
 Not yet checked: whether every clause set that obeys rule 2, over Q42's types,
 compiles to Q42's generators. Theseus proves the analogous result into Π, and
@@ -447,23 +505,54 @@ What a relational target changes:
 3. **Non-linear patterns are equality tests, by the same rule as `copy`.**
    Nothing extra is needed (§4).
 
-## 11. Where it would live
+## 11. Where it lives, and what building it found
 
-- **Parser.** `rel42`'s parser accepts clause definitions beside point-free
-  ones, in the same `.42` files. A clause is recognised by `<->` at the top
-  level of a `def`.
-- **Desugarer.** A new module turns each clause group into a core term
-  (§3, §6, §8) before type inference. It also issues the use-count and name
-  errors (§2, §4) and the overlap warning (§6). Source positions are kept on
-  every emitted node, so type errors and empty results point at the clause, not
-  at generated plumbing.
-- **`42 show`** prints the clauses, the emitted 42, and its reverse.
-- **Tests.** Rewrite every definition in `course.42` and `prelude.42` that has a
-  natural clause form, and check that it agrees with the original on sample
-  values in both directions. `spike/sugar.42` is the hand-made first instalment.
-- **The course is unchanged.** It teaches what the compiler emits, and that
-  remains the thing you read when a result is empty. A later appendix could show
-  each lesson's definition in clause form beside it.
+- **Parser** (`rel42/syntax.py`). Clause definitions sit beside point-free
+  ones in the same `.42` files. A `def` is a clause when `<->` comes before
+  `=`. Every `def` header is read first, so an identifier in a clause is a
+  variable exactly when it names no definition, parameter or primitive. That
+  is what makes the naming rule of §2 decidable without types. Clauses of one
+  definition must be written together and must share their parameters.
+- **Compiler** (`rel42/sugar.py`). Shapes, building, routing (§3), the
+  use-count and naming errors (§2, §4), turning clauses round (§5), the overlap
+  check and case trees (§6), `let` (§7), the order rule (§8), and a peephole
+  pass that keeps only rewrites that are equalities of relations. It depends on
+  `core` alone and hands back ordinary terms, so `run`, `!`, inference and
+  meta.42 never see a clause.
+- **What a program sees.** `parse_program` returns the compiled definitions as
+  before. It also keeps the clauses as written (`Program.clauses`) and the
+  warnings (`Program.warnings`); the command line prints warnings on stderr.
+  `42 show` prints the three blocks of §5.
+- **Q42** parses with clauses switched off, and the refusal names §9.
+- **Tests** (`tests/test_sugar.py`, 51). Every example is checked against its
+  hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
+  forwards and backwards. Turned-round clauses compile to the inverse. Printed
+  clauses parse back. Case trees agree with the plain union on 34 untyped
+  values. Every error and warning is triggered.
+- **One promise not kept.** Errors give the clause's line, not the position of
+  the generated node they came from. Carrying positions on every node would
+  change `core`'s term classes, which Q42 shares, and that was not worth doing
+  yet (§12).
+- **The course is unchanged.** It teaches what the compiler emits, which is
+  still what you read when a result is empty.
+
+**What building it found.**
+
+1. **Matched constants were not checked.** The first version matched a
+   constant by building it backwards and relied, without saying so, on the
+   route's `unitprod` to check the hole it left behind. Two shortcuts skipped
+   that `unitprod`: one for a route between identical shapes, one for a pattern
+   that is only a constant. So `def f (L ()) <-> 0` accepted `L 5`. The case
+   trees exposed it, because moving a label out of a pattern often leaves just
+   such a shape. Fixed as §3 describes, with a regression test.
+2. **The hand-written `ctrl` was looser than its clauses** (§6). What the
+   compiler emits agrees with the prelude; the spike file has been corrected.
+3. **Checking constants costs some readability.** `rev`'s empty-list branch
+   compiles to `unitprod! ; swapprod ; unitprod ; inl` where the course writes
+   `nil`. Once a definition type-checks, the test cannot fail (§12).
+4. **The order rule matters, as §8 predicted.** Without it `rev!` written as
+   clauses exhausts the call depth. With it, it answers at once.
+5. **Overlap warnings on turned-round definitions** (§6).
 
 ## 12. Open questions
 
@@ -474,4 +563,15 @@ What a relational target changes:
    help *read* existing 42. It is not an inverse of desugaring, since routes are
    canonicalised, and should not be described as one.
 3. **The Q42 compilation result** of §9, which should be proved rather than
-   assumed.
+   assumed, and then the rule-2 compiler built on it.
+4. **A sharper overlap check for calls in patterns.** Treating a call as a
+   wildcard warns on `unrev`, whose call can never produce `[]`. The check
+   could look at what the called definition can return: its clauses' outputs
+   when it has clauses, or its inferred type. More precise, but the warning
+   would then depend on another definition's body.
+5. **Dropping the unit test where types make it dead.** After inference, a
+   hole whose type is `1` cannot hold anything but `()`, so the test could go
+   from the emitted term. It changes no typed behaviour and makes `show`
+   cleaner, but the emitted term would then mean less than its clauses on
+   untyped values.
+6. **Source positions on generated nodes** (§11).
