@@ -1075,7 +1075,8 @@ which is a printing abbreviation and changes nothing (the 42 manual, §3.7).
 
 ### 7.2 Registers and kets
 
-Several qubits are a nested pair, to the right:
+Several qubits together are called a **register**, and in Q42 a register is a
+nested pair, to the right:
 
 ```
 |abc>   is   (a, (b, c))
@@ -1091,7 +1092,8 @@ A Q42 definition can be written as clauses, as in the 42 manual's Part I, and
 it compiles to the point-free core. In Q42 **a name is a wire**: a pattern
 names the qubits it takes apart, and a call names the qubits a gate acts on.
 The compiler routes them together and back, and routing costs no gates (§9.4).
-`teleport.42`'s first stage:
+The first stage of `teleport.42` (teleportation is §8.5; only this stage
+matters here):
 
 ```
 def bell (q0, (q1, q2))  <->
@@ -1119,8 +1121,10 @@ manual, §5). Matching a qubit like this is **quantum control**, not a classical
 branch: a control in superposition matches both clauses, and both run, weighted
 by its amplitudes. That is §6.4's `dist`, written with names.
 
-A classical function is its truth table. Deutsch's oracle for `f(x) = not x`
-(§8.4):
+A classical function is its truth table. To use a function `f` from bits to
+bits inside a quantum program it has to be made reversible, and the standard way
+is a gate `(x, y) ↦ (x, y XOR f(x))`, called an **oracle** for `f`. For
+`f(x) = not x`, from Deutsch's algorithm (§8.4):
 
 ```
 def orcnot (L (), y)  <->  (L (), x y)       -- f(0) = 1: flip y
@@ -1142,8 +1146,8 @@ built from clauses alone permutes basis states, and every genuinely quantum
 step, `h`, `v`, `omega` and what is built from them, enters as a call. And not
 every definition they accept can yet be emitted as a circuit: when a
 definition's inputs and outputs cannot be split the same way, it is compiled by
-a construction that reorders sums of different widths, which are not registers
-(§9.4). It runs in the evaluator, and `42q emit` says why it will not emit it.
+a construction that rearranges labelled values whose branches hold different
+numbers of qubits, and no fixed set of wires can hold those (§9.4). It runs in the evaluator, and `42q emit` says why it will not emit it.
 The design, and the proof that the compiled term means what the clauses say and
 is unitary, are in `QSUGAR.md`.
 
@@ -1162,8 +1166,9 @@ is unitary, are in `QSUGAR.md`.
 ```
 
 `matrix` and `unitary` need to know how big the space is, and the *type* is what
-tells them. Most gates are more polymorphic than "a gate on n qubits": `x` is
-just `swapsum`, so its type is `a + b <-> b + a`. Those two commands therefore
+tells them. Most gates are *polymorphic*, defined at many types rather than at
+"n qubits": `x` is just `swapsum`, so its type is `a + b <-> b + a`, for any
+`a` and `b`. Those two commands therefore
 take `--qubits N`, to read a type at a given width:
 
 ```
@@ -1205,9 +1210,10 @@ bell |00>
   -- 100 shots, seed 0
 ```
 
-Two columns, deliberately. **exact** is the Born probability `|amplitude|²`,
-which only a simulator can know. **drawn** is a sample of that many shots, which
-is all a real machine would give you. Seeing them together is the point: it shows
+Two columns, deliberately. **exact** is the Born probability `|amplitude|²`
+(§2.2), which only a simulator can know. **drawn** counts the outcomes of 100
+*shots*: a shot is one run of the program followed by a measurement, and counts
+of shots are all a real machine would give you. Seeing them together is the point: it shows
 what measurement costs you.
 
 `--shots N` sets how many draws, and `--seed S` fixes them so a transcript stays
@@ -1223,8 +1229,8 @@ $ 42q sample deutsch dnot "|01>" --bits 0
     |1_>  100.0%    100  ##############################
 ```
 
-The `_` marks a qubit that was not measured. That is §8.4's algorithm answering
-its question: **one query, one qubit, and the answer is certain.**
+The `_` marks a qubit that was not measured. This is §8.4's algorithm, Deutsch's,
+answering its question: **one query, one qubit, and the answer is certain.**
 
 Measurement is *terminal*: it happens after the program, never inside it. That
 is a deliberate line rather than a limitation of the command, and §9.2 explains
@@ -1277,9 +1283,12 @@ Real quantum hardware has registers of fixed size and does arithmetic **mod
 (a, b)  |->  (b, a + b  mod 2^n)
 ```
 
-becomes a *permutation* of the `2ⁿ × 2ⁿ` basis states. The matrix `[[0,1],[1,1]]`
-has determinant `−1`, which is invertible mod `2ⁿ`, so the permutation is
-unitary and therefore expressible. `q42/fib.42` does it on two 2-bit registers,
+becomes a *permutation* of the `2ⁿ × 2ⁿ` basis states: no two registers go to
+the same place, because the step can be undone, `a` being recovered as
+`(a + b) − b` mod `2ⁿ`. (Algebraically, the step is the matrix `[[0,1],[1,1]]`,
+which has determinant `−1`, a number with an inverse mod `2ⁿ`.) A permutation of
+basis states is a matrix of 0s and 1s with one 1 in each row and column, which
+is unitary, and therefore expressible. `q42/fib.42` does it on two 2-bit registers,
 `|x0 x1 y0 y1>`, writing each step as the circuit it is (§7.3):
 
 ```
@@ -1294,9 +1303,13 @@ def swapregs (x0, (x1, (y0, y1)))  <->  (y0, (y1, (x0, x1)))
 def fib = swapregs ; add4
 ```
 
+In the comments, `x0, y0 -> y1` means controls `x0` and `y0`, target `y1`.
 `add4` is three gates because `y += x` is "if `x₀` then `y += 1`" followed by
-"if `x₁` then `y += 2`", and a two-bit increment is `CNOT` then `X`; the Toffoli
-comes first because `y1` depends on the old `y0`. `swapregs` is no gates at all:
+"if `x₁` then `y += 2`". Adding 1 to the two-bit `y = (y0, y1)`, low bit first,
+flips `y0` and, if `y0` was 1, carries into `y1`; controlled on `x0`, that is the
+Toffoli (carry: flip `y1` if `x0` and `y0`) followed by a CNOT (flip `y0` if
+`x0`). Adding 2 flips `y1` alone: the second CNOT. The Toffoli comes first
+because the carry depends on the old `y0`. `swapregs` is no gates at all:
 its clause only rearranges, and rearranging emits nothing.
 
 Iterating gives the Fibonacci numbers mod 4:
@@ -1309,8 +1322,11 @@ step 10: register = (3, 1)     F_10 = 55, mod 4 = 3
 ```
 
 and since it is unitary, running it backwards recovers the seed exactly, rather
-than "a set containing the seed", which is what 42 would give you. Its order is 6,
-which is the Pisano period of 4.
+than "a set containing the seed", which is what 42 would give you. Applying `fib`
+six times brings every register back to where it started, and no fewer times
+does (its *order* is 6). That matches number theory: the Fibonacci numbers mod
+`m` repeat with a fixed period, called the Pisano period of `m`, and the
+Pisano period of 4 is 6.
 
 ### 8.3 The quantum part
 
@@ -1322,8 +1338,9 @@ def hy0 (x0, (x1, (y0, y1)))  <->  let y0 = h y0 in (x0, (x1, (y0, y1)))
 def qfib = hy0 ; fib
 ```
 
-puts one bit of the seed through a Hadamard first, after which the register
-holds two Fibonacci orbits at once and every later step advances both. The whole
+puts one bit of the seed through a Hadamard first. The register then holds two
+seeds at once, in superposition, and every later step advances both: two
+*orbits*, the sequences of registers each seed runs through, computed together. The whole
 thing still inverts exactly.
 
 ### 8.4 Deutsch's algorithm, and what Q42 shows you
@@ -1336,8 +1353,9 @@ The problem: you are handed a black box computing an unknown one-bit function
 (`f(0) ≠ f(1)`). Classically you must evaluate `f` twice, since one evaluation
 tells you nothing about the other. Deutsch's algorithm answers after one.
 
-The oracle has to be reversible like everything else, so it takes the standard
-shape `(x, y) ↦ (x, y XOR f(x))`. That is the Toffoli trick from §1,
+The black box has to be reversible like everything else, so it is an oracle in
+the sense of §7.3, `(x, y) ↦ (x, y XOR f(x))`: it keeps `x` and XORs `f(x)` into
+a second qubit. That is the Toffoli trick from §1,
 which is also `mul` keeping its multiplier in the 42 manual's §9.3. There are only
 four one-bit functions, so `q42/deutsch.42` writes all four out, each as its
 truth table (§7.3):
@@ -1355,7 +1373,8 @@ def orcnot (R (), y)  <->  (R (), y)
 ```
 
 **The algorithm** is three steps: superpose both inputs, query the oracle once,
-and interfere the results back together.
+and interfere the results back together. `h * h` applies a Hadamard to each of
+the two qubits, and `h * id` to the first only:
 
 ```
 def d0 = (h * h) ; orc0 ; (h * id)
@@ -1386,22 +1405,55 @@ $ 42q sample deutsch dnot "|01>" --bits 0
     |1_>  100.0%    100  ##############################
 ```
 
-But the *state* is the more instructive output, and worth pausing on. A device
-hands you one bit and hides the mechanism. Q42 shows you the amplitudes, so you
-can see the second qubit's `+/-0.707107` carrying the phase the oracle deposited
-and the final Hadamard converts into the answer. For understanding *why* an
+**Why it works.** Follow the amplitudes from the input `|01>`. The two
+Hadamards give
+
+```
+1/2 ( |0> + |1> ) ( |0> - |1> )  =  0.5|00> - 0.5|01> + 0.5|10> - 0.5|11>
+```
+
+Now the oracle XORs `f(x)` into the second qubit. XORing 1 into `|0> − |1>` gives
+`|1> − |0>`, the same with its sign flipped; XORing 0 leaves it alone. So the
+second qubit is unchanged *except for a sign*, `−1` exactly when `f(x) = 1`, and
+that sign ends up on the first qubit's term for that `x`:
+
+```
+1/2 ( s0 |0> + s1 |1> ) ( |0> - |1> )        s0 = (-1)^f(0),  s1 = (-1)^f(1)
+```
+
+If `f` is constant, `s0 = s1` and the first qubit is `±(|0> + |1>)/√2`; the last
+Hadamard turns that into `±|0>` (§2.4 read backwards). If `f` is balanced,
+`s0 = −s1`, the first qubit is `±(|0> − |1>)/√2`, and the Hadamard turns it into
+`±|1>`. One query decided a property of both values of `f`, because the query
+was made on a superposition of both inputs and the answer came back as a sign,
+which the final Hadamard turns into a bit by interference (§2.5).
+
+That is why the *state* is the more instructive output. A device hands you one
+bit and hides the mechanism. Q42 shows you the amplitudes, so you can see the
+second qubit's `+/-0.707107`, the `|0> − |1>` that carried the sign, and the
+first qubit holding the answer. For understanding *why* an
 algorithm works, as opposed to what it returns, that is worth more than a
 sample. §9.1 returns to this.
 
 ### 8.5 Teleportation, without measuring in the middle
 
-Teleportation is the textbook example of an algorithm that *requires* measuring
-half way through. Alice measures her two qubits, sends Bob two classical bits,
-and Bob applies `X` and/or `Z` depending on what they say. Q42 has no mid-circuit
-measurement (§9.2), so this ought to be impossible.
+**Teleportation** moves the state of one qubit to another qubit, possibly far
+away, without sending the qubit itself, using a shared entangled pair and two
+classical bits. The protocol: Alice holds a qubit `q0` in some state she wants
+to send, which she need not know. Alice and Bob each hold one half of a Bell
+pair (§2.6), `q1` and `q2`. Alice applies a CNOT from `q0` to `q1` and a
+Hadamard to `q0`, measures both her qubits, and sends Bob the two bits she got.
+Bob applies `X` (NOT) to `q2` if the second bit is 1, and `Z` (§6.2: multiply
+`|1>` by `−1`) if the first is 1. After that, `q2` holds exactly the state `q0`
+started in.
+
+It is the textbook example of an algorithm that *requires* measuring half way
+through, and Q42 has no mid-circuit measurement (§9.2), so this ought to be
+impossible.
 
 It is not, and the reason is a theorem. The **principle of deferred measurement**
-(Nielsen & Chuang §4.4) says that any circuit with mid-circuit measurements and
+(Nielsen & Chuang §4.4; their *Quantum Computation and Quantum Information* is
+the standard textbook) says that any circuit with mid-circuit measurements and
 classically-controlled gates can be rewritten with every measurement moved to the
 *end*, each classical control replaced by a **quantum** control. Q42 has quantum
 control, a clause that matches on a qubit (§7.3), so the rewritten circuit is an
@@ -1429,8 +1481,9 @@ def bob (q0, (q1, q2))  <->                        -- CNOT q1->q2, CZ q0->q2
 def tele = bell ; alice ; bob
 ```
 
-`bob` is where "if Alice's bit is 1, apply X" became a CNOT: the same conditional,
-controlled by the qubit rather than by a bit read out of it.
+`cz` is `z` controlled on its first qubit. `bob` is where "if Alice's bit is 1,
+apply X" became a CNOT, and "if the other bit is 1, apply Z" a controlled-Z: the
+same conditionals, controlled by the qubit rather than by a bit read out of it.
 
 It is unitary like everything else:
 
@@ -1439,9 +1492,10 @@ $ 42q unitary teleport tele --qubits 3
   [ok ] tele ; tele! = id on 8 dimension(s)
 ```
 
-Sending `|0>` proves little, so prepare a real state on `q0`, a superposition
-with a phase, teleport it, and apply the preparing gate's inverse to `q2`. If the state genuinely arrived, amplitudes and phase
-intact, `q2` must return to `|0>` with certainty:
+Sending `|0>` proves little, so `check` prepares a real state on `q0`, a
+superposition with a phase (`prep = h ; t`), teleports it, and applies `prep!`,
+the preparing gate's inverse, to `q2`. If the state genuinely arrived,
+amplitudes and phase intact, `q2` must return to `|0>` with certainty:
 
 ```
 $ 42q sample teleport check "|000>" --bits 2
@@ -1450,7 +1504,8 @@ $ 42q sample teleport check "|000>" --bits 2
 
 It does. The deferred measurements have not vanished: they are the other two
 qubits, which end up spread evenly over all four outcomes, exactly the four
-results Alice would have read:
+results Alice would have read. (`checkh` is `check` with `h` as the preparing
+gate, so that the amplitudes print simply.)
 
 ```
 $ 42q teleport checkh "|000>"
