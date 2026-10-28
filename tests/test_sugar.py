@@ -15,8 +15,13 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+import subprocess  # noqa: E402
+import tempfile  # noqa: E402
+
 from rel42 import Ref, dagger, parse_program, parse_value, run, show_term  # noqa: E402
 from rel42.core import Rel42Error, expand_env  # noqa: E402
+from rel42.sugar import compile_clauses, turned_round  # noqa: E402
+from rel42.syntax import show_clause  # noqa: E402
 from rel42.types import infer_program  # noqa: E402
 
 
@@ -193,6 +198,126 @@ class Emission(unittest.TestCase):
 
     def test_source_order_is_kept(self):
         self.assertEqual(list(ENV)[:3], ["single", "append", "split"])
+
+
+class TurnedRound(unittest.TestCase):
+    """`show` prints each definition's clauses turned round.  They must mean the
+    inverse, and print as source that parses back to the same clauses."""
+
+    CASES = {
+        "single": NATS,
+        "append": PAIRS,
+        "rev": LISTS,
+        "add": ["(0, 0)", "(2, 3)"],
+        "initlast2": LISTS,
+        "deeper": LISTS,
+        "same": ["(2, 2)", "(2, 3)"],
+    }
+
+    def test_turned_round_clauses_are_the_inverse(self):
+        for name, inputs in self.CASES.items():
+            params, group = ENV.clauses[name]
+            turned = compile_clauses(params, [turned_round(c) for c in group])
+            env = dict(_runnable(ENV), turned=turned)
+            for v in inputs:
+                with self.subTest(name=name, value=v):
+                    self.assertEqual(
+                        run(Ref("turned", True), parse_value(v), env),
+                        fwd(ENV, name, v),
+                    )
+
+    def test_printed_clauses_parse_back(self):
+        extra = []
+        for name, (params, group) in ENV.clauses.items():
+            for c in group:
+                extra.append(f"def rt_{show_clause(name, params, c)}")
+            for c in group:
+                extra.append(f"def tr_{show_clause(name, params, turned_round(c))}")
+        env = parse_program(SRC + "\n" + "\n".join(extra))
+        for name, (_, group) in ENV.clauses.items():
+            with self.subTest(name=name):
+                again = env.clauses[f"rt_{name}"][1]
+                self.assertEqual([(c.pattern, c.body) for c in again],
+                                 [(c.pattern, c.body) for c in group])
+                turned = env.clauses[f"tr_{name}"][1]
+                self.assertEqual(
+                    [(c.pattern, c.body) for c in turned],
+                    [(t.pattern, t.body) for t in map(turned_round, group)],
+                )
+
+    def test_constructors_print_as_written(self):
+        params, group = ENV.clauses["ctrl"]
+        self.assertEqual(show_clause("ctrl", params, group[1]), "ctrl m (R (), a) <-> (R (), m a)")
+        params, group = ENV.clauses["add"]
+        self.assertEqual(show_clause("add", params, group[1]), "add (m + 1, n) <-> add (m, n) + 1")
+        params, group = ENV.clauses["single"]
+        self.assertEqual(show_clause("single", params, turned_round(group[0])), "single [x] <-> x")
+
+
+class Warnings(unittest.TestCase):
+    """SUGAR.md section 6: overlapping input patterns warn; nothing else does."""
+
+    def warnings(self, src):
+        return parse_program(src).warnings
+
+    def test_overlapping_inputs_warn(self):
+        (w,) = self.warnings("def f [] <-> []\ndef f xs <-> xs")
+        self.assertIn("clauses 1 and 2 of 'f'", w)
+        self.assertIn("not the first match", w)
+        self.assertIn("also `[]`", w)  # 0, [] and false are one value
+
+    def test_the_witness_is_named(self):
+        (w,) = self.warnings("def f (x : xs) <-> (x, xs)\ndef f (y : [])  <-> (y, [])")
+        self.assertIn("`_ : 0`", w)
+
+    def test_disjoint_inputs_do_not_warn(self):
+        self.assertEqual(ENV.clauses and self.warnings(
+            "def g [] <-> []\ndef g (x : xs) <-> x : xs"), [])
+
+    def test_overlapping_outputs_do_not_warn(self):
+        # append's outputs overlap: that is where split's answers come from.
+        self.assertEqual(self.warnings(
+            "def a ([], ys) <-> ys\ndef a (x:xs, ys) <-> x : a (xs, ys)"), [])
+
+    def test_an_explicit_union_does_not_warn(self):
+        self.assertEqual(self.warnings(
+            "def h (x:xs) <-> (x, xs)\n"
+            "def d (x:xs) <-> let (y, ys) = p xs in (y, x:ys)\n"
+            "def p = h | d"), [])
+
+    def test_a_call_in_a_pattern_counts_as_anything(self):
+        # `split`'s two clauses really do overlap, and are meant to.  `unrev`'s
+        # do not -- `append (rev xs, [x])` never matches `[]` -- but a call is
+        # treated as matching anything, so it warns too.  That is the stated
+        # cost of a check that never misses a real overlap.
+        split, unrev = ENV.warnings
+        self.assertIn("of 'split' both match `_ : _`", split)
+        self.assertIn("of 'unrev' both match `0`", unrev)
+
+    def test_files_without_clauses_have_none(self):
+        self.assertEqual(PRELUDE.warnings, [])
+
+    def test_the_command_line_prints_them_on_stderr(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "w.42")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("def f [] <-> []\ndef f xs <-> xs\n")
+            out = subprocess.run(
+                [sys.executable, "-m", "rel42", "run", path, "f", "[]"],
+                capture_output=True, text=True, cwd=ROOT,
+            )
+        self.assertIn("warning:", out.stderr)
+        self.assertNotIn("warning:", out.stdout)
+
+
+class Q42(unittest.TestCase):
+    def test_q42_refuses_clauses_with_the_reason(self):
+        from q42.syntax import parse_program as qparse
+
+        with self.assertRaises(Rel42Error) as cm:
+            qparse("def f x <-> x")
+        self.assertIn("42-only", str(cm.exception))
+        self.assertIn("section 9", str(cm.exception))
 
 
 class Errors(unittest.TestCase):

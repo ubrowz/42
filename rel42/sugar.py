@@ -19,7 +19,7 @@ clause group to `compile_clauses`; this module depends on `core` alone.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Union as U
 
 from .core import (
@@ -57,14 +57,19 @@ class DTerm:
 @dataclass(frozen=True)
 class DVar(DTerm):
     name: str
-    line: int
+    line: int = field(default=0, compare=False)
 
 
 @dataclass(frozen=True)
 class DConst(DTerm):
-    """A literal: `()`, `3`, `[]`, `'a'`, `"hi"` -- already a value."""
+    """A literal: `()`, `3`, `[]`, `'a'`, `"hi"` -- already a value.
+
+    `text` is how it was written, so `[]` is not printed back as `0`; it takes
+    no part in equality, since the two are the same value.
+    """
 
     value: Value
+    text: str = field(default="", compare=False)
 
 
 @dataclass(frozen=True)
@@ -80,7 +85,13 @@ class DInl(DTerm):
 
 @dataclass(frozen=True)
 class DInr(DTerm):
+    """`R t`, also written `t + 1`, `h : t` or inside `[...]`.
+
+    `form` records which of "R", "+", ":" or "[" was written, for printing only.
+    """
+
     t: DTerm
+    form: str = field(default="R", compare=False)
 
 
 @dataclass(frozen=True)
@@ -98,7 +109,7 @@ class DLet(DTerm):
     pat: DTerm
     rhs: DTerm
     body: DTerm
-    line: int
+    line: int = field(default=0, compare=False)
 
 
 @dataclass(frozen=True)
@@ -447,6 +458,108 @@ def compile_clauses(params: List[str], clauses: List[Clause], defined=frozenset(
         out = Union(out, t)
     for p in reversed(params):
         out = Fun(p, out)
+    return out
+
+
+def turned_round(c: Clause) -> Clause:
+    """`p <-> e` as `e <-> p`, with any `let` chain reversed (SUGAR.md section 5).
+
+        p <-> let q1 = t1 in let q2 = t2 in e
+    becomes
+        e <-> let t2 = q2 in let t1 = q1 in p
+    """
+    steps = []
+    body = c.body
+    while isinstance(body, DLet):
+        steps.append(body)
+        body = body.body
+    out: DTerm = c.pattern
+    for s in steps:
+        out = DLet(s.rhs, s.pat, out, s.line)
+    return Clause(body, out, c.line, c.text)
+
+
+# ---------------------------------------------------------------------------
+# Overlap (SUGAR.md section 6).  Two input patterns overlap when some value
+# matches both.  Decided by unifying their constructor trees: a variable or a
+# call counts as matching anything, so the check can warn about an overlap
+# that a call would in fact rule out, and never misses one that exists.
+# ---------------------------------------------------------------------------
+
+WILD = "_"
+
+
+def _tree(t: DTerm):
+    """A pattern as nested ("L", x) / ("R", x) / ("P", a, b) / () / WILD."""
+    match t:
+        case DVar() | DApp():
+            return WILD
+        case DConst(v):
+            return _vtree(v)
+        case DInl(x):
+            return ("L", _tree(x))
+        case DInr(x):
+            return ("R", _tree(x))
+        case DPair(a, b):
+            return ("P", _tree(a), _tree(b))
+    return WILD
+
+
+def _vtree(v: Value):
+    match v:
+        case Unit():
+            return ()
+        case Inl(x):
+            return ("L", _vtree(x))
+        case Inr(x):
+            return ("R", _vtree(x))
+        case Pair(a, b):
+            return ("P", _vtree(a), _vtree(b))
+    raise TypeError(f"not a value: {v!r}")
+
+
+def _unify(a, b):
+    """The most general tree matching both, or None when nothing does."""
+    if a == WILD:
+        return b
+    if b == WILD:
+        return a
+    if a == () or b == ():
+        return () if a == b else None
+    if a[0] != b[0]:
+        return None
+    if a[0] == "P":
+        x = _unify(a[1], b[1])
+        y = _unify(a[2], b[2]) if x is not None else None
+        return None if y is None else ("P", x, y)
+    x = _unify(a[1], b[1])
+    return None if x is None else (a[0], x)
+
+
+def tree_value(tree):
+    """The tree as a value, or None if it still has a wildcard in it."""
+    if tree == WILD:
+        return None
+    if tree == ():
+        return Unit()
+    if tree[0] == "P":
+        a, b = tree_value(tree[1]), tree_value(tree[2])
+        return None if a is None or b is None else Pair(a, b)
+    x = tree_value(tree[1])
+    if x is None:
+        return None
+    return Inl(x) if tree[0] == "L" else Inr(x)
+
+
+def overlaps(clauses: List[Clause]):
+    """(i, j, witness) for every pair of clauses whose patterns can both match."""
+    trees = [_tree(c.pattern) for c in clauses]
+    out = []
+    for i in range(len(trees)):
+        for j in range(i + 1, len(trees)):
+            w = _unify(trees[i], trees[j])
+            if w is not None:
+                out.append((i, j, w))
     return out
 
 

@@ -23,7 +23,8 @@ from .core import (
     is_combinator,
     run,
 )
-from .syntax import parse_program, parse_value, show_as, show_term
+from .sugar import simplify, turned_round
+from .syntax import parse_program, parse_value, show_as, show_clause, show_term
 from .types import (
     conform,
     infer_program,
@@ -57,6 +58,8 @@ def _load(path: str, reduce: bool = False):
     """
     with open(path, "r", encoding="utf-8") as fh:
         env = parse_program(fh.read())
+    for w in env.warnings:
+        print(f"warning: {w}", file=sys.stderr)
     return expand_env(env) if reduce else env
 
 
@@ -234,6 +237,20 @@ def cmd_show(args) -> int:
         if name not in env:
             raise Rel42Error(f"'{name}' is not defined in this file")
         body = env[name]
+        if name in env.clauses:
+            # The clauses, then the same clauses turned round -- which is the
+            # inverse, read off the page (SUGAR.md section 5) -- then what
+            # they compile to.
+            params, group = env.clauses[name]
+            for c in group:
+                print(f"{name:<{width}}  {show_clause(name, params, c)[len(name) + 1:]}")
+            for c in group:
+                turned = show_clause(name, params, turned_round(c))
+                print(f"{name + '!':<{width}}  {turned[len(name) + 1:]}")
+            print(f"{name:<{width}}  = {show_term(body)}")
+            print(f"{name + '!':<{width}}  = {show_term(simplify(dagger(body)))}")
+            print()
+            continue
         print(f"{name:<{width}}  = {show_term(body)}")
         print(f"{name + '!':<{width}}  = {show_term(dagger(body))}")
         print()

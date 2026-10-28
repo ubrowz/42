@@ -380,7 +380,7 @@ class _Parser:
         head = self.dplus(pattern)
         if self.at(":"):
             self.next()
-            return S.DInr(S.DPair(head, self.dcons(pattern)))
+            return S.DInr(S.DPair(head, self.dcons(pattern)), ":")
         return head
 
     def dplus(self, pattern: bool):
@@ -388,7 +388,7 @@ class _Parser:
         while self.at("+") and self.toks[self.i + 1][0] == "num":
             self.next()
             for _ in range(int(self.next()[1])):
-                node = S.DInr(node)
+                node = S.DInr(node, "+")
         return node
 
     def dapp(self, pattern: bool):
@@ -445,7 +445,7 @@ class _Parser:
         if text == "(":
             if self.at(")"):
                 self.next()
-                return S.DConst(UNIT)
+                return S.DConst(UNIT, "()")
             first = self.dcons(pattern)
             if self.at(","):
                 self.next()
@@ -462,13 +462,13 @@ class _Parser:
                     self.next()
                     items.append(self.dcons(pattern))
             self.expect("]")
-            node = S.DConst(Inl(UNIT))
+            node = S.DConst(Inl(UNIT), "[]")
             for item in reversed(items):
-                node = S.DInr(S.DPair(item, node))
+                node = S.DInr(S.DPair(item, node), "[")
             return node
         if kind in ("num", "char", "string"):
             self.i -= 1
-            return S.DConst(self.value())
+            return S.DConst(self.value(), text)
         if kind == "ident" and text not in self._KEYWORDS:
             if self._is_head(text):
                 raise self._name_clash(text, ln, pattern)
@@ -817,9 +817,13 @@ class Program(dict):
     and by nothing else.
     """
 
-    def __init__(self, defs=(), types=()):
+    def __init__(self, defs=(), types=(), clauses=None, warnings=()):
         super().__init__(defs)
         self.types: List[Abbrev] = list(types)
+        # Clause definitions as written, name -> (params, clauses), for `show`;
+        # and what the compiler warned about.  Neither affects meaning.
+        self.clauses: Dict[str, Tuple[List[str], List[S.Clause]]] = dict(clauses or {})
+        self.warnings: List[str] = list(warnings)
 
 
 def _header(toks, i: int):
@@ -879,8 +883,12 @@ def _source(toks) -> str:
     return out
 
 
-def parse_program(src: str, prims=None) -> "Program":
-    """Parse `def` bindings and `type` abbreviations into an environment."""
+def parse_program(src: str, prims=None, allow_clauses: bool = True) -> "Program":
+    """Parse `def` bindings and `type` abbreviations into an environment.
+
+    `allow_clauses` is off for Q42, whose generators cannot express what a
+    clause compiles to (SUGAR.md section 9).
+    """
     toks = lex(src)
     p = _Parser(toks, prims)
     for i, (kind, text, _) in enumerate(toks[:-1]):
@@ -930,6 +938,13 @@ def parse_program(src: str, prims=None) -> "Program":
 
         sep, j, params, k = _header(toks, p.i - 1)
         if sep == "<->":
+            if not allow_clauses:
+                raise ParseError(
+                    f"line {ln}: '{name}' is a clause definition, and those are "
+                    f"42-only for now.  A clause compiles to `inl`, `inr`, `copy` "
+                    f"and `|`, none of which Q42 has; the stricter form Q42 needs "
+                    f"is SUGAR.md section 9.  Write it point-free."
+                )
             if name in env and name not in clauses:
                 raise ParseError(f"line {ln}: '{name}' is already defined")
             if name in clauses:
@@ -990,6 +1005,90 @@ def parse_program(src: str, prims=None) -> "Program":
         for name_ in reversed(params):
             body = Fun(name_, body)
         env[name] = body
+    warnings: List[str] = []
     for name, (params, group) in clauses.items():
         env[name] = S.compile_clauses(params, group)
-    return Program(env, types)
+        for i, j, witness in S.overlaps(group):
+            warnings.append(
+                f"line {group[j].line}: clauses {i + 1} and {j + 1} of '{name}' both "
+                f"match {show_witness(witness)}:\n"
+                f"    def {group[i].text}\n"
+                f"    def {group[j].text}\n"
+                f"42 takes the union of matching clauses, not the first match, so "
+                f"both give answers there.  If that is meant, give each its own "
+                f"name and write the union: `def {name} = ... | ...`."
+            )
+    return Program(env, types, clauses, warnings)
+
+
+def show_witness(tree) -> str:
+    """A value two patterns share, `_` where anything will do."""
+    v = S.tree_value(tree)
+    if v == Inl(UNIT):
+        return "`0` (which is also `[]` and `false`)"
+    return f"`{_witness(tree)}`"
+
+
+def _witness(tree) -> str:
+    if tree == S.WILD:
+        return "_"
+    v = S.tree_value(tree)
+    if v is not None:
+        return show(v)
+    if tree[0] == "P":
+        return f"({_witness(tree[1])}, {_witness(tree[2])})"
+    if tree[0] == "R" and isinstance(tree[1], tuple) and tree[1][:1] == ("P",):
+        return f"{_witness(tree[1][1])} : {_witness(tree[1][2])}"
+    if tree[0] == "R":
+        k = 0
+        while isinstance(tree, tuple) and tree[:1] == ("R",):
+            k, tree = k + 1, tree[1]
+        return f"{_witness(tree)} + {k}"
+    inner = _witness(tree[1])
+    return f"L {inner}" if " " not in inner or inner.startswith(("(", "[")) else f"L ({inner})"
+
+
+# ---------------------------------------------------------------------------
+# Printing data terms, for `show`.
+# ---------------------------------------------------------------------------
+
+
+def show_clause(name: str, params: List[str], c: "S.Clause") -> str:
+    head = " ".join([name, *params, _dt(c.pattern, 3)])
+    return f"{head} <-> {_dt(c.body, 0)}"
+
+
+def _dt(t, outer: int = 0) -> str:
+    """Levels: 0 let, 1 cons, 2 plus/application, 3 atom."""
+    def wrap(level: int, s: str) -> str:
+        return f"({s})" if level < outer else s
+
+    match t:
+        case S.DVar(name):
+            return name
+        case S.DConst(v, text):
+            return text or show(v)
+        case S.DPair(a, b):
+            return f"({_dt(a)}, {_dt(b)})"
+        case S.DLet(q, r, e):
+            return wrap(0, f"let {_dt(q, 1)} = {_dt(r, 1)} in {_dt(e, 0)}")
+        case S.DInl(x):
+            return wrap(2, f"L {_dt(x, 3)}")
+        case S.DApp(head, x):
+            return wrap(2, f"{show_term(head, 4)} {_dt(x, 3)}")
+        case S.DInr(S.DPair(a, b), "["):
+            items, rest = [a], b
+            while isinstance(rest, S.DInr) and rest.form == "[":
+                items.append(rest.t.a)
+                rest = rest.t.b
+            return "[" + ", ".join(_dt(x) for x in items) + "]"
+        case S.DInr(S.DPair(a, b), ":"):
+            return wrap(1, f"{_dt(a, 2)} : {_dt(b, 1)}")
+        case S.DInr(x, "+"):
+            k = 1
+            while isinstance(x, S.DInr) and x.form == "+":
+                k, x = k + 1, x.t
+            return wrap(2, f"{_dt(x, 2)} + {k}")
+        case S.DInr(x):
+            return wrap(2, f"R {_dt(x, 3)}")
+    return repr(t)

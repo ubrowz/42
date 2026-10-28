@@ -45,7 +45,7 @@ def parse_term(src: str) -> Term:
 
 
 def parse_program(src: str) -> Dict[str, Term]:
-    return _parse_program(src, PRIMS)
+    return _parse_program(src, PRIMS, allow_clauses=False)
 
 
 def ket(bits: str) -> Value:
