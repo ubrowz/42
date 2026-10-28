@@ -414,6 +414,7 @@ PAGE = """<!doctype html>
 #: a page here to that page, and send the rest to the source on GitHub.
 SITE_PAGE = {
     "MANUAL.md": "manual.html",
+    "COURSE.md": "course.html",
     "QMANUAL.md": "qmanual.html",
     "RELATED.md": "related.html",
     "THEOREM.md": "theorem.html",
@@ -451,6 +452,7 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
     tabs = [
         (HOSTED["index.html"], "home"),
         (HOSTED["manual.html"], "42 manual"),
+        (HOSTED["course.html"], "course"),
         (HOSTED["qmanual.html"], "Q42 manual"),
         (HOSTED["related.html"], "related work"),
         (HOSTED["theorem.html"], "the theorem"),
@@ -476,6 +478,7 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
 HOSTED = {
     "index.html":   "index.html",
     "manual.html":  "manual.html",
+    "course.html":  "course.html",
     "qmanual.html": "qmanual.html",
     "related.html": "related.html",
     "theorem.html": "theorem.html",
@@ -489,6 +492,13 @@ DOCS = [
         "42 &mdash; User Manual",
         "A ground-up guide to a programming language whose programs run in two "
         "directions. No prior knowledge of reversible computing is assumed.",
+    ),
+    (
+        "COURSE.md", "course.html", "Learning to write a 42 program",
+        "Learning to write a 42 program",
+        "A short course for people who already program and have bounced off 42 "
+        "once. It replaces the write-a-program method that names its inputs "
+        "with the one 42 needs, which is closer to solving a maze.",
     ),
     (
         "QMANUAL.md", "qmanual.html", "Q42 Manual",
@@ -609,6 +619,7 @@ HOME = """<!doctype html>
       <div class="law">x &isin; P(y) &nbsp;<b>&harr;</b>&nbsp; y &isin; inv(P)(x)</div>
       <nav class="switch" style="margin-top:1.6rem">
         <a href="manual.html">42 manual</a>
+        <a href="course.html">course</a>
         <a href="qmanual.html">Q42 manual</a>
         <a href="{repo}">source on GitHub</a>
       </nav>
@@ -624,6 +635,15 @@ HOME = """<!doctype html>
         them, then worked programs: arithmetic, exact rationals, text, and a
         Turing machine.</p>
         <span class="more">Read the manual &rarr;</span>
+      </a>
+      <a class="card" href="course.html">
+        <div class="kicker">Learning to write one</div>
+        <h3>Learning to write a 42 program</h3>
+        <p>A short course for people who already program and have bounced off
+        42 once. It replaces the method that names its inputs with the one 42
+        needs &mdash; peel the target shape, one primitive per layer &mdash;
+        across thirteen small lessons.</p>
+        <span class="more">Take the course &rarr;</span>
       </a>
       <a class="card" href="qmanual.html">
         <div class="kicker">The quantum one</div>

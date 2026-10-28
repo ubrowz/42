@@ -1,0 +1,94 @@
+-- course.42 -- the file the course "Learning to write a 42 program" walks
+-- through.  Every definition here is introduced, in this order, in COURSE.md.
+--
+-- Run anything in it:
+--
+--     ./42 course <name> <value>
+--     ./42 course <name> <value> --backward
+--     ./42 show course <name>
+--     ./42 law  course <name> <value>
+--
+-- Nothing here is new language; it is prelude.42 and tour.42 material, re-cut
+-- so the file reads in the same order as the lessons.
+
+
+type nat    = mu X. 1 + X
+type list a = mu X. 1 + (a x X)
+
+
+-- Lesson 1 -- the identity relation.  Whatever goes in comes out.  This is the
+-- closest thing 42 has to "hello, world": there is no printing, so a program
+-- that does nothing at all still shows you a value.
+def hello = id
+
+
+-- Lesson 5 -- constructor names.  `cons`, `nil` and `succ` are exact aliases
+-- for `inr`, `inl` and `inr`.  Writing `cons` in a derivation says "a list
+-- cell is being built here"; writing `inr` says only "an R label goes on".
+-- Same program, more readable intent.
+def nil  = inl        -- ()      |->  []        (the same value as 0 and false)
+def cons = inr        -- (h, t)  |->  h : t
+def succ = inr        -- n       |->  n + 1
+
+
+-- Lesson 5 -- your first derived definition.  Wrap one value into a
+-- one-element list.  Peeled from the target  [x]  in the course:
+--   [x]        is a cons        -> last step  cons
+--   (x, [])    is a pair; [] is  nil ()       -> before it  id * nil
+--   (x, ())                                   -> before it  swapprod
+--   ((), x)    is  unitprod! x                -> before it  unitprod!
+def single = unitprod! ; swapprod ; (id * nil) ; cons
+
+
+-- Lesson 6 -- acting on part of a value.  You cannot pull a component out of a
+-- pair, so you act in place with  f * g.
+def swap      = swapprod                 -- (a, b) |-> (b, a)
+def wrapright = id * single              -- (a, b) |-> (a, [b])
+def wrapleft  = single * id              -- (a, b) |-> ([a], b)
+
+
+-- Lesson 7 -- choosing.  Booleans are 1 + 1, so negation is just "swap the two
+-- summands".  Nothing is tested; the value is already in one branch or the
+-- other and  swapsum  moves it to the sibling.
+def not = swapsum
+
+
+-- Lesson 10 -- a guard.  `nonempty` returns an R-labelled value (a cons cell)
+-- unchanged and has no answer on an L-labelled one (nil).  A relation that is
+-- either the identity or empty is a test.  It is its own dagger.
+def nonempty = inr! ; inr
+def isnil    = inl! ; inl
+
+
+-- Lesson 11 -- if-then-else out of two guards that cannot both fire.  On a
+-- list: if it is empty give it back, otherwise reverse it.  (Silly, but it is
+-- the smallest honest conditional.)  `rev` itself is Lesson 12.
+def emptyOrReverse = (isnil ; id) | (nonempty ; rev)
+
+
+-- Lesson 9 -- recursion, binary.  The value is a pair (xs, ys); `dist` pushes
+-- the pairing inside the label so each branch keeps `ys`.  The step branch is
+-- peeled from both ends and met in the middle (see COURSE.md Lesson 9).
+def append = dist ; (unitprod + (assocprod! ; (id * append) ; cons)) ; join
+
+
+-- Lesson 12 -- recursion, unary.  No pair, so no `dist`: just
+-- (base + step) ; join.  base gets ()  and must produce nil.
+def rev = (nil + ((id * rev) ; swapprod ; (id * single) ; append)) ; join
+
+
+-- Lesson 2 -- naming an inverse.  `split` is `append` read backwards; nobody
+-- wrote a second implementation.
+def split = append!
+
+
+-- Lesson 10 -- a test built from copy.  Duplicate, reverse one copy, then
+-- demand the two copies still agree.
+def palin = copy ; (id * rev) ; copy!
+
+
+-- Lesson 13 -- arithmetic, for a taste.  `add` is a function forwards and
+-- many-valued backwards.  `double` puts a `copy!` at the end, which throws away
+-- every pair whose halves differ, so `double!` is single-valued again.
+def add    = dist ; (unitprod + (add ; succ)) ; join
+def double = copy ; add

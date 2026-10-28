@@ -220,7 +220,7 @@ A term denotes a relation, so its type has two sides: `t : A ↔ B` means
 `μX. F(X)` for the recursive ones. The primitive schemes are therefore just the
 semiring axioms read as types, which is what the primitives were chosen to be.
 
-**All 270 definitions in the ten libraries typecheck**, with no annotation added
+**All 288 definitions in the eleven libraries typecheck**, with no annotation added
 to any of them. Types are inferred, never written: nothing in the surface syntax
 mentions one, and there is no `fold`/`unfold`.
 
@@ -251,7 +251,7 @@ Four things fall out rather than being decided:
   identity-on-objects and contravariant, so at the level of shapes it can only
   exchange domain and codomain. Inference implements `!` by swapping a scheme,
   so `t : A ↔ B ⟹ t! : B ↔ A` holds by construction — the type-level shadow of
-  the defining law, checked over all 270 definitions.
+  the defining law, checked over all 288 definitions.
 - **Generalisation is nearly trivial, because 42 has almost no binders.** Every
   definition is a closed term, so there is no environment of monomorphic
   assumptions to avoid capturing and none of the usual machinery (levels, ranks,
@@ -363,8 +363,8 @@ bounds how large a `Star` closure may grow before being declared infinite, and
 `--untyped` skips the type check that `run` and `law` otherwise apply.
 
 Tests: `python3 tests/test_rel42.py` (134), `python3 tests/test_types.py` (125),
-`python3 tests/test_q42.py` (103), `python3 tests/test_docs.py` (32) and
-`python3 tests/test_emit.py` (27) — 421 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
+`python3 tests/test_q42.py` (103), `python3 tests/test_docs.py` (33) and
+`python3 tests/test_emit.py` (27) — 422 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
 itself, including these counts.
 
 ## Q42 — the same language over ℂ
@@ -443,8 +443,10 @@ rel42/types.py    types, equirecursive unification, inference
 rel42/meta.py     the encoding meta.42 reads: 42 programs and values, as values
 rel42/__main__.py CLI
 MANUAL.md         user manual -- start here
+COURSE.md         a course in writing a 42 program, for people who know Python
 QMANUAL.md        user manual for Q42, the version over C
 tour.42           the manual's ground, in runnable form
+course.42         the definitions COURSE.md walks through, in lesson order
 arith.42          arithmetic: + and * written, / and - inverted
 rational.42       exact rationals; why `reduce` cannot exist
 strings.42        text: bytes as bit-tuples; every list program works on it
@@ -455,8 +457,8 @@ meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7,
                   MANUAL §14).  `42 quote arith mul "(3, 4)"`
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
-tests/            421 tests, including the defining law checked exhaustively,
-                  every output claimed in tour.42, that all 270 library
+tests/            422 tests, including the defining law checked exhaustively,
+                  every output claimed in tour.42, that all 288 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted
 q42/emit.py       a term to gates on numbered qubits, and to OpenQASM 3

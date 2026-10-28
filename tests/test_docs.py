@@ -25,7 +25,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
-DOCS = ["MANUAL.md", "QMANUAL.md", "README.md", "RELATED.md", "Q42.md", "THEOREM.md"]
+DOCS = ["MANUAL.md", "COURSE.md", "QMANUAL.md", "README.md", "RELATED.md",
+        "Q42.md", "THEOREM.md"]
 
 #: Commands the docs show in order to display an error.  They are expected to
 #: fail; what matters is that they still fail with the message shown.
@@ -131,6 +132,9 @@ class TestTranscripts(unittest.TestCase):
 
     def test_manual(self):
         self.assertGreater(self.run_doc("MANUAL.md"), 5)
+
+    def test_course(self):
+        self.assertGreater(self.run_doc("COURSE.md"), 10)
 
     def test_qmanual(self):
         self.assertGreater(self.run_doc("QMANUAL.md"), 3)
@@ -480,7 +484,7 @@ class TestReadmeCounts(unittest.TestCase):
             for f in sorted(glob.glob(str(ROOT / "*.42")))
         )
         self.assertIn(f"All {total} definitions", self.text)
-        self.assertIn(f"{total} definitions in the ten libraries", self.text)
+        self.assertIn(f"{total} definitions in the eleven libraries", self.text)
 
     def test_the_per_suite_and_total_test_counts(self):
         # Counted by loading each module, not by running it: this file is one of

@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Learning to write a 42 program</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A short course for people who already program and have bounced off 42 once. It replaces the write-a-program method that names its inputs with the one 42 needs, which is closer to solving a maze.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root {
+  --paper:      #fcfcfd;
+  --raised:     #f4f6f8;
+  --ink:        #16191f;
+  --muted:      #5c6470;
+  --faint:      #8b93a1;
+  --rule:       #e2e5ea;
+  --accent:     #0b6e6e;
+  --accent-dim: #0b6e6e1a;
+  --shadow:     0 1px 2px #16191f0d;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino,
+           "Book Antiqua", Georgia, serif;
+  --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+           "Cascadia Mono", "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+    --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+    --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+  --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+  --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shell ---- */
+.shell { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); gap: 3.5rem;
+         max-width: 74rem; margin: 0 auto; padding: 0 2rem; align-items: start; }
+@media (max-width: 60rem) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 1.25rem; }
+}
+
+/* ---- masthead ---- */
+.mast { display: flex; flex-direction: column; gap: .5rem;
+        padding: 2.75rem 0 1.5rem; border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1; }
+.mark { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--accent); }
+.mark b { font-weight: 500; }
+.mast h1 { margin: 0; font-size: 2.1rem; line-height: 1.15; letter-spacing: -.015em;
+           text-wrap: balance; font-weight: 600; }
+.mast p { margin: 0; color: var(--muted); max-width: 46ch; }
+.switch { display: flex; gap: .4rem; margin-top: .85rem; flex-wrap: wrap; }
+.switch a { font-family: var(--mono); font-size: .78rem; letter-spacing: .02em;
+            text-decoration: none; color: var(--muted); border: 1px solid var(--rule);
+            border-radius: 2px; padding: .3rem .65rem; background: var(--paper); }
+.switch a:hover { color: var(--accent); border-color: var(--accent); }
+.switch a[aria-current="page"] { color: var(--paper); background: var(--ink);
+                                 border-color: var(--ink); }
+
+/* ---- table of contents ---- */
+.rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem);
+        overflow-y: auto; padding: 2rem 0 3rem; font-family: var(--mono);
+        font-size: .8rem; line-height: 1.5; }
+.rail h2 { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+           color: var(--faint); margin: 0 0 .9rem; font-family: var(--mono);
+           font-weight: 500; }
+.rail ol { list-style: none; margin: 0; padding: 0;
+           display: flex; flex-direction: column; gap: .12rem; }
+.rail a { display: block; text-decoration: none; color: var(--muted);
+          padding: .2rem .55rem; border-left: 2px solid transparent;
+          border-radius: 0 2px 2px 0; }
+.rail a:hover { color: var(--ink); background: var(--raised); }
+.rail a.sub { padding-left: 1.5rem; color: var(--faint); font-size: .76rem; }
+.rail a.here { color: var(--accent); border-left-color: var(--accent);
+               background: var(--accent-dim); }
+@media (max-width: 60rem) {
+  .rail { position: static; max-height: none; border-bottom: 1px solid var(--rule);
+          padding: 1.25rem 0; }
+  .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  .rail a.sub { display: none; }
+}
+
+/* ---- prose ---- */
+main { padding: 2rem 0 6rem; min-width: 0; max-width: 68ch; }
+main > :first-child { margin-top: 0; }
+h1, h2, h3, h4 { line-height: 1.22; letter-spacing: -.012em; text-wrap: balance;
+                 font-weight: 600; position: relative; }
+h1 { font-size: 1.9rem; margin: 3rem 0 1rem; }
+h2 { font-size: 1.5rem; margin: 3.25rem 0 1rem; padding-bottom: .4rem;
+     border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 2.25rem 0 .75rem; }
+h4 { font-size: 1rem; margin: 1.75rem 0 .6rem; color: var(--muted); }
+p { margin: 0 0 1.05rem; }
+a { color: var(--accent); text-underline-offset: .18em;
+    text-decoration-thickness: .06em; }
+strong { font-weight: 650; }
+ul, ol { margin: 0 0 1.05rem; padding-left: 1.35rem;
+         display: flex; flex-direction: column; gap: .38rem; }
+li { padding-left: .15rem; }
+li::marker { color: var(--faint); }
+hr { border: 0; height: 1px; background: var(--rule); margin: 2.75rem 0; }
+
+.anchor { position: absolute; left: -1.1rem; width: 1.1rem; text-align: left;
+          color: var(--faint); text-decoration: none; opacity: 0;
+          font-family: var(--mono); font-weight: 400; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus { opacity: 1; }
+@media (max-width: 60rem) { .anchor { display: none; } }
+
+blockquote { margin: 1.4rem 0; padding: .1rem 0 .1rem 1.15rem;
+             border-left: 2px solid var(--accent); color: var(--muted); }
+blockquote p { margin: 0; }
+
+/* ---- code ---- */
+code { font-family: var(--mono); font-size: .855em; }
+p code, li code, td code, th code, blockquote code, h2 code, h3 code, h4 code {
+  background: var(--raised); border: 1px solid var(--rule);
+  border-radius: 3px; padding: .07em .32em; white-space: nowrap;
+}
+.code { margin: 0 0 1.3rem; background: var(--raised);
+        border: 1px solid var(--rule); border-radius: 4px;
+        overflow-x: auto; box-shadow: var(--shadow); }
+.code pre { margin: 0; padding: .95rem 1.15rem; }
+.code code { background: none; border: 0; padding: 0; white-space: pre;
+             font-size: .83rem; line-height: 1.58; }
+
+/* ---- tables ---- */
+.scroller { overflow-x: auto; margin: 0 0 1.4rem; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem;
+        font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule);
+         vertical-align: top; }
+th { font-family: var(--mono); font-size: .74rem; letter-spacing: .06em;
+     text-transform: uppercase; color: var(--faint); font-weight: 500;
+     border-bottom-color: var(--ink); }
+tbody tr:last-child td { border-bottom: 0; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px;
+                 border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="mast">
+    <div class="mark"><b>42</b> &nbsp;x &isin; P(y) &nbsp;&harr;&nbsp; y &isin; inv(P)(x)</div>
+    <h1>Learning to write a 42 program</h1>
+    <p>A short course for people who already program and have bounced off 42 once. It replaces the write-a-program method that names its inputs with the one 42 needs, which is closer to solving a maze.</p>
+    <nav class="switch"><a href="index.html">home</a><a href="manual.html">42 manual</a><a href="course.html" aria-current="page">course</a><a href="qmanual.html">Q42 manual</a><a href="related.html">related work</a><a href="theorem.html">the theorem</a><a href="https://github.com/ubrowz/42">source</a></nav>
+  </header>
+  <nav class="rail" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol><li><a class="" href="#lesson-1--there-is-no-hello-world-and-that-is-the-first-lesson">Lesson 1 — there is no &quot;hello, world&quot;, and that is the first lesson</a></li><li><a class="" href="#lesson-2--the-same-program-backwards">Lesson 2 — the same program, backwards</a></li><li><a class="" href="#lesson-3--reading-the-output">Lesson 3 — reading the output</a></li><li><a class="" href="#lesson-4--reading-a-program-write-the-shape-after-every-step">Lesson 4 — reading a program: write the shape after every step</a></li><li><a class="" href="#lesson-5--writing-your-first-definition-peel-the-target">Lesson 5 — writing your first definition: peel the target</a></li><li><a class="sub" href="#notation-1--derive-in-the-printers-sugar-not-in-raw-terms">Notation 1 — derive in the printer&#x27;s sugar, not in raw terms</a></li><li><a class="sub" href="#notation-2--name-the-constructors">Notation 2 — name the constructors</a></li><li><a class="sub" href="#step-1--write-it-pointwise-with-names">Step 1 — write it pointwise, with names</a></li><li><a class="sub" href="#step-2--write-both-shapes-in-the-sugar">Step 2 — write both shapes, in the sugar</a></li><li><a class="sub" href="#step-3--peel-the-target-from-the-outside-in">Step 3 — peel the target from the outside in</a></li><li><a class="sub" href="#when-peeling-the-target-isnt-enough">When peeling the target isn&#x27;t enough</a></li><li><a class="" href="#lesson-6--acting-on-part-of-a-value">Lesson 6 — acting on part of a value</a></li><li><a class="" href="#lesson-7--choosing-and-the-recursion-skeleton">Lesson 7 — choosing, and the recursion skeleton</a></li><li><a class="sub" href="#the-skeleton">The skeleton</a></li><li><a class="" href="#lesson-8--two-arguments-and-dist">Lesson 8 — two arguments, and dist</a></li><li><a class="" href="#lesson-9--recursion-start-to-finish">Lesson 9 — recursion, start to finish</a></li><li><a class="" href="#lesson-10--a-test-is-just-copy-and-copy">Lesson 10 — a test is just copy and copy!</a></li><li><a class="" href="#lesson-11--if-then-else">Lesson 11 — if-then-else</a></li><li><a class="" href="#lesson-12--one-real-program-checked">Lesson 12 — one real program, checked</a></li><li><a class="" href="#lesson-13--when-the-shapes-fight-back">Lesson 13 — when the shapes fight back</a></li><li><a class="" href="#appendix-a-python-idiom-to-42-move-phrasebook">Appendix: a Python-idiom to 42-move phrasebook</a></li><li><a class="sub" href="#opening-a-sugared-shape-by-one-layer-the-peel-table">Opening a sugared shape by one layer (the peel table)</a></li></ol>
+  </nav>
+  <main><p>A short course for people who already program — in Python, say — and have bounced off 42 at least once. It assumes you have read §1–§3 of the <a href="manual.html">manual</a> (values, and the one rule) and stalled somewhere around "how do I actually <em>write</em> one of these."</p>
+<p>The manual's §8 and §9 are the two-paragraph version of this course. If those worked for you, you do not need this. If they did not, the problem is almost always the same one, and it is not a lack of cleverness:</p>
+<blockquote><p>In Python you write a program by naming the inputs and then saying what to do with them. <strong>In 42 you cannot name anything.</strong> So the entire method you have for turning an idea into code does not apply, and nothing has replaced it yet.</p></blockquote>
+<p>This course replaces it. The replacement is mechanical — it is closer to solving a maze than to having an insight — and by the end you should be able to sit down with an ordinary function and grind it into a 42 definition without guessing.</p>
+<p>Every code block that starts with <code>$</code> is a real command against files in the repository. <code>course.42</code> ships alongside this document and holds every definition below, in order.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-1--there-is-no-hello-world-and-that-is-the-first-lesson"><a class="anchor" href="#lesson-1--there-is-no-hello-world-and-that-is-the-first-lesson" aria-label="Link to this section">#</a>Lesson 1 — there is no "hello, world", and that is the first lesson</h2>
+<p>Every course for every language starts by printing <code>hello, world</code>. 42 cannot, because <strong>42 has no input and no output.</strong> A program is not a thing that runs and produces effects; it is a relation between a value going in and a value coming out. What you "see" is the interpreter printing the value it computed.</p>
+<p>So the nearest thing to a first program is the one that does <em>nothing</em> — the identity relation. A program lives in a file, as a named definition, so put this one line in a file. <code>course.42</code> (which ships with this document) already has it:</p>
+<div class="code"><pre><code>def hello = id</code></pre></div>
+<p>and run it:</p>
+<div class="code"><pre><code>$ 42 course hello '"hello, world"'
+hello("hello, world") =
+  "hello, world"
+  -- 1 result</code></pre></div>
+<p>The three words after <code>42</code> are the same three words every 42 command takes:</p>
+<div class="code"><pre><code>42   course   hello   '"hello, world"'
+     ^^^^^^   ^^^^^   ^^^^^^^^^^^^^^^^
+     the file  a def   the value to
+     to read   in it   run it on</code></pre></div>
+<p>(<code>42</code> is a script in the repository root; run it as <code>./42</code> or put that directory on your <code>PATH</code> — manual §15. Everything below writes it bare.)</p>
+<p>You must name a <strong>definition</strong> — <code>id</code> on its own will not do, because the command line resolves a name in a file, not an arbitrary expression. That is why even the do-nothing program needs a <code>def</code>. Make your own file <code>first.42</code> containing just <code>def hello = id</code> and <code>42 first hello '"hi"'</code> works the same way.</p>
+<p>What this already teaches:</p>
+<ul><li>A 42 program is <code>file</code> + <code>definition</code> + <code>value</code>. Every command has this shape.</li><li>There is no <code>print</code>. The value that comes out is the whole result.</li><li><code>"hello, world"</code> is not a string. 42 has no string type; it is a list of bytes, and the printer shows lists of printable bytes in quotes as a convenience (manual §12).</li></ul>
+<p>The Python you are comparing this to:</p>
+<div class="code"><pre><code>def hello(x):
+    return x</code></pre></div>
+<p>— except that in Python nobody would write that, because in Python the interesting part is the <code>print</code>, and here there is no such part.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-2--the-same-program-backwards"><a class="anchor" href="#lesson-2--the-same-program-backwards" aria-label="Link to this section">#</a>Lesson 2 — the same program, backwards</h2>
+<p>This is the whole reason the language exists, so meet it early. Take <code>single</code> from <code>course.42</code>, which wraps a value into a one-element list:</p>
+<div class="code"><pre><code>$ 42 course single 7
+single(7) =
+  [7]
+  -- 1 result
+
+$ 42 course single '[7]' --backward
+single!([7]) =
+  7
+  -- 1 result</code></pre></div>
+<p><code>--backward</code> (or <code>-b</code>) runs the <em>same definition</em> the other way. Nobody wrote <code>single!</code>. There is no second implementation to keep in sync; there is one definition and two directions to read it.</p>
+<p>Backwards is not always single-valued. <code>append</code> glues two lists together; run it backwards and it must offer every way the seam could have been placed:</p>
+<div class="code"><pre><code>$ 42 course split '[1,2,3]'
+split([1, 2, 3]) =
+  ([1, 2, 3], [])
+  ([1, 2], [3])
+  ([1], [2, 3])
+  ([], [1, 2, 3])
+  -- 4 results</code></pre></div>
+<p>(<code>split</code> is literally <code>def split = append!</code>.) A 42 program returns a <strong>set</strong> of answers. It may be empty, one, or many. Which of those you get is not a language wart — it is information-theoretic, and Lesson 7 makes it precise.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-3--reading-the-output"><a class="anchor" href="#lesson-3--reading-the-output" aria-label="Link to this section">#</a>Lesson 3 — reading the output</h2>
+<p>Three surprises in the printer, all worth getting out of the way now.</p>
+<p><strong><code>{}</code> is a normal answer, not an error.</strong> It means "this program does not relate that input to anything."</p>
+<div class="code"><pre><code>$ 42 course palin '[1,2,3]'
+palin([1, 2, 3]) =
+  {}   (empty: no result)</code></pre></div>
+<p><code>[1,2,3]</code> is not a palindrome, so <code>palin</code> — which keeps palindromes and rejects everything else — has nothing to return. That is the answer.</p>
+<p><strong><code>0</code>, <code>[]</code>, and <code>false</code> are the same value.</strong> All three are <code>L ()</code> (manual §3.6). The printer picks a spelling from the type it inferred, and when it cannot tell, it guesses <code>0</code>:</p>
+<div class="code"><pre><code>$ 42 course not 'L ()'
+not(0) =
+  R ()
+  -- 1 result</code></pre></div>
+<p>You passed <code>L ()</code> meaning "false"; the printer had no type saying "boolean" so it wrote your input as <code>0</code>. The answer <code>R ()</code> is "true". Nothing went wrong.</p>
+<p><strong>A stray <code>L</code> or <code>R</code> on a result</strong> usually means you used <code>+</code> and forgot the <code>join</code> that drops the label afterwards (Lesson 7).</p>
+<hr aria-hidden="true">
+<h2 id="lesson-4--reading-a-program-write-the-shape-after-every-step"><a class="anchor" href="#lesson-4--reading-a-program-write-the-shape-after-every-step" aria-label="Link to this section">#</a>Lesson 4 — reading a program: write the shape after every step</h2>
+<p>Before you can write one, you have to be able to read one, and there is exactly one technique. <strong>After every step, write down the shape of the value.</strong> Do it on paper the first few times.</p>
+<p>Here is <code>single</code>:</p>
+<div class="code"><pre><code>def single = unitprod! ; swapprod ; (id * inl) ; inr</code></pre></div>
+<p>(<code>course.42</code> writes the last two steps as <code>(id * nil) ; cons</code> — Lesson 5 introduces those names. They are the same <code>inl</code> and <code>inr</code>.)</p>
+<p><code>;</code> is "then" — a pipe, left to right. Feed it <code>7</code> and annotate each stage. These traces are short enough to write in raw terms; once they get longer you annotate in the sugar instead (Lesson 5, Notation 1):</p>
+<div class="code"><pre><code>                          7
+    unitprod!         ((), 7)          -- conjure a unit, pair it on the left
+    swapprod          (7, ())          -- swap, so 7 is on the left
+    id * inl          (7, L ())        -- turn the () into L (), i.e. []
+    inr               R (7, L ())      -- add an R label: that is [7]</code></pre></div>
+<p>Result <code>[7]</code>. Now read it backwards — same steps, reverse order, each one individually reversed:</p>
+<div class="code"><pre><code>                          [7]  =  R (7, L ())
+    inr!              (7, L ())
+    (id * inl)!       (7, ())
+    swapprod!         ((), 7)
+    unitprod!!        7</code></pre></div>
+<p>It unwraps a one-element list. Fed <code>[7, 8]</code>, the <code>inl!</code> step would look for an <code>L</code> and find an <code>R</code>, produce nothing, and the whole run returns <code>{}</code> — correctly, because <code>[7,8]</code> is not a one-element list.</p>
+<p>Two primitives worth pinning down, because they come up constantly:</p>
+<div class="scroller"><table><thead><tr><th>Primitive</th><th>Forwards</th><th>Backwards (<code>!</code>)</th></tr></thead><tbody><tr><td><code>unitprod</code></td><td><code>((), a)</code> becomes <code>a</code></td><td><code>a</code> becomes <code>((), a)</code> — conjures a <code>()</code></td></tr><tr><td><code>inl</code> / <code>inr</code></td><td><code>a</code> becomes <code>L a</code> / <code>R a</code></td><td>strips the label; wrong label gives <code>{}</code></td></tr></tbody></table></div>
+<p><code>unitprod!</code> making a <code>()</code> out of nothing is allowed because <code>()</code> carries no information — run it backwards and there was only ever one thing it could have been. This is how you build structure in a language that cannot invent data.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-5--writing-your-first-definition-peel-the-target"><a class="anchor" href="#lesson-5--writing-your-first-definition-peel-the-target" aria-label="Link to this section">#</a>Lesson 5 — writing your first definition: peel the target</h2>
+<p>The method is three steps, and the third is the maze-solving one. But first, two pieces of notation, because without them the maze is unreadable.</p>
+<h3 id="notation-1--derive-in-the-printers-sugar-not-in-raw-terms"><a class="anchor" href="#notation-1--derive-in-the-printers-sugar-not-in-raw-terms" aria-label="Link to this section">#</a>Notation 1 — derive in the printer's sugar, not in raw terms</h3>
+<p>The four building blocks are all there is, but writing a value out in them is hopeless past toy size:</p>
+<div class="code"><pre><code>5        is   R R R R R L ()
+[1,2]    is   R (R L (), R (R R L (), L ()))
+[1,2,3]  is   R (R L (), R (R R L (), R (R R R L (), L ())))</code></pre></div>
+<p>The interpreter prints the <em>sugared</em> form — <code>5</code>, <code>[1,2]</code>, <code>"text"</code> — for exactly this reason (<code>--raw</code> shows you the tree if you ever want it). Derive in the sugar too. You only ever need to know how each sugared shape opens up by <strong>one layer</strong>:</p>
+<div class="scroller"><table><thead><tr><th>Sugar</th><th>is</th><th>opens to</th></tr></thead><tbody><tr><td><code>[]</code> — also <code>0</code>, also <code>false</code></td><td><code>L ()</code></td><td><code>nil</code> applied to <code>()</code></td></tr><tr><td><code>x : xs</code> — a non-empty list</td><td><code>R (x, xs)</code></td><td><code>cons</code> applied to the pair <code>(x, xs)</code></td></tr><tr><td><code>n + 1</code> — a non-zero nat</td><td><code>R n</code></td><td><code>succ</code> applied to <code>n</code></td></tr><tr><td><code>true</code></td><td><code>R ()</code></td><td><code>inr</code> applied to <code>()</code></td></tr><tr><td><code>(a, b)</code></td><td>a pair</td><td><code>a</code> and <code>b</code>, side by side</td></tr><tr><td><code>L a</code> / <code>R a</code></td><td>a labelled value</td><td><code>a</code>, with its tag</td></tr></tbody></table></div>
+<p>That table <em>is</em> the peel step. Everything below is applying it.</p>
+<h3 id="notation-2--name-the-constructors"><a class="anchor" href="#notation-2--name-the-constructors" aria-label="Link to this section">#</a>Notation 2 — name the constructors</h3>
+<p><code>cons</code>, <code>nil</code> and <code>succ</code> are exact aliases for <code>inr</code>, <code>inl</code> and <code>inr</code>:</p>
+<div class="code"><pre><code>def nil  = inl        -- ()      |-&gt;  []          (the same value as 0 and false)
+def cons = inr        -- (h, t)  |-&gt;  h : t
+def succ = inr        -- n       |-&gt;  n + 1</code></pre></div>
+<p>They compute nothing new — <code>cons</code> <em>is</em> <code>inr</code>. But reading <code>cons</code> in a derivation says "a list cell is being built here"; reading <code>inr</code> says only "an <code>R</code> label goes on." <code>course.42</code> defines all three, they cost nothing, and any <code>.42</code> file may declare its own. From here on the derivations use them.</p>
+<h3 id="step-1--write-it-pointwise-with-names"><a class="anchor" href="#step-1--write-it-pointwise-with-names" aria-label="Link to this section">#</a>Step 1 — write it pointwise, with names</h3>
+<p>Just write the Python.</p>
+<div class="code"><pre><code>single(x) = [x]</code></pre></div>
+<h3 id="step-2--write-both-shapes-in-the-sugar"><a class="anchor" href="#step-2--write-both-shapes-in-the-sugar" aria-label="Link to this section">#</a>Step 2 — write both shapes, in the sugar</h3>
+<p>The shape you start with and the shape you want. Two shapes, not one.</p>
+<div class="code"><pre><code>start:  x
+want:   [x]</code></pre></div>
+<p>For <code>single</code> the start is a bare <code>x</code> and there is nothing to peel there. For recursion (Lesson 9) the start has structure of its own, and then you peel <em>both</em>.</p>
+<h3 id="step-3--peel-the-target-from-the-outside-in"><a class="anchor" href="#step-3--peel-the-target-from-the-outside-in" aria-label="Link to this section">#</a>Step 3 — peel the target from the outside in</h3>
+<p>Strip one layer off <code>want</code> at a time, using the table above. Each layer you strip names the <strong>last</strong> step of the pipeline, so you are building it back-to-front. Stop when a layer leaves you holding a shape you already have.</p>
+<ul><li><code>[x]</code> is a non-empty list → outer layer is <code>cons</code>. <strong>Last step: <code>cons</code>.</strong> Before it, the value is the pair <code>(x, [])</code>.</li><li><code>(x, [])</code> is a pair. Its left half is <code>x</code> — already what you have. Its right half is <code>[]</code>, which is <code>nil</code> applied to <code>()</code>. So act on the right half only: <strong><code>id * nil</code>.</strong> Before it, <code>(x, ())</code>.</li><li><code>(x, ())</code> is a pair: <code>x</code> on the left, <code>()</code> on the right. <code>unitprod!</code> makes</li></ul>
+<p><code>((), x)</code> out of <code>x</code>, and <code>swapprod</code> flips it. <strong><code>unitprod! ; swapprod</code>.</strong> Before them, just <code>x</code>.</p>
+<ul><li><code>x</code> is the start. Stop.</li></ul>
+<p>Read the steps back-to-front — the order you found them, reversed:</p>
+<div class="code"><pre><code>def single = unitprod! ; swapprod ; (id * nil) ; cons</code></pre></div>
+<p>Run it:</p>
+<div class="code"><pre><code>$ 42 course single 7
+single(7) =
+  [7]
+  -- 1 result</code></pre></div>
+<blockquote><p><strong>The habit:</strong> peel the target from the outside in, in the sugar. Each layer names one constructor. You write the pipeline last-step-first, and you stop when you reach a shape you already hold.</p></blockquote>
+<h3 id="when-peeling-the-target-isnt-enough"><a class="anchor" href="#when-peeling-the-target-isnt-enough" aria-label="Link to this section">#</a>When peeling the target isn't enough</h3>
+<p><code>single</code> closes from the target alone because its input is a bare <code>x</code> — there was nothing to meet. When the input has structure — a pair, a labelled value — the target peel runs out before it reaches the start, and what is left in the middle is pure <em>rearrangement</em>: <code>swapprod</code>, <code>assocprod</code>, <code>dist</code>. Then you also peel the <strong>start</strong> shape forward, and the plumbing is whatever joins the two open ends. Lesson 9 does this in full; the thing to carry there is that the two peels are independent, and you meet in the middle.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-6--acting-on-part-of-a-value"><a class="anchor" href="#lesson-6--acting-on-part-of-a-value" aria-label="Link to this section">#</a>Lesson 6 — acting on part of a value</h2>
+<p>The thing you keep wanting to do — <em>"take the second element and reverse it"</em> — is the thing 42 forbids, because "take the second element" names a part of a value and throws the rest away. Here is what you do instead.</p>
+<p><code>f * g</code> runs <code>f</code> on the left half of a pair and <code>g</code> on the right half, at the same time, without either half being named:</p>
+<div class="code"><pre><code>     (a, b)
+   f * g
+     (f a, g b)</code></pre></div>
+<p>The two idioms you will use most:</p>
+<div class="code"><pre><code>id * g        -- leave the left half alone, apply g to the right
+f  * id       -- apply f to the left half, leave the right alone</code></pre></div>
+<p><code>id</code> is the do-nothing program. So:</p>
+<div class="code"><pre><code>$ 42 course wrapright '(1, 2)'
+wrapright(1, 2) =
+  (1, [2])
+  -- 1 result</code></pre></div>
+<p>where <code>def wrapright = id * single</code>. The <code>1</code> is untouched; <code>single</code> ran on the <code>2</code> only. There was never a moment where <code>2</code> was pulled out and named — the pair kept its shape throughout.</p>
+<p>Compare the Python, and notice what disappears:</p>
+<div class="code"><pre><code>def wrapright(pair):
+    a, b = pair          # &lt;- this line has no 42 equivalent
+    return (a, [b])</code></pre></div>
+<p>The unpacking line is exactly what <code>*</code> lets you skip. You do not take the pair apart; you reach into the half you care about and leave the rest in place.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-7--choosing-and-the-recursion-skeleton"><a class="anchor" href="#lesson-7--choosing-and-the-recursion-skeleton" aria-label="Link to this section">#</a>Lesson 7 — choosing, and the recursion skeleton</h2>
+<p>A value that is "either this or that" wears a label: <code>L _</code> or <code>R _</code>. Choosing is <code>f + g</code>:</p>
+<div class="code"><pre><code>     L a                        R b
+   f + g                      f + g
+     L (f a)                    R (g b)</code></pre></div>
+<p>If the label is <code>L</code>, run <code>f</code> on the contents; if <code>R</code>, run <code>g</code>. <strong>Nothing is tested.</strong> The value is already in one branch; <code>+</code> acts inside whichever one that is. This is why the backward direction has no branch-condition to re-evaluate — there was no condition.</p>
+<p>The label survives: <code>f + g</code> puts its result back inside <code>L</code> or <code>R</code>. Almost always you then want to forget which branch you were in, and that is <code>join</code>:</p>
+<div class="code"><pre><code>(f + g) ; join        -- switch on the label, handle each case, drop the label</code></pre></div>
+<p>Booleans are the smallest example. <code>false</code> is <code>L ()</code>, <code>true</code> is <code>R ()</code>, so negation is "move the value to the sibling branch" — which is a primitive, <code>swapsum</code>:</p>
+<div class="code"><pre><code>def not = swapsum</code></pre></div>
+<div class="code"><pre><code>$ 42 course not 'R ()'
+not(R ()) =
+  0
+  -- 1 result</code></pre></div>
+<p>(<code>0</code> is <code>L ()</code> is <code>false</code>; see Lesson 3.)</p>
+<h3 id="the-skeleton"><a class="anchor" href="#the-skeleton" aria-label="Link to this section">#</a>The skeleton</h3>
+<p>Recursive data in 42 is always "a base case, <strong>or</strong> something one step bigger" — which is to say, a labelled value. So a recursive program is always a switch on that label, and it always has this shape:</p>
+<div class="code"><pre><code>(base + step) ; join</code></pre></div>
+<ul><li><code>base</code> handles <code>L …</code> — the empty list, zero, the leaf.</li><li><code>step</code> handles <code>R …</code> and calls the program on the smaller piece inside.</li><li><code>join</code> drops the label once a branch has produced its answer.</li></ul>
+<p>Every recursive definition in this course is a filled-in copy of that line.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-8--two-arguments-and-dist"><a class="anchor" href="#lesson-8--two-arguments-and-dist" aria-label="Link to this section">#</a>Lesson 8 — two arguments, and <code>dist</code></h2>
+<p>42 programs take one value. "Two arguments" means one pair, <code>(x, y)</code>, and the program takes the pair apart itself.</p>
+<p>The snag: you want to switch on <code>x</code> — say <code>x</code> is the list you are recursing on — but <code>f + g</code> needs a <em>labelled value</em>, and what you have is a <em>pair</em> whose first component is labelled: <code>(L …, y)</code> or <code>(R …, y)</code>. <code>dist</code> is the adapter.</p>
+<div class="code"><pre><code>dist  turns  (L a, y)  into  L (a, y)
+      and    (R b, y)  into  R (b, y)</code></pre></div>
+<p>It pushes the pairing inside the label, so <strong>each branch still has <code>y</code> in hand</strong>. The two-argument skeleton is therefore:</p>
+<div class="code"><pre><code>dist ; (base + step) ; join</code></pre></div>
+<p>That one extra primitive at the front is the only structural difference between one-argument and two-argument recursion.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-9--recursion-start-to-finish"><a class="anchor" href="#lesson-9--recursion-start-to-finish" aria-label="Link to this section">#</a>Lesson 9 — recursion, start to finish</h2>
+<p>Take <code>append</code>. Pointwise Python:</p>
+<div class="code"><pre><code>def append(xs, ys):
+    if xs == []:
+        return ys
+    h, t = xs        # xs is [h, *t]
+    return [h] + append(t, ys)</code></pre></div>
+<p>Two arguments, switching on <code>xs</code>, so the skeleton is <code>dist ; (base + step) ; join</code>.</p>
+<p><strong>Base branch.</strong> After <code>dist</code>, the <code>L</code> branch holds <code>((), ys)</code> — the leftover unit from the empty <code>xs</code>, paired with <code>ys</code>. We must return <code>ys</code>. That is <code>unitprod</code> (drops the <code>()</code> on the left of a pair).</p>
+<p><strong>Step branch.</strong> This is the case where one peel is not enough (Lesson 5's last section), so peel both ends.</p>
+<p><em>Peel the target.</em> After <code>dist</code>, the step branch must produce <code>[h] + append(t, ys)</code>, which is <code>h : append(t, ys)</code>.</p>
+<ul><li>outer layer is <code>cons</code> → <strong>last step <code>cons</code></strong>; before it, the pair</li></ul>
+<p><code>(h, append(t, ys))</code>.</p>
+<ul><li>a pair: left half <code>h</code> is untouched, right half is <code>append</code> applied to</li></ul>
+<p><code>(t, ys)</code> → <strong><code>id * append</code></strong>; before it, <code>(h, (t, ys))</code>.</p>
+<ul><li><code>(h, (t, ys))</code> opens no further into anything you have yet. <strong>Stop.</strong></li></ul>
+<p><em>Peel the start.</em> After <code>dist</code>, the step branch is handed <code>((h, t), ys)</code>.</p>
+<ul><li>that is a pair nested on the left; the target peel wants it nested on the right, <code>(h, (t, ys))</code>. One regroup: <strong><code>assocprod!</code></strong>.</li></ul>
+<p>The two open ends — <code>((h, t), ys)</code> from the start, <code>(h, (t, ys))</code> for the target — are joined by that single <code>assocprod!</code>. Reading the step branch front-to-back: <code>assocprod! ; (id * append) ; cons</code>. The whole definition:</p>
+<div class="code"><pre><code>def append = dist ; (unitprod + (assocprod! ; (id * append) ; cons)) ; join</code></pre></div>
+<p>Run it, and trace the step case on <code>([1,2], [3])</code>, which is <code>(R (1, t), [3])</code> with <code>t = [2]</code>:</p>
+<div class="code"><pre><code>                          (R (1, t), [3])
+  dist                R ((1, t), [3])           -- pair pushed inside the label
+  ── R branch, step runs on ((1, t), [3]):
+    assocprod!            (1, (t, [3]))          -- regroup: meet the target peel
+    id * append          (1, [2, 3])            -- recurse on the right half
+    cons                 R (1, [2, 3])          -- build the list cell
+  ── back out, still labelled:
+                      R (R (1, [2,3]))
+  join                    R (1, [2, 3])   =  [1, 2, 3]</code></pre></div>
+<div class="code"><pre><code>$ 42 course append '([1,2], [3])'
+append([1, 2], [3]) =
+  [1, 2, 3]
+  -- 1 result</code></pre></div>
+<p>Now the payoff. Run it backwards and the final <code>join</code> becomes the <em>first</em> step. <code>join!</code> cannot know which label the answer carried, so it tries both — at every level of the recursion. That is precisely why <code>append!</code> enumerates every split:</p>
+<div class="code"><pre><code>$ 42 course append '[1,2,3]' --backward
+append!([1, 2, 3]) =
+  ([1, 2, 3], [])
+  ([1, 2], [3])
+  ([1], [2, 3])
+  ([], [1, 2, 3])
+  -- 4 results</code></pre></div>
+<blockquote><p><strong>Every time a 42 program gives you more than one answer, a <code>join</code> was run backwards.</strong> Nothing else in the language multiplies answers.</p></blockquote>
+<hr aria-hidden="true">
+<h2 id="lesson-10--a-test-is-just-copy-and-copy"><a class="anchor" href="#lesson-10--a-test-is-just-copy-and-copy" aria-label="Link to this section">#</a>Lesson 10 — a test is just <code>copy</code> and <code>copy!</code></h2>
+<p>A <em>test</em> (Python's <code>if predicate(x): return x</code>) is a relation that returns its input unchanged or returns nothing. 42 has no special construct for it. You build one from two primitives:</p>
+<div class="scroller"><table><thead><tr><th>Primitive</th><th>Forwards</th><th>Backwards (<code>!</code>)</th></tr></thead><tbody><tr><td><code>copy</code></td><td><code>a</code> becomes <code>(a, a)</code></td><td><code>(a, a)</code> becomes <code>a</code>; a pair whose halves <strong>differ</strong> becomes <code>{}</code></td></tr></tbody></table></div>
+<p><code>copy!</code> is the whole trick: it succeeds only when the two halves are equal. So "keep <code>x</code> if <code>P(x)</code>" is <em>duplicate, do something to one copy, demand the copies still match</em>:</p>
+<div class="code"><pre><code>def palin = copy ; (id * rev) ; copy!</code></pre></div>
+<p>Duplicate the list; reverse the right copy; require the two copies to still be equal.</p>
+<div class="code"><pre><code>$ 42 course palin '[1,2,1]'
+palin([1, 2, 1]) =
+  [1, 2, 1]
+  -- 1 result
+
+$ 42 course palin '[1,2,3]'
+palin([1, 2, 3]) =
+  {}   (empty: no result)</code></pre></div>
+<p>The same pattern gives you guards, range checks, "is this even" — anything of the form "leave it alone if a condition holds."</p>
+<hr aria-hidden="true">
+<h2 id="lesson-11--if-then-else"><a class="anchor" href="#lesson-11--if-then-else" aria-label="Link to this section">#</a>Lesson 11 — if-then-else</h2>
+<p>There is no <code>if</code>. What there is: <code>f | g</code> runs <strong>both</strong> <code>f</code> and <code>g</code> and pools their answers. Normally that gives you two results. But if <code>f</code> and <code>g</code> are each fronted by a guard (Lesson 10) and the two guards can <em>never both</em> succeed, then on any input exactly one side produces anything, and the union collapses to a deterministic choice:</p>
+<div class="code"><pre><code>(guard ; then)  |  (complement-of-guard ; else)</code></pre></div>
+<blockquote><p><strong>That is if-then-else in 42.</strong> Making the two guards disjoint is your job, not the language's. Overlap them and you silently get two answers; leave a gap and you get none.</p></blockquote>
+<p>The course file has a toy example on lists — give an empty list back untouched, otherwise reverse it:</p>
+<div class="code"><pre><code>def isnil    = inl! ; inl          -- returns an L-value unchanged, {} on an R
+def nonempty = inr! ; inr          -- returns an R-value unchanged, {} on an L
+def emptyOrReverse = (isnil ; id) | (nonempty ; rev)</code></pre></div>
+<p><code>isnil</code> and <code>nonempty</code> cannot both fire — a value is <code>L</code> or <code>R</code>, never both — so the <code>|</code> is a real conditional:</p>
+<div class="code"><pre><code>$ 42 course emptyOrReverse '[1,2,3]'
+emptyOrReverse([1, 2, 3]) =
+  [3, 2, 1]
+  -- 1 result
+
+$ 42 course emptyOrReverse '[]'
+emptyOrReverse([]) =
+  []
+  -- 1 result</code></pre></div>
+<p>For a full worked conditional over byte values — flip the case of letters only, leaving punctuation alone — see manual §12.5.</p>
+<hr aria-hidden="true">
+<h2 id="lesson-12--one-real-program-checked"><a class="anchor" href="#lesson-12--one-real-program-checked" aria-label="Link to this section">#</a>Lesson 12 — one real program, checked</h2>
+<p>Put the method together on <code>rev</code>. Pointwise:</p>
+<div class="code"><pre><code>def rev(xs):
+    if xs == []:
+        return []
+    h, t = xs
+    return rev(t) + [h]</code></pre></div>
+<p>One argument, switching on <code>xs</code>, so the skeleton is <code>(base + step) ; join</code> — no <code>dist</code>, because there is no second argument to carry.</p>
+<p><strong>Base branch</strong> gets <code>()</code> (the empty list's payload) and must produce <code>[]</code>. By the table in Lesson 5, <code>[]</code> is <code>nil</code> applied to <code>()</code> — so the base branch is just <code>nil</code>.</p>
+<p><strong>Step branch</strong> gets <code>(h, t)</code> and must produce <code>rev(t) + [h]</code>, which is <code>append(rev(t), [h])</code>. So the last step is <code>append</code>, and just before it the value must be the pair <code>(rev(t), [h])</code>. Get there from <code>(h, t)</code>, writing the shape after each move:</p>
+<div class="code"><pre><code>                     (h, t)
+  id * rev           (h, rev t)          -- recurse on the tail
+  swapprod           (rev t, h)          -- move the head to the right
+  id * single        (rev t, [h])        -- wrap the head into a list
+  append             rev t ++ [h]        -- glue</code></pre></div>
+<p>So the step branch is <code>(id * rev) ; swapprod ; (id * single) ; append</code>, and:</p>
+<div class="code"><pre><code>def rev = (nil + ((id * rev) ; swapprod ; (id * single) ; append)) ; join</code></pre></div>
+<p>Run it:</p>
+<div class="code"><pre><code>$ 42 course rev '[1,2,3]'
+rev([1, 2, 3]) =
+  [3, 2, 1]
+  -- 1 result</code></pre></div>
+<p>Now check it. <code>42 law</code> runs the program forwards, then runs each answer backwards, and confirms the original input is among the preimages:</p>
+<div class="code"><pre><code>$ 42 law course rev '[1,2,3]'
+rev([1, 2, 3]) has 1 result(s)
+  [ok ] [3, 2, 1]: inv has 1 preimage(s), input in it
+law holds</code></pre></div>
+<p>And <code>42 show</code> prints what the reverse actually is — you never wrote it, so it is worth looking at:</p>
+<div class="code"><pre><code>$ 42 show course rev
+rev   = nil + (id * rev ; swapprod ; id * single ; append) ; join
+rev!  = join! ; nil! + (append! ; (id! * single! ; (swapprod! ; id! * rev!)))</code></pre></div>
+<p>(<code>nil!</code> there is <code>inl!</code> — the reverse strips the tag it built, and fails on a non-empty list, which is how the base case rejects.)</p>
+<p><code>42 type</code> will tell you the shapes it inferred, which is the fastest way to find a definition whose two ends do not line up:</p>
+<div class="code"><pre><code>$ 42 type course emptyOrReverse
+emptyOrReverse  : list a &lt;-&gt; list a</code></pre></div>
+<hr aria-hidden="true">
+<h2 id="lesson-13--when-the-shapes-fight-back"><a class="anchor" href="#lesson-13--when-the-shapes-fight-back" aria-label="Link to this section">#</a>Lesson 13 — when the shapes fight back</h2>
+<p>You will spend most of your first week getting <code>{}</code> when you wanted an answer. The causes, in order of how often they bite:</p>
+<p><strong>1. Shape mismatch.</strong> A primitive got the wrong shape — <code>swapprod</code> on a non-pair, <code>unitprod</code> on a pair without a <code>()</code> on its left, <code>assocprod</code> where the nesting was <code>((a,b),c)</code> and it wanted <code>(a,(b,c))</code>. The command line type-checks first and refuses an argument that cannot fit, but a mismatch <em>inside</em> a definition still just yields <code>{}</code>. Fix: <code>42 type course NAME</code> for each piece, or walk the pipeline writing shapes (Lesson 4) until the shape you wrote stops matching the primitive's table entry.</p>
+<p><strong>2. A label went the wrong way.</strong> <code>inl!</code> on an <code>R</code> value is <code>{}</code>, by design — that is how case analysis rejects a branch.</p>
+<p><strong>3. <code>copy!</code> on a mismatched pair.</strong> It only succeeds when the halves are equal (Lesson 10). If a test always returns <code>{}</code>, check what you did to the copy.</p>
+<p><strong>4. Missing <code>dist</code>.</strong> You wrote <code>(f + g)</code> where the value is a <em>pair</em> with a labelled first component, not a labelled value. <code>+</code> needs a label on the outside. Insert <code>dist</code> (Lesson 8).</p>
+<p><strong>5. A stray <code>L</code> or <code>R</code> on the result.</strong> The opposite problem: you used <code>+</code> and forgot the <code>join</code>.</p>
+<p><strong>6. Too many answers backwards.</strong> Not a bug — every extra answer is a <code>join</code> that ran in reverse (Lesson 9). If you want fewer, make the forward direction destroy less: <code>copy</code> before an operation and <code>copy!</code> after is the standard move. <code>double = copy ; add</code> reversed has at most one answer where <code>add!</code> alone had many.</p>
+<div class="code"><pre><code>$ 42 course double 7 --backward
+double!(7) =
+  {}   (empty: no result)</code></pre></div>
+<p>Seven is odd, so there is no <code>n</code> with <code>n + n = 7</code>, and <code>copy!</code> rejects every candidate <code>add!</code> offered.</p>
+<hr aria-hidden="true">
+<h2 id="appendix-a-python-idiom-to-42-move-phrasebook"><a class="anchor" href="#appendix-a-python-idiom-to-42-move-phrasebook" aria-label="Link to this section">#</a>Appendix: a Python-idiom to 42-move phrasebook</h2>
+<div class="scroller"><table><thead><tr><th>You want to…</th><th>In Python</th><th>In 42</th></tr></thead><tbody><tr><td>return the input unchanged</td><td><code>return x</code></td><td><code>id</code></td></tr><tr><td>name and use one input</td><td><code>def f(x): …</code></td><td>you cannot — go point-free</td></tr><tr><td>take two inputs</td><td><code>def f(x, y): …</code></td><td>one pair <code>(x, y)</code>; take it apart yourself</td></tr><tr><td>unpack a pair</td><td><code>a, b = p</code></td><td>you cannot — reach in with <code>f * g</code></td></tr><tr><td>act on the second half only</td><td><code>(a, g(b))</code></td><td><code>id * g</code></td></tr><tr><td>act on the first half only</td><td><code>(f(a), b)</code></td><td><code>f * id</code></td></tr><tr><td>swap a pair</td><td><code>(b, a)</code></td><td><code>swapprod</code></td></tr><tr><td>regroup a pair</td><td><code>(a, (b, c))</code> ↔ <code>((a, b), c)</code></td><td><code>assocprod</code> / <code>assocprod!</code></td></tr><tr><td>build <code>[x]</code></td><td><code>[x]</code></td><td><code>unitprod! ; swapprod ; (id * nil) ; cons</code> (<code>single</code>)</td></tr><tr><td>an empty list / zero / false</td><td><code>[]</code> / <code>0</code> / <code>False</code></td><td><code>L ()</code> — the same value for all three; built by <code>nil</code></td></tr><tr><td>a cons cell</td><td><code>[h, *t]</code></td><td><code>R (h, t)</code> — built by <code>cons</code> from <code>(h, t)</code></td></tr><tr><td>a successor</td><td><code>n + 1</code></td><td><code>R n</code> — built by <code>succ</code> from <code>n</code></td></tr><tr><td>tag a value left / right</td><td>—</td><td><code>inl</code> / <code>inr</code> (or <code>nil</code> / <code>cons</code> / <code>succ</code>, the named aliases)</td></tr><tr><td><code>match</code> on a two-case value</td><td><code>if tag == L: … else: …</code></td><td><code>(f + g) ; join</code></td></tr><tr><td>drop the tag after a match</td><td>(implicit)</td><td><code>join</code></td></tr><tr><td>switch on the first of a pair</td><td><code>if xs == []: …</code></td><td><code>dist ; (f + g) ; join</code></td></tr><tr><td>duplicate a value</td><td><code>x, x</code></td><td><code>copy</code></td></tr><tr><td>assert two things are equal</td><td><code>assert a == b</code></td><td><code>copy!</code> (on the pair <code>(a, b)</code>)</td></tr><tr><td><code>if P(x): return x</code></td><td>a guard</td><td><code>copy ; (id * work) ; copy!</code></td></tr><tr><td>if-then-else</td><td><code>if C: a else: b</code></td><td><code>(guard ; a) | (not-guard ; b)</code>, guards disjoint</td></tr><tr><td>genuine nondeterminism</td><td>—</td><td><code>f | g</code></td></tr><tr><td>repeat until nothing new</td><td><code>while</code> / fixpoint</td><td><code>f^</code></td></tr><tr><td>the inverse of <code>f</code></td><td>write it by hand, keep in sync</td><td><code>f!</code> — free, always</td></tr><tr><td>run <code>f</code> backwards, once</td><td>—</td><td><code>--backward</code> on the command line</td></tr></tbody></table></div>
+<h3 id="opening-a-sugared-shape-by-one-layer-the-peel-table"><a class="anchor" href="#opening-a-sugared-shape-by-one-layer-the-peel-table" aria-label="Link to this section">#</a>Opening a sugared shape by one layer (the peel table)</h3>
+<div class="scroller"><table><thead><tr><th>Sugar</th><th>is</th><th>opens to</th></tr></thead><tbody><tr><td><code>[]</code> / <code>0</code> / <code>false</code></td><td><code>L ()</code></td><td><code>nil</code> on <code>()</code></td></tr><tr><td><code>x : xs</code></td><td><code>R (x, xs)</code></td><td><code>cons</code> on <code>(x, xs)</code></td></tr><tr><td><code>n + 1</code></td><td><code>R n</code></td><td><code>succ</code> on <code>n</code></td></tr><tr><td><code>true</code></td><td><code>R ()</code></td><td><code>inr</code> on <code>()</code></td></tr><tr><td><code>(a, b)</code></td><td>a pair</td><td><code>a</code>, <code>b</code> side by side</td></tr><tr><td><code>L a</code> / <code>R a</code></td><td>a labelled value</td><td><code>a</code> with its tag</td></tr></tbody></table></div>
+<p>Binding strength, loosest first: <code>|</code> then <code>;</code> then <code>+</code> then <code>*</code> then <code>!</code> <code>^</code>. So <code>a ; b + c ; d</code> parses as <code>a ; (b + c) ; d</code>, and <code>f * g!</code> is <code>f * (g!)</code>.</p>
+<p>The thirteen primitives — <code>id</code>, <code>zero</code>, <code>swapprod</code>, <code>assocprod</code>, <code>unitprod</code>, <code>swapsum</code>, <code>assocsum</code>, <code>unitsum</code>, <code>inl</code>, <code>inr</code>, <code>join</code>, <code>copy</code>, <code>dist</code> — plus <code>!</code> on any of them, are the entire vocabulary. <code>nil</code>, <code>cons</code> and <code>succ</code> are not new primitives; they are one-line aliases (<code>inl</code>, <code>inr</code>, <code>inr</code>) that a <code>.42</code> file declares for readability. Everything else is built from the thirteen with the six combiners above.</p>
+<hr aria-hidden="true">
+<p><em>Next: <a href="manual.html">the manual</a> proper — §10 for more recursion, §11 for arithmetic, §13–§14 for a Turing machine and 42 interpreting itself.</em></p></main>
+</div>
+<script>
+const links = [...document.querySelectorAll('.rail a')];
+const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const seen = new Set();
+const spy = new IntersectionObserver(entries => {
+  for (const e of entries) e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id);
+  const order = [...byId.keys()].filter(id => seen.has(id));
+  links.forEach(a => a.classList.remove('here'));
+  const active = byId.get(order[0]);
+  if (active) active.classList.add('here');
+}, { rootMargin: '0px 0px -70% 0px' });
+document.querySelectorAll('h2[id], h3[id]').forEach(h => spy.observe(h));
+</script>
+</body>
+</html>
