@@ -888,8 +888,8 @@ def parse_program(src: str, prims=None, clause_rules=None) -> "Program":
 
     `clause_rules` is how a sibling language over the same grammar -- Q42 --
     adds its own discipline to clause definitions (QSUGAR.md): its `check` sees
-    each definition's clauses before they are compiled, and its `accept` sees
-    the compiled term.  With rules in place, 42's own overlap warnings and its
+    each definition's clauses before they are compiled, and its `compile` gets
+    the term 42's compiler made and returns the one to use.  With rules in place, 42's own overlap warnings and its
     dropping of dead unit checks are left out: the rules decide overlap, and a
     unit check costs nothing where every value of `1` is `()`.
     """
@@ -1007,8 +1007,9 @@ def parse_program(src: str, prims=None, clause_rules=None) -> "Program":
     for name, (params, group) in clauses.items():
         if clause_rules is not None:
             clause_rules.check(name, params, group)
-            env[name] = S.compile_clauses(params, group)
-            clause_rules.accept(name, env[name], group)
+            env[name] = clause_rules.compile(
+                name, params, group, S.compile_clauses(params, group)
+            )
             continue
         env[name] = S.compile_clauses(params, group)
         unchecked[name] = S.compile_clauses(params, group, units=False)

@@ -25,7 +25,9 @@ from __future__ import annotations
 from typing import List, Optional, Tuple
 
 from rel42 import sugar as S
-from rel42.core import App, Fun, Prim, Prod, Seq, Star, Sum, Term, Union, Unit
+from rel42.core import (
+    App, Fun, Prim, Prod, Seq, Star, Sum, Term, UNIT, Union, Unit, dagger,
+)
 
 from .core import PRIMS, Q42Error
 
@@ -244,6 +246,299 @@ def _outside(t: Term) -> set:
     return set()
 
 
+# ---------------------------------------------------------------------------
+# Section 4.2: the general construction.
+#
+#     f  =  M_in ; (+_j  mid_j ; N_j ; reshape) ; sigma ; M_out!
+#
+# M_in splits the input into one summand per *input leaf*: a clause after the
+# splitting of section 3.2, holding that leaf's names.  mid_j runs the leaf's
+# clause body -- its lets, and its calls, lifted into lets so that what is
+# left is names and constructors -- and ends with the tuple of the names the
+# final term uses.  M_out splits the output the same way, into *output
+# leaves*; where it split a name of input leaf j's final term, N_j makes that
+# split on j's tuple, so leaf j arrives as the sum of its output leaves.
+# reshape puts each output leaf's names in M_out's order, and sigma reorders
+# the summands from M_in's tree to M_out's.  Every piece is pair and sum
+# rearrangement, `dist`, a unit check, or the clause's own calls.
+# ---------------------------------------------------------------------------
+
+_fresh_count = [0]
+
+
+def _fresh(base: str) -> str:
+    _fresh_count[0] += 1
+    return f"{base}~{_fresh_count[0]}"     # `~` cannot occur in a written name
+
+
+def _tup(items):
+    if not items:
+        return None
+    s = items[-1]
+    for i in reversed(items[:-1]):
+        s = (i, s)
+    return s
+
+
+def _tup_term(names: List[str]) -> S.DTerm:
+    if not names:
+        return S.DConst(UNIT, "()")
+    t: S.DTerm = S.DVar(names[-1])
+    for n in reversed(names[:-1]):
+        t = S.DPair(S.DVar(n), t)
+    return t
+
+
+def _replace(shape, old, new):
+    if shape == old:
+        return new
+    if isinstance(shape, tuple):
+        return (_replace(shape[0], old, new), _replace(shape[1], old, new))
+    return shape
+
+
+def _subst(t: S.DTerm, sub) -> S.DTerm:
+    match t:
+        case S.DVar(n):
+            return _subst(sub[n], sub) if n in sub else t
+        case S.DPair(a, b):
+            return S.DPair(_subst(a, sub), _subst(b, sub))
+        case S.DInl(x):
+            return S.DInl(_subst(x, sub))
+        case S.DInr(x):
+            return S.DInr(_subst(x, sub), t.form)
+        case S.DApp(h, x):
+            return S.DApp(h, _subst(x, sub))
+        case S.DLet(q, r, e):
+            return S.DLet(q, _subst(r, sub), _subst(e, sub), t.line)
+    return t
+
+
+class _Row:
+    def __init__(self, ident, cols, names=None, sub=None):
+        self.ident = ident      # what this row stands for
+        self.cols = cols        # one DTerm per remaining column
+        self.names = dict(names or {})   # position -> the name held there
+        self.sub = dict(sub or {})       # name -> what splitting made it
+
+    def but(self, cols, **extra):
+        r = _Row(self.ident, cols, self.names, self.sub)
+        r.sub.update(extra.get("sub", {}))
+        return r
+
+
+def _cover(rows: List[_Row], acc, cols, cur):
+    """A term from a value of shape `cur` to a sum with one summand per leaf.
+
+    `cols` are the positions still to match and `acc` those already matched
+    against a name in every row; positions are opaque strings, and a shape is
+    a nested tuple of them (None for a unit).  Returns the term and the tree
+    of leaves: ("leaf", row, acc) or ("+", left, right).
+    """
+    if not cols:
+        if len(rows) != 1:   # coverage (section 3.2) has already ruled this out
+            raise ClauseError("internal: a leaf with %d clauses" % len(rows))
+        return S.route(cur, _tup(acc)), ("leaf", rows[0], list(acc))
+
+    c0, rest = cols[0], cols[1:]
+    heads = [S._expose(r.cols[0]) for r in rows]
+    shaped = [h for h in heads if not isinstance(h, S.DVar)]
+
+    if not shaped:                      # a name in every row: keep it
+        out = []
+        for r, h in zip(rows, heads):
+            nr = r.but(r.cols[1:])
+            nr.names[c0] = h.name
+            out.append(nr)
+        return _cover(out, acc + [c0], rest, cur)
+
+    first = shaped[0]
+    if isinstance(first, S.DConst):     # (): one value, nothing to keep
+        out = []
+        for r, h in zip(rows, heads):
+            extra = {h.name: S.DConst(UNIT, "()")} if isinstance(h, S.DVar) else {}
+            out.append(r.but(r.cols[1:], sub=extra))
+        return _cover(out, acc, rest, _replace(cur, c0, None))
+
+    if isinstance(first, S.DPair):      # a pair: two positions
+        a, b = _fresh("p"), _fresh("p")
+        out = []
+        for r, h in zip(rows, heads):
+            if isinstance(h, S.DVar):
+                x1, x2 = _fresh(h.name), _fresh(h.name)
+                out.append(r.but([S.DVar(x1), S.DVar(x2)] + r.cols[1:],
+                                 sub={h.name: S.DPair(S.DVar(x1), S.DVar(x2))}))
+            else:
+                out.append(r.but([h.a, h.b] + r.cols[1:]))
+        return _cover(out, acc, [a, b] + rest, _replace(cur, c0, (a, b)))
+
+    # A label: bring it to the front and split with `dist`.
+    others = acc + rest
+    front = (c0, _tup(others)) if others else c0
+    term: Term = S.route(cur, front)
+    branches = []
+    for label, make in (("L", S.DInl), ("R", S.DInr)):
+        inner = _fresh("p")
+        out = []
+        for r, h in zip(rows, heads):
+            if isinstance(h, S.DVar):
+                x = _fresh(h.name)
+                out.append(r.but([S.DVar(x)] + r.cols[1:], sub={h.name: make(S.DVar(x))}))
+            elif (label == "L") == isinstance(h, S.DInl):
+                out.append(r.but([h.t] + r.cols[1:]))
+        if not out:
+            raise ClauseError("internal: an empty branch after the coverage check")
+        cur_b = (inner, _tup(others)) if others else inner
+        branches.append(_cover(out, acc, [inner] + rest, cur_b))
+    if others:
+        term = Seq(term, S._p("dist"))
+    else:
+        # A bare label: no pair to distribute over.
+        pass
+    return Seq(term, Sum(branches[0][0], branches[1][0])), ("+", branches[0][1], branches[1][1])
+
+
+def _leaves(tree):
+    if tree[0] == "leaf":
+        return [tree]
+    return _leaves(tree[1]) + _leaves(tree[2])
+
+
+def _map_tree(tree, f):
+    """Replace each leaf by f(leaf) = (term, subtree); combine with `+`."""
+    if tree[0] == "leaf":
+        return f(tree)
+    lt, ls = _map_tree(tree[1], f)
+    rt, rs = _map_tree(tree[2], f)
+    return Sum(lt, rt), ("+", ls, rs)
+
+
+def _sum_leaves(tree):
+    if tree[0] == "leaf":
+        return [tree[1]]
+    return _sum_leaves(tree[1]) + _sum_leaves(tree[2])
+
+
+def _sum_concat(ll, lr) -> Term:
+    """(sum of ll) + (sum of lr)  ->  sum of ll + lr, right-nested."""
+    if len(ll) == 1:
+        return S.ID
+    return Seq(S._p("assocsum", True), Sum(S.ID, _sum_concat(ll[1:], lr)))
+
+
+def _sum_flatten(tree) -> Term:
+    if tree[0] == "leaf":
+        return S.ID
+    return Seq(Sum(_sum_flatten(tree[1]), _sum_flatten(tree[2])),
+               _sum_concat(_sum_leaves(tree[1]), _sum_leaves(tree[2])))
+
+
+def _sum_at(i: int, op: Term) -> Term:
+    for _ in range(i):
+        op = Sum(S.ID, op)
+    return op
+
+
+def _sum_swap(n: int) -> Term:
+    if n == 2:
+        return S._p("swapsum")
+    return Seq(Seq(S._p("assocsum"), Sum(S._p("swapsum"), S.ID)), S._p("assocsum", True))
+
+
+def _sum_route(src, dst) -> Term:
+    """Reorder the summands of tree `src` into tree `dst` (same leaves)."""
+    cur, want = _sum_leaves(src), _sum_leaves(dst)
+    out: Term = _sum_flatten(src)
+    for i in range(len(want)):
+        k = cur.index(want[i], i)
+        while k > i:
+            out = Seq(out, _sum_at(k - 1, _sum_swap(len(cur) - k + 1)))
+            cur[k - 1], cur[k] = cur[k], cur[k - 1]
+            k -= 1
+    return Seq(out, dagger(_sum_flatten(dst)))
+
+
+def _lift_calls(t: S.DTerm, lets):
+    """`t` with every call replaced by a fresh name, the calls collected."""
+    match t:
+        case S.DApp():
+            z = _fresh("z")
+            lets.append((S.DVar(z), t))
+            return S.DVar(z)
+        case S.DPair(a, b):
+            return S.DPair(_lift_calls(a, lets), _lift_calls(b, lets))
+        case S.DInl(x):
+            return S.DInl(_lift_calls(x, lets))
+        case S.DInr(x):
+            return S.DInr(_lift_calls(x, lets), t.form)
+    return t
+
+
+def _with_lets(body: S.DTerm, extra, final: S.DTerm) -> S.DTerm:
+    if isinstance(body, S.DLet):
+        return S.DLet(body.pat, body.rhs, _with_lets(body.body, extra, final), body.line)
+    out = final
+    for pat, rhs in reversed(extra):
+        out = S.DLet(pat, rhs, out, 0)
+    return out
+
+
+def general(clauses: List[S.Clause]) -> Term:
+    """Section 4.2's construction, for clauses that passed the checks."""
+    # M_in: the input, split into input leaves.
+    rows = [_Row(i, [c.pattern]) for i, c in enumerate(clauses)]
+    m_in, in_tree = _cover(rows, [], ["in"], "in")
+
+    # Each input leaf's body, its calls lifted into lets.
+    prepared = {}
+    for leaf in _leaves(in_tree):
+        _, row, acc = leaf
+        c = clauses[row.ident]
+        body = _subst(c.body, row.sub)
+        lets = []
+        final = _lift_calls(S._final(body), lets)
+        uses = list(dict.fromkeys(v.name for v in S.variables(final)))
+        env = [row.names[a] for a in acc]
+        prepared[id(leaf)] = (leaf, env, body, lets, final, uses)
+
+    # M_out: the output, split into output leaves, one row per input leaf.
+    out_rows = [_Row(key, [p[4]]) for key, p in prepared.items()]
+    m_out, out_tree = _cover(out_rows, [], ["out"], "out")
+    out_leaves = {}
+    for leaf in _leaves(out_tree):
+        _, row, acc = leaf
+        out_leaves.setdefault(row.ident, []).append(leaf)
+
+    def per_input_leaf(leaf):
+        _, row, acc = leaf
+        _, env, body, lets, final, uses = prepared[id(leaf)]
+        mid_clause = S.Clause(_tup_term(env), _with_lets(body, lets, _tup_term(uses)),
+                              0, "the general construction")
+        mid = S.compile_clause(mid_clause)
+        # N_j: make on this leaf's tuple the splits M_out made on its names.
+        mine = out_leaves[id(leaf)]
+        ids = [_fresh("g") for _ in uses]
+        n_rows = [_Row(id(ol), [_subst(S.DVar(u), ol[1].sub) for u in uses])
+                  for ol in mine]
+        n_term, n_tree = _cover(n_rows, [], ids, _tup(ids))
+        by_key = {id(ol): ol for ol in mine}
+
+        def reshape(nleaf):
+            _, nrow, nacc = nleaf
+            target = by_key[nrow.ident]
+            have = _tup([nrow.names[a] for a in nacc])
+            want = _tup([target[1].names[a] for a in target[2]])
+            return S.route(have, want), ("leaf", nrow.ident)
+
+        r_term, r_tree = _map_tree(n_tree, reshape)
+        return Seq(Seq(mid, n_term), r_term), r_tree
+
+    middle, src_tree = _map_tree(in_tree, per_input_leaf)
+    dst_tree = _map_tree(out_tree, lambda l: (S.ID, ("leaf", id(l))))[1]
+    sigma = _sum_route(src_tree, dst_tree)
+    return S.simplify(Seq(Seq(Seq(m_in, middle), sigma), dagger(m_out)))
+
+
 class Rules:
     """The hook `rel42.syntax.parse_program` calls for each clause definition."""
 
@@ -253,12 +548,12 @@ class Rules:
             check_names(c)
         check_coverage(name, renamed)
 
-    def accept(self, name: str, term: Term, clauses: List[S.Clause]) -> None:
-        extra = _outside(term)
-        if extra:
-            raise ClauseError(
-                f"`{name}` covers both sides exactly once, but its input and output "
-                f"do not split the same way, so it needs the general construction "
-                f"of QSUGAR.md section 4.2, which is not built yet (compiled with "
-                f"42's compiler it uses {', '.join(sorted(extra))})."
-            )
+    def compile(self, name: str, params: List[str], clauses: List[S.Clause],
+                term: Term) -> Term:
+        """42's compilation if it stays in the shared core; else section 4.2's."""
+        if not _outside(term):
+            return term
+        out = general([S.rebindings_apart(c) for c in clauses])
+        for p in reversed(params):
+            out = Fun(p, out)
+        return out

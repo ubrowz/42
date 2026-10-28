@@ -1,8 +1,10 @@
 # Q42 with Names — a design note on clauses for Q42
 
-*Draft design note, 2026-10-28. Nothing here is implemented in Q42, which
-refuses clause definitions today. It builds on [SUGAR.md](SUGAR.md), the
-clause notation for 42, and decides where Q42's version must differ. Where this
+*Design note, 2026-10-28, implemented through step 2 of §7: Q42 accepts every
+clause definition §3 allows, compiling it with 42's compiler when input and
+output split alike and with the general construction of §4.2 otherwise. It
+builds on [SUGAR.md](SUGAR.md), the clause notation for 42, and decides where
+Q42's version must differ. Where this
 note says "checked", `spike/qsquare.py` does it, against the clause definitions
 in `spike/qsugar.42`.*
 
@@ -274,56 +276,141 @@ and the outputs, which swap them, never split the same way. The 42 compiler then
 falls back to `join` and `inl`/`inr` (checked: `spike/qsquare.py` reports `sw`
 as using `inl`, `inr` and `join`), which is right for 42 and unavailable in Q42.
 
-The general construction compiles the whole clause set at once. For clauses
-`p_i <-> e_i`, `i = 1 … n`:
+The general construction compiles the whole clause set at once. It is built
+(step 2 of §7, `general` in `q42/sugar.py`), and Q42 uses it whenever the 42
+compiler's aligned result would leave `C`. For clauses `p_i <-> e_i`:
 
 ```
-M_in    :  A  ≅  E_1 + … + E_n        the input case tree, after splitting (§3.2)
-σ       :  reorder the summands to the output tree's order
-mid_i   :  E_i  ≅  F_i                clause i's routing and calls
-M_out   :  B  ≅  F_1 + … + F_n        the output case tree, built from the terms
+f  =  M_in ; (+_j  mid_j ; N_j ; reshape_j) ; σ ; M_out!
 
-f  =  M_in ; σ ; (mid_1 + … + mid_n) ; M_out!
+M_in       :  A  ≅  Σ_j E_j          the input, split into input leaves j
+mid_j      :  E_j  ≅  G_j             leaf j's lets and calls
+N_j        :  G_j  ≅  Σ_{k ∈ K_j} F_k  the splits M_out made, made on G_j
+reshape_j  :  each F_k into M_out's order of names
+σ          :  the summands, from M_in's tree into M_out's
+M_out      :  B  ≅  Σ_k F_k           the output, split into output leaves k
 ```
 
-`E_i` is the product of clause `i`'s pattern names, and `F_i` that of its
-term's (calls in a term become names whose values the `let`s of `mid_i`
-compute). `M_in` and `M_out` are built from `dist` and pair plumbing exactly as
-the case trees of §4.1 are; `σ` from `swapsum` and `assocsum`; `mid_i` from the
-42 compiler's routing. Every piece is in `C` or a call.
+**Input leaves.** Splitting (§3.2) turns the clauses into *input leaves*: a
+clause whose pattern has been split as far as the other patterns required, with
+the same substitution made in its body. `E_j` is the tuple of leaf `j`'s names.
+`M_in` is the case tree that sends an input to summand `j` holding those names;
+it is made of pair rearrangements, `dist`, and the unit checks of SUGAR.md §3.
 
-The aligned case of §4.1 is the case where `σ` is the identity at every level
-and the two trees can be interleaved split by split.
+**The middle.** In leaf `j`'s body, every call in the final term is first lifted
+into a `let` of its own, so that what remains is names and constructors. `G_j`
+is the tuple of the names that final term uses, and `mid_j` is leaf `j`'s
+`let` chain, from `E_j` to `G_j`, compiled by the 42 compiler as an ordinary
+clause.
 
-### 4.3 Why it is right: the proof sketch
+**Output leaves.** The leaves' final terms cover the output exactly once, and are
+split the same way into *output leaves* `k`, each belonging to one input leaf.
+Splitting on this side may divide a name of leaf `j`'s final term — a name the
+pattern bound, or one a call produced — into `L y1` and `R y2`. `N_j` makes that
+same division on `G_j`, so that leaf `j` arrives as a sum over its own output
+leaves `K_j`; for a leaf whose final term was not split, `N_j` is the identity.
+`reshape_j` reorders each output leaf's names into the order `M_out` holds them
+in, and `σ` reorders the summands themselves, with `swapsum` and `assocsum`.
 
-SUGAR.md §12 recorded this proof as owed. The sketch:
+Every piece is a pair or sum rearrangement, `dist`, a unit check, or one of the
+clauses' own calls. Checked: `sw`; the Berry set of §3.2, which compiles to the
+identity; a definition whose output split falls on a call's result; 40 random
+permutations of three bits and 4 of four bits, each exactly, both ways; and
+`sw` with one pair of clauses replaced by `(R (), (L (), c)) <-> (R (), (L (), h c))`,
+which equals `sw ; ctrl (nctrl h)` built point-free, amplitude for amplitude.
 
-1. **Splitting** (§3.2) replaces a clause by clauses with the same meaning, and
-   preserves "covers exactly once". It terminates because each split moves a
-   constructor from one clause into another at a place where some clause
-   already had one, and patterns are finite.
-2. **`M_in` is an isomorphism** onto the sum: by induction on the case tree,
-   each `dist` is one, and each leaf, having only names, pairs and `()`, is a
-   rearrangement. Exactly-once coverage is what makes each value land in
-   exactly one summand. The same holds for `M_out`.
-3. **`σ` exists**, because `+` is symmetric and associative up to `swapsum` and
-   `assocsum`, and any reordering of the leaves of one sum tree into another is
-   a composite of those. This is the coherence theorem for symmetric monoidal
-   categories, applied to `+`.
-4. **Each `mid_i` is unitary**: a linear rearrangement of names is a
-   permutation, a call is unitary by assumption, and a `let` whose pattern
-   cannot fail (§3.3) is a rearrangement too.
-5. **The meaning is the clauses'.** On a basis state `v`, exactly one clause
-   `i` matches; `M_in` sends `v` to summand `i` holding its names; `mid_i`
-   computes the term's values; `M_out!` builds `e_i`. So `f` sends `v` where
-   clause `i` says, and by linearity `f` is determined. On the core fragment
-   this is also the square of §1: the relation 42 gives is the set of nonzero
-   entries of `f`.
+The aligned case of §4.1 is the case where every split of the input is matched
+by one of the output, so that `N_j`, `reshape_j` and `σ` are all identities.
 
-What remains for a full proof is writing steps 1 and 3 out in detail, and
-stating the exact grammar of patterns covered. Theseus proves the corresponding
-result into Π for its own language; the argument here has the same shape.
+### 4.3 Why it is right
+
+SUGAR.md §12 recorded this proof as owed. It is stated for the construction as
+built.
+
+**Setting.** Types are finite: built from `1`, `+` and `x`, as Q42's are. A value
+is a basis vector, and a program denotes a linear map on the space the values
+of its type span. A clause definition `D` passed §3.1–3.3: every name is bound
+and used exactly once, `let` patterns cannot fail, patterns contain no calls,
+and the patterns, and the final terms read as patterns, each cover their type
+exactly once. Calls denote unitaries; for a recursive definition this is an
+assumption about the recursion, as everywhere else in Q42.
+
+**What `D` means.** On a value `v`, exactly one clause `p_i <-> e_i` matches,
+binding its names to parts of `v`. Then `e_i` is evaluated: a name gives the
+value bound to it, a constructor applies to its parts, a call applies its
+unitary, and `let q = t in e` evaluates `t`, matches each value in the result
+against `q` — which cannot fail — and evaluates `e` with those bindings, the
+results summed with the amplitudes of `t`. `⟦D⟧` is the linear map that does
+this on every value.
+
+**Lemma 1 (splitting).** Splitting a name `x` by a constructor's shape, in the
+pattern and with the same substitution in the body, replaces a clause by
+clauses with the same meaning, and preserves "covers exactly once" on both
+sides. On one set of clauses it stops.
+
+*Proof.* `x` matches exactly the values matched by `L x1` and by `R x2` together,
+and no value is matched by both, so the two new clauses together match what the
+old one did, and bind `x1` or `x2` to what `x` was bound to under its label; the
+substituted body computes what the old one did. The same holds for a pair and
+for `()`. Each split happens at a place where another clause has a constructor,
+and removes one constructor from the subproblem on that branch while adding
+none, since the name it splits becomes fresh names; so every branch of the
+recursion is strictly smaller in the number of constructors left, and in the
+number of places left. ∎
+
+**Lemma 2 (case trees).** For a set of clauses that covers its side exactly once,
+`M` (`M_in`, or `M_out` on the final terms, or `N_j` on the splits of `G_j`)
+sends each value to the summand of the unique leaf matching it, holding that
+leaf's names, and is a bijection between values and (leaf, names) pairs.
+
+*Proof.* By induction on the recursion of Lemma 1. A place where every row has a
+name moves that place into the leaf's names: no step. A place holding `()` is
+dropped by `unitprod`, which accepts only `()`. A pair place becomes two places:
+a rearrangement. A label place is brought to the front and split by `dist`, a
+bijection onto a sum of two subproblems, each covering exactly once by Lemma 1.
+At a leaf one row remains, and the route to its names is a rearrangement. All of
+these are bijections on values, and so is their composite. ∎
+
+**Lemma 3 (the middle).** For input leaf `j`, `mid_j ; N_j ; reshape_j`, followed
+by output leaf `k`'s part of `M_out!`, computes `e_j` on `j`'s names.
+
+*Proof.* Lifting a call `g t` out of the final term into `let z = g t in …` does
+not change what the term computes, since the name `z` is then used exactly where
+the call stood. `mid_j` is the 42 compiler's compilation of `E_j <-> let … in G_j`,
+whose meaning is to run the lets and return the tuple of the names used, each
+exactly once (SUGAR.md §3). The final term `e_j` builds its value from that
+tuple with constructors only, so it is a map from tuples to outputs sending
+basis values to basis values. On each tuple, `N_j` selects the output leaf `k`
+whose split forms the tuple's values have (Lemma 2, applied to `N_j`), and
+`M_out!` on summand `k` builds exactly the value `e_j` would (Lemma 2, applied to
+`M_out`, read backwards); `reshape_j` only matches the order of names between
+the two. ∎
+
+**Lemma 4 (σ).** `σ` sends each output leaf's summand in `M_in`'s arrangement to
+the same leaf's summand in `M_out`'s, and is a bijection.
+
+*Proof.* It flattens the source tree into a right-nested sum with `assocsum!`,
+exchanges adjacent summands with `swapsum` until they are in the target's order,
+and unflattens with the target's flattening run backwards. Each step is a
+bijection, and the leaves are tracked by name. ∎
+
+**Theorem.** `⟦f⟧ = ⟦D⟧`, and `f` is unitary.
+
+*Proof.* On a value `v` matching input leaf `j` with names `η`, `M_in` gives
+`(j, η)` (Lemma 2), the middle gives `e_j` evaluated on `η` in the summands of
+`j`'s output leaves (Lemma 3), and `σ` and `M_out!` put it in place (Lemma 4,
+Lemma 2). By Lemma 1, `e_j` on `η` is what `D` gives on `v`. Both sides are
+linear, so they agree everywhere. Each piece of `f` is a bijection on values or
+a call, and so unitary; hence `f` is. ∎
+
+**Corollary (the square of §1).** If `D`'s calls stay inside `C`, `⟦f⟧` is a
+permutation of values, and the relation 42 compiles `D` to is its set of nonzero
+entries, since both are the clauses' meaning: the 42 compiler's (SUGAR.md §3, §6)
+read over the Booleans, `f` over ℂ, and a permutation's nonzero entries are the
+same in both.
+
+This is a proof about the construction, by hand, in the manner of THEOREM.md;
+it is not mechanised. The tests check its conclusion on the cases above.
 
 ## 5. Circuits
 
@@ -366,7 +453,6 @@ As implemented in `q42/sugar.py` (step 1 of §7), each triggered by a test:
 | the same, on the output side | ``no clause of `f` produces …`` and ``the terms of clauses i and j of `f` both produce …`` |
 | a `let` pattern that can fail | ``in `f …`, a `let` pattern can fail.  A call's result may be a superposition, so a pattern after a call may contain only names, pairs and ().`` |
 | a call in a pattern | ``in `f …`, the pattern calls a program.  Calls in patterns are 42-only for now; match first, then call the program backwards in a `let`.`` |
-| needs §4.2 | ``` `sw` covers both sides exactly once, but its input and output do not split the same way, so it needs the general construction of QSUGAR.md section 4.2, which is not built yet (compiled with 42's compiler it uses inl, inr, join).``` |
 | emitter, general case | (step 3) ``f compiles, but not at register types (QMANUAL §9.4); it runs in the evaluator and cannot be emitted yet.`` |
 
 Values in Q42 messages are written with `L` and `R`: in Q42, `L ()` is a qubit,
@@ -386,7 +472,7 @@ Each step is a commit with every test passing, as for the 42 sugar.
    in patterns, and decides coverage by the splitting of §3.2, with the
    messages of §6. Then it compiles with the 42 compiler. If the result stays
    inside `C` plus calls, Q42 accepts it; otherwise it refuses with "needs the
-   general construction, not built yet". Tests: the rules and every message;
+   general construction, not built yet" (until step 2). Tests: the rules and every message;
    and the square of §1 for every accepted definition whose calls stay inside
    `C`, generalising `spike/qsquare.py`. `cx`, `ccx`, `orcnot` and `add4` are
    the first cases, written with rebinding as in §2. As built: the shared
@@ -395,9 +481,8 @@ Each step is a commit with every test passing, as for the 42 sugar.
    let a = h a in cx (a, b)` compiles to `h * id ; cx`, which is `gates.42`'s
    own definition; `42q show` prints clauses as `42 show` does.
 2. **The general construction** of §4.2, replacing that refusal, with the proof
-   of §4.3 written out (as THEOREM.md writes its proofs). `sw` and the Berry
-   set of §3.2 are the first tests; both pass coverage today and are refused
-   only for needing it.
+   of §4.3 written out (as THEOREM.md writes its proofs). *Done.* Q42 now
+   accepts every clause definition §3 allows.
 3. **The emitter.** Definitions whose compiled form stays at register types
    emit, which includes every aligned one. The rest run in the evaluator, and
    the emitter refuses them with §6's message.

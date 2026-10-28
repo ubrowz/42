@@ -15,6 +15,7 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+import itertools  # noqa: E402
 import subprocess  # noqa: E402
 import tempfile  # noqa: E402
 
@@ -595,27 +596,136 @@ class Q42Clauses(unittest.TestCase):
 
     def test_coverage_is_decided_by_splitting(self):
         # No column has a constructor in every clause, yet the five cover the
-        # eight values of three bits exactly once.  Coverage accepts them; the
-        # refusal is the general construction's, not a gap or an overlap.
-        berry = "\n".join([
-            "def berry (L (), (R (), c)) <-> (L (), (R (), c))",
-            "def berry (R (), (b, L ())) <-> (R (), (b, L ()))",
-            "def berry (a, (L (), R ())) <-> (a, (L (), R ()))",
-            "def berry (L (), (L (), L ())) <-> (L (), (L (), L ()))",
-            "def berry (R (), (R (), R ())) <-> (R (), (R (), R ()))",
-        ])
-        self.rejects(berry, "needs the general construction")
+        # eight values of three bits exactly once.  Coverage accepts them, and
+        # the general construction compiles them to the identity.
+        from q42.exact import is_zero
+        env = expand_env(self.qparse(GENERAL_SRC))
+        for bits in itertools.product([0, 1], repeat=3):
+            got = self.column(env, "berry", bits)
+            self.assertEqual({k: v for k, v in got.items() if not is_zero(v)},
+                             {_register(bits): 1})
 
-    def test_a_split_neither_side_shares_needs_the_general_construction(self):
-        # Exchange 000 and 111, fix the rest: the smallest such permutation.
-        states = [(a, b, c) for a in (0, 1) for b in (0, 1) for c in (0, 1)]
-        def v(s):
-            l = ["R ()" if x else "L ()" for x in s]
-            return f"({l[0]}, ({l[1]}, {l[2]}))"
+
+GENERAL_SRC = """
+def x     = swapsum
+def s     = id + (omega ; omega)
+def hcore = x ; s ; v ; s ; x
+def h     = unitprod! ; (omega * hcore) ; unitprod
+def mat     = dist ; (unitprod + unitprod)
+def ctrl m  = mat ; (id + m) ; mat!
+def nctrl m = mat ; (m + id) ; mat!
+
+def berry (L (), (R (), c)) <-> (L (), (R (), c))
+def berry (R (), (b, L ())) <-> (R (), (b, L ()))
+def berry (a, (L (), R ())) <-> (a, (L (), R ()))
+def berry (L (), (L (), L ())) <-> (L (), (L (), L ()))
+def berry (R (), (R (), R ())) <-> (R (), (R (), R ()))
+
+def sw (L (), (L (), L ()))  <->  (R (), (R (), R ()))
+def sw (R (), (R (), R ()))  <->  (L (), (L (), L ()))
+def sw (L (), (L (), R ()))  <->  (L (), (L (), R ()))
+def sw (L (), (R (), L ()))  <->  (L (), (R (), L ()))
+def sw (L (), (R (), R ()))  <->  (L (), (R (), R ()))
+def sw (R (), (L (), L ()))  <->  (R (), (L (), L ()))
+def sw (R (), (L (), R ()))  <->  (R (), (L (), R ()))
+def sw (R (), (R (), L ()))  <->  (R (), (R (), L ()))
+
+def swh (L (), (L (), L ()))  <->  (R (), (R (), R ()))
+def swh (R (), (R (), R ()))  <->  (L (), (L (), L ()))
+def swh (L (), (L (), R ()))  <->  (L (), (L (), R ()))
+def swh (L (), (R (), L ()))  <->  (L (), (R (), L ()))
+def swh (L (), (R (), R ()))  <->  (L (), (R (), R ()))
+def swh (R (), (L (), c))     <->  (R (), (L (), h c))
+def swh (R (), (R (), L ()))  <->  (R (), (R (), L ()))
+def expected = sw ; ctrl (nctrl h)
+
+def callsplit (L (), L ())  <->  (L (), L ())
+def callsplit (L (), R ())  <->  (R (), L ())
+def callsplit (R (), q)     <->  (x q, R ())
+"""
+
+
+def _val(bits):
+    s = "R ()" if bits[-1] else "L ()"
+    for b in reversed(bits[:-1]):
+        s = f"({'R ()' if b else 'L ()'}, {s})"
+    return s
+
+
+class Q42General(unittest.TestCase):
+    """QSUGAR.md section 4.2: the general construction (plan step 2)."""
+
+    @classmethod
+    def setUpClass(cls):
+        from q42.syntax import parse_program as qparse
+        cls.qparse = staticmethod(qparse)
+        cls.Q = expand_env(qparse(GENERAL_SRC))
+
+    def basis(self, env, name, bits, back=False):
+        from q42.core import column
+        from q42.exact import is_zero
+        got = column(Ref(name, back), _register(bits), env)
+        return {k: v for k, v in got.items() if not is_zero(v)}
+
+    def permutation(self, n, perm):
+        states = list(itertools.product([0, 1], repeat=n))
+        src = "\n".join(f"def p {_val(s)} <-> {_val(states[perm[i]])}"
+                        for i, s in enumerate(states))
+        env = expand_env(self.qparse(src))
+        for i, s in enumerate(states):
+            out = states[perm[i]]
+            self.assertEqual(self.basis(env, "p", s), {_register(out): 1}, (perm, s))
+            self.assertEqual(self.basis(env, "p", out, back=True), {_register(s): 1})
+
+    def test_the_smallest_misaligned_permutation(self):
         image = {(0, 0, 0): (1, 1, 1), (1, 1, 1): (0, 0, 0)}
-        src = "\n".join(f"def sw {v(s)} <-> {v(image.get(s, s))}" for s in states)
-        self.rejects(src, "`sw` covers both sides exactly once",
-                     "QSUGAR.md section 4.2", "uses inl, inr, join")
+        for bits in itertools.product([0, 1], repeat=3):
+            out = image.get(bits, bits)
+            self.assertEqual(self.basis(self.Q, "sw", bits), {_register(out): 1})
+            self.assertEqual(self.basis(self.Q, "sw", out, True), {_register(bits): 1})
+
+    def test_it_uses_the_sum_rearrangements(self):
+        shown = show_term(self.qparse(GENERAL_SRC)["sw"])
+        self.assertIn("assocsum", shown)
+        for absent in ("inl", "inr", "join", "copy", "|"):
+            self.assertNotIn(absent, shown.replace("assocsum", ""))
+
+    def test_random_permutations(self):
+        import random
+        rng = random.Random(7)
+        for _ in range(40):
+            perm = list(range(8))
+            rng.shuffle(perm)
+            self.permutation(3, perm)
+        for _ in range(4):
+            perm = list(range(16))
+            rng.shuffle(perm)
+            self.permutation(4, perm)
+
+    def test_an_output_split_on_a_calls_result(self):
+        want = {(0, 0): (0, 0), (0, 1): (1, 0), (1, 0): (1, 1), (1, 1): (0, 1)}
+        for bits, out in want.items():
+            self.assertEqual(self.basis(self.Q, "callsplit", bits), {_register(out): 1})
+            self.assertEqual(self.basis(self.Q, "callsplit", out, True), {_register(bits): 1})
+
+    def test_a_superposing_call_inside_it(self):
+        # swh is sw with h applied to the last qubit when the first two are 10;
+        # built point-free, that is sw followed by a doubly controlled h.
+        for bits in itertools.product([0, 1], repeat=3):
+            for back in (False, True):
+                with self.subTest(bits=bits, backward=back):
+                    self.assertEqual(self.basis(self.Q, "swh", bits, back),
+                                     self.basis(self.Q, "expected", bits, back))
+
+    def test_the_square_holds_for_the_general_case_too(self):
+        rel = expand_env(parse_program(GENERAL_SRC))
+        for name in ("sw", "berry", "callsplit"):
+            n = 2 if name == "callsplit" else 3
+            for bits in itertools.product([0, 1], repeat=n):
+                for back in (False, True):
+                    with self.subTest(name=name, bits=bits, backward=back):
+                        self.assertEqual(run(Ref(name, back), _register(bits), rel),
+                                         set(self.basis(self.Q, name, bits, back)))
 
 
 class Errors(unittest.TestCase):
