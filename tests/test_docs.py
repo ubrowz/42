@@ -249,6 +249,23 @@ class TestQManualNumbers(unittest.TestCase):
         mid = {bits_of(v): z for v, z in column(parse_term("h * id"), ket("00"), self.gates).items()}
         self.assertEqual(sorted(k for k, z in mid.items() if abs(complex(z)) > 1e-9), ["00", "10"])
 
+    def test_section_6_1s_matrix_of_v(self):
+        """6.1 prints V = 1/2 [[-1+i, -1-i], [-1-i, -1+i]]; check it, and V V = X."""
+        from rel42.core import Prim
+        self.assertIn("V  =  1/2 × [ -1+i   -1-i ]", self.text)
+        want = [[(-1 + 1j) / 2, (-1 - 1j) / 2], [(-1 - 1j) / 2, (-1 + 1j) / 2]]
+        cols = []
+        for inp in ("0", "1"):
+            out = {bits_of(v): z for v, z in column(Prim("v"), ket(inp), {}).items()}
+            cols.append([complex(out.get(r, 0)) for r in ("0", "1")])
+        for r in range(2):
+            for c in range(2):
+                self.assertAlmostEqual(cols[c][r], want[r][c], places=9)
+        vv = [[sum(want[r][k] * want[k][c] for k in range(2)) for c in range(2)] for r in range(2)]
+        for r in range(2):
+            for c in range(2):
+                self.assertAlmostEqual(vv[r][c], 1 if r != c else 0, places=9)
+
     def test_the_bell_determinant(self):
         """The manual computes 0.7071 x 0.7071 - 0 x 0 = 0.5; check both."""
         self.assertIn("0.7071 x 0.7071 - 0 x 0  =  0.5", self.text)

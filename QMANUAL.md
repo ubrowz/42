@@ -1529,15 +1529,18 @@ That is the strongest single argument in §9.2 for leaving the language alone.
 A fair reading of a list of limitations is "then what use is it?", so the useful
 part first.
 
-**Expressiveness.** `omega` and `v` generate Clifford+T, the standard universal
-gate set, so any unitary can be approximated to any precision you like and
-Clifford+T circuits are represented exactly. Grover's diffusion operator, Shor's
-modular arithmetic, the quantum Fourier transform: all writable. §8.4 writes out
+**Expressiveness.** `omega` and `v` generate Clifford+T (§6.2). That gate set is
+*universal*: any unitary can be approximated by a Clifford+T circuit to any
+precision you like, and Clifford+T circuits themselves are represented exactly.
+The building blocks of the famous algorithms are all writable: the step of
+Grover's search (§2.5) that amplifies the right answer, the arithmetic modulo
+`N` inside Shor's factoring algorithm, and the quantum Fourier transform, the
+quantum version of the discrete Fourier transform and the core of Shor's. §8.4 writes out
 Deutsch's algorithm in six lines.
 
-**Gate identities, checked mechanically.** `√Π`'s contribution is an *equational
-theory*, a set of rules for proving two circuits equal, and Q42 makes it
-executable. `42q law` checks that `!` really is the adjoint; `42q unitary` checks
+**Gate identities, checked mechanically.** What Carette et al.'s calculus (§4.2;
+they call it `√Π`) contributes is an *equational theory*, a set of rules for
+proving two circuits equal (§6.5), and Q42 makes it executable. `42q law` checks that `!` really is the adjoint; `42q unitary` checks
 `t ; t! = id` across a whole library; `42q matrix` prints the matrix so you can
 compare. Gate identities like `H ; H = id`, `H ; X ; H = Z`, `S ; S = Z` and
 `(Ctrl U)† = Ctrl U†`: all of these can be run, and each is a test in
@@ -1558,14 +1561,16 @@ term rather than written a second time and trusted to match.
 Be accurate about the comparison, though, because it is easy to overstate. Silq's
 contribution is *safe, automatic* uncomputation: its point is that the programmer
 never decides where the undo goes. Q42 is in the category Silq set out to improve
-on, the one where you trigger it yourself — as Quipper's `with_computed` and Q#'s
-`ApplyWith` do. What Q42 adds within that category is that the inverse is a
+on, the one where you trigger it yourself — as Quipper (a quantum language
+embedded in Haskell) does with `with_computed`, and Q# (Microsoft's quantum
+language) with `ApplyWith`. What Q42 adds within that category is that the inverse is a
 syntactic consequence of the forward term instead of a second definition to keep
 in step, and that invoking it costs three characters. That is a smaller claim
 than Silq's, and a different one.
 
-**Evidence for a claim about language design.** `q42/` shares `Value`, `Term`,
-the parser and the whole type checker with `rel42/`, and `q42.dagger is
+**Evidence for a claim about language design.** `q42/` shares the data types for
+values and programs (`Value`, `Term`), the parser and the whole type checker
+with `rel42/`, and `q42.dagger is
 rel42.dagger`, the same function object. The claim being
 demonstrated is that 42's primitives are not a curated set but a forced one, so
 that reaching quantum computing is a change of number system rather than a new
@@ -1582,8 +1587,8 @@ because it did not.
 
 ### 9.2 Where the language stops
 
-Q42 is a language for the **unitary layer** of quantum computing, with
-measurement at its edge. That sentence is the boundary, and it is chosen rather
+Q42 is a language for the **unitary layer** of quantum computing, the part made
+of gates, with measurement at its edge. That sentence is the boundary, and it is chosen rather
 than unfinished: it is what buys every property in §9.1.
 
 **Inside the line.** Every term denotes a unitary, so `!` is defined on every
@@ -1602,10 +1607,12 @@ measurement appears. The literature reaches the same conclusion and treats
 measurement as a layer over a unitary core rather than a primitive inside it. The
 construction is Carette et al., *The Quantum Effect*, and it is worth seeing how
 much machinery it takes. Measurement there is not a primitive but a derived
-term, `measure_Z = copy_Z ≫ fst`, where `fst` needs a `discard` that arrives
-with a further *hiding* arrow layered on top; and the resulting model is one of
-**partial maps**, landing in the category of finite-dimensional Hilbert spaces
-and linear *contractions* rather than unitaries. The authors are candid about the
+term, `measure_Z = copy_Z ≫ fst`: copy in the standard basis (§5.2's `copy`),
+then keep only the first copy (`≫` is their composition). Keeping one copy
+needs a way to `discard` the other, and that arrives only with a further layer
+of their construction, which hides what is thrown away. And the resulting model
+is one of **partial maps**, landing not among unitaries but among *contractions*,
+linear maps on the spaces of states of §2 that never make a vector longer. The authors are candid about the
 cost, noting that their `discard` postulate "is dangerous, as it does not enforce
 that it is only applied to total maps".
 
@@ -1635,15 +1642,19 @@ arrives intact.
 
 The same holds for **Shor's algorithm**, which is often assumed to need
 mid-circuit measurement and does not: its quantum part is one unitary followed
-by one measurement, and the continued-fraction step and the retry loop are
-ordinary classical code *around* that subroutine. Q42 hands you the measured
+by one measurement, and what comes after (a classical calculation, the
+continued-fraction step, that turns the measured value into a factor, and a
+retry if it fails) is ordinary classical code *around* that subroutine. Q42 hands you the measured
 value and a script does the rest.
 
 What is genuinely on the far side of the line is narrower than it first looks:
-**error correction**, where syndromes are measured and acted on repeatedly while
-the computation continues; **measurement-based computing**, whose entire model is
-adaptive measurement; and **qubit reuse**, which matters when hardware has a fixed
-qubit budget and not at all in a simulator. None of these is what Q42 is for.
+**error correction** (§2.7), where an error's signature, its *syndrome*, is
+measured and acted on repeatedly while the computation continues;
+**measurement-based computing**, a model in which the whole computation is done
+by measuring qubits of a large entangled state, each measurement chosen from the
+results of earlier ones; and **qubit reuse**, measuring a qubit to reset it for
+another use, which matters when hardware has a fixed qubit budget and not at
+all in a simulator. None of these is what Q42 is for.
 
 Two smaller boundaries follow from the same place:
 
@@ -1659,10 +1670,11 @@ An `n`-qubit gate is a `2ⁿ × 2ⁿ` matrix, so running Q42 costs exponential t
 and memory. It is worth being precise about what that does and does not mean.
 
 It does **not** distinguish Q42 from other quantum languages. Every classical
-simulator of quantum circuits pays this, Qiskit's included; it is a fact about
-simulating quantum mechanics on a classical machine, not about this
-implementation. A quantum *language* is not in competition with quantum
-*hardware*: Q42's peers are Silq, Π and Quipper, not a superconducting chip.
+simulator of quantum circuits pays this, including those of Qiskit, IBM's
+widely used quantum toolkit; it is a fact about simulating quantum mechanics on a
+classical machine, not about this implementation. A quantum *language* is not in
+competition with quantum *hardware*: Q42's peers are Silq, Π and Quipper, not a
+chip.
 
 There is one genuine nuance. By the **Gottesman–Knill theorem**, circuits built
 only from Clifford gates (`h`, `s`, `cx`) are efficiently simulable classically,
@@ -1680,14 +1692,18 @@ edge (§9.2) and simulation cost as the price everybody pays.
 ### 9.4 Could a Q42 program run on real hardware?
 
 It can, once machines are stable and large enough: `42q emit` writes any
-definition out as OpenQASM 3, which every mainstream toolchain reads. This
+definition out as OpenQASM 3, a standard text format for quantum circuits, which
+every mainstream toolchain reads. This
 section says why the language sits well for that, what the emitter does, and
 where the real limit is.
 
-The language is well placed for it. A Q42 program already is a unitary circuit
-in a fault-tolerant gate set: `omega` and `v` generate Clifford+T, which is what
-surface-code architectures target, and what T-count, the standard cost measure
-for such machines, is counted in. Nothing needs translating into another model of
+The language is well placed for it. The machines that will run long computations
+must correct their own errors (§2.7), and the leading scheme for that, the
+*surface code*, makes Clifford gates cheap and the `t` gate expensive. Such
+machines are therefore built around Clifford+T, and the cost of a program on
+them is counted by its *T-count*, the number of `t` gates. A Q42 program already
+is a circuit in exactly that gate set, since `omega` and `v` generate
+Clifford+T. Nothing needs translating into another model of
 computation.
 
 Better, most of the language costs nothing to execute. Classifying each primitive
@@ -1697,9 +1713,9 @@ by what it does to the underlying bits:
 |---|---|---|
 | `id`, `assocsum`, `assocprod`, `unitsum`, `unitprod`, `dist` | nothing at all | **free** |
 | `swapprod` | permutes them | a relabelling, or a SWAP |
-| `swapsum` | flips one | Pauli X |
+| `swapsum` | flips one | NOT, the gate `X` |
 | `omega` | nothing, but multiplies by a phase | a phase gate |
-| `v` | superposes them | √X |
+| `v` | superposes them | √X, half a NOT (§6.1) |
 
 Only **three of the ten** are physical operations, and they are exactly X, phase
 and √X. Everything else is the semiring plumbing of §3.5, and plumbing is
@@ -1748,8 +1764,8 @@ rejected. Programs people actually write in this language are already circuits.
 **Measurement.** *Terminal* measurement is part of the tooling today (§7.6):
 run the unitary, then sample the result. It is the Born rule and a random
 number, nothing more. It covers every algorithm whose last step is a single
-measurement: Deutsch, Bernstein–Vazirani, Grover, and the quantum subroutine of
-Shor.
+measurement: Deutsch (§8.4), Bernstein–Vazirani (which finds a hidden bit string
+with a single query), Grover, and the quantum subroutine of Shor.
 
 ```
 $ 42q sample deutsch dnot "|01>" --bits 0
@@ -1768,7 +1784,8 @@ of getting a circuit onto a device are commodity. Those are **routing**, because
 real hardware cannot apply a two-qubit gate to an arbitrary pair, and **rotation
 synthesis**, because `omega` is only an eighth root of unity, so finer angles
 must be approximated into many T gates. Any existing quantum compiler does them for
-anything handed over as OpenQASM 3 or QIR. They are not Q42's to write.
+anything handed over as OpenQASM 3 or QIR (Quantum Intermediate Representation,
+another exchange format). They are not Q42's to write.
 
 What is Q42's own is the lowering, and it is short. Two parts:
 
@@ -1794,12 +1811,13 @@ being a library definition rather than a language feature.
 Every definition in every Q42 library emits, and each is checked against Q42's own
 matrix by a simulator in `tools/qasm_sim.py` that deliberately shares no code with
 the evaluator. What comes out is unoptimised, with `z` leaving as four
-eighth-turn phases, because correctness came first and the downstream transpiler
-folds most of it.
+eighth-turn phases, because correctness came first and the *transpiler*, the
+optimising pass of the downstream compiler, folds most of it.
 
 There is also one piece that is not commodity, because no previous language
 needed it. Q42 defers every measurement (§9.2), and on hardware deferral is not
-free: it spends coherence time and forbids reusing a qubit. So a serious lowering
+free: it spends *coherence time*, the short while a qubit keeps its state before
+decoherence (§2.7) spoils it, and forbids reusing a qubit. So a serious lowering
 would want to run the deferred measurement principle backwards: recognise a
 `ctrl` whose control qubit is never touched again, and emit measure-and-branch
 where the term says quantum control. That is a rewrite over a program Q42 already
@@ -1816,8 +1834,10 @@ is the gate set. `omega` is an eighth root of unity, so the unitaries Q42 can
 write down are exactly those over `Z[1/√2, i]` — Clifford+T, and nothing finer.
 That is not a limit on what Q42 can compute: Clifford+T is universal, and any
 rotation is reachable to precision ε with a T-count logarithmic in 1/ε. It is a
-limit on what Q42 can *name*. An `Rz(π/7)` must arrive already synthesised, where
-a device with native rotations would have applied it as one pulse.
+limit on what Q42 can *name*. A phase gate turning `|1>` by `π/7`, written
+`Rz(π/7)` in the literature, must arrive already approximated by Clifford+T,
+where a device with native rotations would have applied it as one control
+pulse.
 
 Against the machines this section opened with, that is not a shortfall at all:
 on a surface code arbitrary rotations are the expensive thing, and being confined
@@ -1834,15 +1854,18 @@ angles belongs to the unprotected era, not the mature one.
 Lifting it would buy device-generality. It would not falsify §6 — (E1), (E2) and
 (E3) go on holding — it would end their sufficiency: two constants would no longer
 generate, and phases would become an indexed family rather than a primitive. A
-cyclotomic Q42, one root of unity per level, would keep exact evaluation and
-decidable equality and lose only the finite presentation. Going the whole way, to
+Q42 with a 16th, 32nd, … root of 1 added at each level (a *cyclotomic* Q42, in
+the number theorist's word) would keep exact evaluation and decidable equality
+and lose only the finite presentation: the fixed, finite list of generators and
+equations. Going the whole way, to
 a continuum of angles, loses exactness itself, and with it the property that a Q42
 program *has* a matrix rather than an approximation to one. That last trade is the
 one the language is made of.
 
 Read beside §6.2, the three arguments this section has made turn out to be one.
-The phases of Q42 form `Z₈`, a finite subgroup of the circle. A cyclotomic Q42 is
-a larger finite subgroup, `Z₁₆` or `Z₃₂`. The continuum is the circle itself. And
+The phases of Q42 form `Z₈`, the cyclic group of the eight eighth-turns, a finite
+subgroup of the circle of all phases. A cyclotomic Q42 is a larger finite
+subgroup, `Z₁₆` or `Z₃₂`. The continuum is the circle itself. And
 Eastin–Knill is the statement that no machine which corrects its errors can offer
 you the circle: its cheap alphabet is finite, so it sits somewhere on that ladder
 and never at the top. So *why eight*, *what would lifting cost*, and *why is the
@@ -1880,7 +1903,7 @@ Absent, with reasons in §5: `zero`, `inl`, `inr`, `copy`, `join`, `|`, `^`.
 
 | | |
 |---|---|
-| `x`, `y`, `z` | the Pauli gates; `x` is `swapsum` |
+| `x`, `y`, `z` | the Pauli gates: `x` is NOT (`swapsum`), `z` multiplies `\|1>` by `−1`, and `y` is `x ; z`, up to a global phase |
 | `h` | Hadamard — makes and unmakes superpositions |
 | `s`, `t` | phase gates, `diag(1, i)` and `diag(1, e^{iπ/4})` |
 | `v`, `vdg`, `sdg`, `tdg` | square root of NOT, and the adjoints |
@@ -1903,7 +1926,7 @@ Absent, with reasons in §5: `zero`, `inl`, `inr`, `copy`, `join`, `|`, `^`.
 | `42q equal FILE GATE GATE` | decide whether two definitions are the same gate |
 | `42q emit FILE [GATE]` | write it out as OpenQASM 3; `--qubits N`, `--gates` |
 | `42q type FILE [GATE]` | infer the type |
-| `42q show FILE [GATE]` | print a definition and its adjoint |
+| `42q show FILE [GATE]` | print a definition, its adjoint, and what it compiles to |
 
 ### Source files
 
@@ -1987,7 +2010,12 @@ cx q[0], q[1];
 ```
 
 Twelve instructions for a two-operator program, and one qubit register of
-exactly the width the type demands.
+exactly the width the type demands. To read them: `qubit[2] q` declares two
+qubits, `q[0]` and `q[1]`; `x` is NOT and `h` the Hadamard; `p(θ)` is the phase
+gate `diag(1, e^{iθ})` of §6.2; `gphase(θ)` multiplies the whole state by
+`e^{iθ}`, a global phase (§2.7); and `cx q[0], q[1]` is a CNOT with control
+`q[0]` and target `q[1]`. Angles are in radians, so `0.785…` is `π/4`, an eighth
+of a turn, and `1.570…` is `π/2`, a quarter.
 
 ### Why twelve
 
