@@ -1,0 +1,135 @@
+-- modadd.42 -- a modular adder, the arithmetic inside Shor's algorithm.
+--
+--   (a, b)  |->  (a, (a + b) mod N)        for a, b < N, N fixed
+--
+-- The construction is Vedral, Barenco & Ekert's (1996): add, subtract N, note
+-- the sign, add N back if it went negative, then clean the sign bit up by
+-- comparing with a.  The plain adder inside it is Cuccaro, Draper, Kutin &
+-- Moulton's ripple-carry adder (2004), built from two three-qubit blocks.
+--
+-- Every subtraction below is an addition run backwards, `add!`.  Nothing here
+-- writes a subtractor.
+--
+--   42q unitary casestudy/modadd mod3                -- all 2^9 basis states
+--   42q emit    casestudy/modadd mod13               -- OpenQASM 3, 15 qubits
+--
+-- A number is a register, least significant bit first: (b0, (b1, b2)) is
+-- b0 + 2 b1 + 4 b2.  casestudy/check.py checks every adder against spec.42.
+
+type qubit = 1 + 1
+
+def x = swapsum
+
+def cx (L (), q)  <->  (L (), q)
+def cx (R (), q)  <->  (R (), x q)
+
+def ccx (L (), q)  <->  (L (), q)
+def ccx (R (), q)  <->  (R (), cx q)
+
+
+-- ---------------------------------------------------------------------------
+-- The ripple-carry adder.  `maj` computes the carry into the next position and
+-- leaves it where `a` was; `uma` undoes that and leaves the sum bit in `b`.
+-- ---------------------------------------------------------------------------
+
+def maj (c, (b, a))  <->
+    let (a, b)      = cx (a, b)        in
+    let (a, c)      = cx (a, c)        in
+    let (c, (b, a)) = ccx (c, (b, a))  in
+    (c, (b, a))
+
+def uma (c, (b, a))  <->
+    let (c, (b, a)) = ccx (c, (b, a))  in
+    let (a, c)      = cx (a, c)        in
+    let (c, b)      = cx (c, b)        in
+    (c, (b, a))
+
+-- addN (c, (a, (b, z))) adds the N-bit a into the (N+1)-bit number (b, z),
+-- modulo 2^(N+1).  c is a work qubit that starts and ends at |0>.  Each width
+-- is one carry block around the width below it, and `ar`, `br` are the rest
+-- of each register: the recursion is on the register, written out because a
+-- circuit has a fixed width.
+
+def add1 (c, (a0, (b0, z)))  <->
+    let (c, (b0, a0)) = maj (c, (b0, a0)) in
+    let (a0, z)       = cx (a0, z)        in
+    let (c, (b0, a0)) = uma (c, (b0, a0)) in
+    (c, (a0, (b0, z)))
+
+def add2 (c, ((a0, ar), ((b0, br), z)))  <->
+    let (c, (b0, a0))       = maj (c, (b0, a0))        in
+    let (a0, (ar, (br, z))) = add1 (a0, (ar, (br, z))) in
+    let (c, (b0, a0))       = uma (c, (b0, a0))        in
+    (c, ((a0, ar), ((b0, br), z)))
+
+def add3 (c, ((a0, ar), ((b0, br), z)))  <->
+    let (c, (b0, a0))       = maj (c, (b0, a0))        in
+    let (a0, (ar, (br, z))) = add2 (a0, (ar, (br, z))) in
+    let (c, (b0, a0))       = uma (c, (b0, a0))        in
+    (c, ((a0, ar), ((b0, br), z)))
+
+def add4 (c, ((a0, ar), ((b0, br), z)))  <->
+    let (c, (b0, a0))       = maj (c, (b0, a0))        in
+    let (a0, (ar, (br, z))) = add3 (a0, (ar, (br, z))) in
+    let (c, (b0, a0))       = uma (c, (b0, a0))        in
+    (c, ((a0, ar), ((b0, br), z)))
+
+
+-- ---------------------------------------------------------------------------
+-- The modular adder.  `add` is the plain adder at the right width, `load`
+-- writes the constant N into the empty register k, and `cload` does the same
+-- under the control of the sign bit s.  Ancillas: z (the top bit of b), c (the
+-- adder's work qubit), k (holds N while it is needed) and s; all start and end
+-- at |0> for inputs a, b < N.
+-- ---------------------------------------------------------------------------
+
+def modadd add load cload (a, (b, (z, (c, (k, s)))))  <->
+    let (c, (a, (b, z))) = add (c, (a, (b, z)))   in   -- b := a + b
+    let k                = load k                 in
+    let (c, (k, (b, z))) = add! (c, (k, (b, z)))  in   -- b := b - N
+    let k                = load k                 in
+    let (z, s)           = cx (z, s)              in   -- s := (a + b < N)
+    let (s, k)           = cload (s, k)           in
+    let (c, (k, (b, z))) = add (c, (k, (b, z)))   in   -- b := b + s N
+    let (s, k)           = cload (s, k)           in
+    let (c, (a, (b, z))) = add! (c, (a, (b, z)))  in   -- b := b - a
+    let z                = x z                    in
+    let (z, s)           = cx (z, s)              in   -- s := 0
+    let z                = x z                    in
+    let (c, (a, (b, z))) = add (c, (a, (b, z)))   in   -- b := b + a
+    (a, (b, (z, (c, (k, s)))))
+
+
+-- The constants, least significant bit first.
+
+def load3 (k0, k1)             <->  (x k0, x k1)                     -- 11
+def load5 (k0, (k1, k2))       <->  (x k0, (k1, x k2))               -- 101
+def load7 (k0, (k1, k2))       <->  (x k0, (x k1, x k2))             -- 111
+def load13 (k0, (k1, (k2, k3))) <-> (x k0, (k1, (x k2, x k3)))       -- 1011
+
+def cload3 (s, (k0, k1))  <->
+    let (s, k0) = cx (s, k0) in
+    let (s, k1) = cx (s, k1) in
+    (s, (k0, k1))
+
+def cload5 (s, (k0, (k1, k2)))  <->
+    let (s, k0) = cx (s, k0) in
+    let (s, k2) = cx (s, k2) in
+    (s, (k0, (k1, k2)))
+
+def cload7 (s, (k0, (k1, k2)))  <->
+    let (s, k0) = cx (s, k0) in
+    let (s, k1) = cx (s, k1) in
+    let (s, k2) = cx (s, k2) in
+    (s, (k0, (k1, k2)))
+
+def cload13 (s, (k0, (k1, (k2, k3))))  <->
+    let (s, k0) = cx (s, k0) in
+    let (s, k2) = cx (s, k2) in
+    let (s, k3) = cx (s, k3) in
+    (s, (k0, (k1, (k2, k3))))
+
+def mod3  = modadd add2 load3  cload3
+def mod5  = modadd add3 load5  cload5
+def mod7  = modadd add3 load7  cload7
+def mod13 = modadd add4 load13 cload13

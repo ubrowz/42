@@ -1,0 +1,29 @@
+-- spec.42 -- what modadd.42 is supposed to compute, written to be read.
+--
+--   (a, (b, n))  |->  (a, ((a + b) mod n, n))      for a, b < n
+--
+-- This is ordinary 42 over the natural numbers: it copies `a`, it is undefined
+-- outside a, b < n, and `n` is an input rather than wired in.  None of that is
+-- a circuit, and none of it needs to be.  casestudy/check.py runs it beside the
+-- Q42 adder on every valid input and compares.
+
+type nat = mu X. 1 + X
+
+def add (0, n)      <->  n
+def add (m + 1, n)  <->  add (m, n) + 1
+
+def lt (0, n + 1)      <->  (0, n + 1)
+def lt (m + 1, n + 1)  <->  let (a, b) = lt (m, n) in (a + 1, b + 1)
+
+def addk (c, b)  <->  (add (c, b), b)
+def sub = addk!
+
+-- Reduce a sum s < 2n into range: keep it if s < n, subtract n if not.
+def keep (s, n)  <->  lt (s, n)
+def wrap (s, n)  <->  sub (s, n)
+def reduce = keep | wrap
+
+def modadd (a, (b, n))  <->
+    let (a, n) = lt (a, n) in
+    let (b, n) = lt (b, n) in
+    (a, reduce (add (a, b), n))
