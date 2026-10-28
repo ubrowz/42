@@ -20,6 +20,21 @@ Value grammar:
            | '(' ')' | '(' value ',' value ')'
            | NUM                        -- Peano nat over  mu X. 1 + X
            | '[' value,* ']'            -- list over  mu X. 1 + (A x X)
+
+Clause definitions (SUGAR.md), compiled to terms by `sugar`:
+
+    clause := 'def' IDENT IDENT* datom '<->' dterm
+    dterm  := 'let' dcons '=' dcons 'in' dterm | dcons
+    dcons  := dplus (':' dcons)?        -- x : xs,  right-associative
+    dplus  := dapp ('+' NUM)*           -- n + 1
+    dapp   := 'L' datom | 'R' datom | head datom | datom
+    head   := IDENT postfix* post^arity | '(' term ')' postfix*
+    datom  := VAR | '(' ')' | '(' dcons ',' dcons ')' | '(' dcons ')'
+            | NUM | CHAR | STRING | '[' dcons,* ']'
+
+An identifier in a data term is a variable exactly when it does not name a
+definition, a parameter or a primitive.  That needs every definition's name
+before parsing starts, so `parse_program` reads the headers first.
 """
 
 from __future__ import annotations
@@ -27,6 +42,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Tuple
 
+from . import sugar as S
 from .core import (
     App,
     Fun,
@@ -74,7 +90,7 @@ _TOKEN = re.compile(
     | (?P<char>'(?:[^'\\\n]|\\.)')
     | (?P<num>\d+)
     | (?P<ident>[A-Za-z_][A-Za-z_0-9]*)
-    | (?P<op>[;|+*!^(),\[\]=.])
+    | (?P<op><->|[;|+*!^(),\[\]=.:])
     """,
     re.VERBOSE,
 )
@@ -116,6 +132,9 @@ class _Parser:
         # `Inference` allocates, so a declaration can never accidentally alias an
         # inference variable.
         self._tvar = 900_000
+        # Every definition in the file, with its number of parameters: what tells
+        # a call from a data variable inside a clause.
+        self.arity: Dict[str, int] = {}
 
     def peek(self):
         return self.toks[self.i]
@@ -313,6 +332,148 @@ class _Parser:
         if kind == "num":
             return from_nat(int(text))
         raise ParseError(f"line {ln}: expected a value, found {text or 'end of input'!r}")
+
+    # -- data terms (clause definitions) -------------------------------------
+    #
+    # `pattern` is True while parsing the left of `<->` or of a `let`'s `=`; it
+    # only changes which error message a misplaced definition name gets.
+
+    _KEYWORDS = {"let", "in", "def", "L", "R"}
+
+    def _is_head(self, name: str) -> bool:
+        return name in self.arity or name in self.params or name in self.prims
+
+    def _starts_datom(self) -> bool:
+        kind, text, _ = self.peek()
+        if text in ("(", "["):
+            return True
+        if kind in ("num", "char", "string"):
+            return True
+        return kind == "ident" and text not in self._KEYWORDS
+
+    def _after_parens(self) -> int:
+        """Index of the token after the bracket group starting at the cursor."""
+        depth, j = 0, self.i
+        while True:
+            _, text, _ = self.toks[j]
+            if text in ("(", "["):
+                depth += 1
+            elif text in (")", "]"):
+                depth -= 1
+                if depth == 0:
+                    return j + 1
+            elif self.toks[j][0] == "eof":
+                return j
+            j += 1
+
+    def dterm(self, pattern: bool = False):
+        if self.at("let"):
+            _, _, ln = self.next()
+            q = self.dcons(True)
+            self.expect("=")
+            rhs = self.dcons(False)
+            self.expect("in")
+            return S.DLet(q, rhs, self.dterm(pattern), ln)
+        return self.dcons(pattern)
+
+    def dcons(self, pattern: bool):
+        head = self.dplus(pattern)
+        if self.at(":"):
+            self.next()
+            return S.DInr(S.DPair(head, self.dcons(pattern)))
+        return head
+
+    def dplus(self, pattern: bool):
+        node = self.dapp(pattern)
+        while self.at("+") and self.toks[self.i + 1][0] == "num":
+            self.next()
+            for _ in range(int(self.next()[1])):
+                node = S.DInr(node)
+        return node
+
+    def dapp(self, pattern: bool):
+        kind, text, ln = self.peek()
+        if kind == "ident" and text in ("L", "R"):
+            self.next()
+            arg = self.datom(pattern)
+            return S.DInl(arg) if text == "L" else S.DInr(arg)
+        if kind == "ident" and self._is_head(text):
+            head = self.post()
+            for _ in range(self.arity.get(text, 0)):
+                head = App(head, self.post())
+            if not self._starts_datom():
+                raise self._name_clash(text, ln, pattern)
+            return S.DApp(head, self.datom(pattern))
+        if text == "(":
+            # A bracket group directly followed by a data term can only be a
+            # program applied to it: data terms are never juxtaposed otherwise.
+            saved = self.i
+            self.i = self._after_parens()
+            while self.at("!"):
+                self.next()
+            is_call = self._starts_datom()
+            self.i = saved
+            if is_call:
+                self.next()
+                head = self.term()
+                self.expect(")")
+                while self.at("!"):
+                    self.next()
+                    head = dagger(head)
+                return S.DApp(head, self.datom(pattern))
+        return self.datom(pattern)
+
+    def _name_clash(self, name: str, ln: int, pattern: bool) -> ParseError:
+        what = (
+            "a parameter" if name in self.params
+            else "a primitive" if name in self.prims
+            else "a definition"
+        )
+        if pattern:
+            return ParseError(
+                f"line {ln}: the pattern variable `{name}` has the name of {what}.  "
+                f"In a pattern, `{name} t` runs `{name}` backwards, so a variable "
+                f"may not reuse the name.  Rename the variable."
+            )
+        return ParseError(
+            f"line {ln}: `{name}` is {what}, so here it must be applied to an "
+            f"argument: `{name} t`.  A variable may not reuse the name."
+        )
+
+    def datom(self, pattern: bool):
+        kind, text, ln = self.next()
+        if text == "(":
+            if self.at(")"):
+                self.next()
+                return S.DConst(UNIT)
+            first = self.dcons(pattern)
+            if self.at(","):
+                self.next()
+                second = self.dcons(pattern)
+                self.expect(")")
+                return S.DPair(first, second)
+            self.expect(")")
+            return first
+        if text == "[":
+            items = []
+            if not self.at("]"):
+                items.append(self.dcons(pattern))
+                while self.at(","):
+                    self.next()
+                    items.append(self.dcons(pattern))
+            self.expect("]")
+            node = S.DConst(Inl(UNIT))
+            for item in reversed(items):
+                node = S.DInr(S.DPair(item, node))
+            return node
+        if kind in ("num", "char", "string"):
+            self.i -= 1
+            return S.DConst(self.value())
+        if kind == "ident" and text not in self._KEYWORDS:
+            if self._is_head(text):
+                raise self._name_clash(text, ln, pattern)
+            return S.DVar(text, ln)
+        raise ParseError(f"line {ln}: expected a data term, found {text or 'end of input'!r}")
 
 
 # ---------------------------------------------------------------------------
@@ -661,11 +822,75 @@ class Program(dict):
         self.types: List[Abbrev] = list(types)
 
 
+def _header(toks, i: int):
+    """Read a `def` header whose name is at `toks[i]`, without consuming it.
+
+    Returns (separator, sep_index, params, pattern_index): the separator is `=`
+    for a point-free definition and `<->` for a clause, whose pattern is the
+    single bracket group or token just before it.  Everything between the name
+    and the pattern is a parameter.
+    """
+    depth, j = 0, i + 1
+    while True:
+        kind, text, ln = toks[j]
+        if kind == "eof" or (depth == 0 and text == "def" and kind == "ident"):
+            raise ParseError(f"line {ln}: expected '=' or '<->' in the definition "
+                             f"of '{toks[i][1]}'")
+        if depth == 0 and text in ("=", "<->"):
+            break
+        if text in ("(", "["):
+            depth += 1
+        elif text in (")", "]"):
+            depth -= 1
+        j += 1
+    if text == "=":
+        return "=", j, [t for _, t, _ in toks[i + 1:j]], None
+    k = j - 1
+    if toks[k][1] in (")", "]"):
+        depth = 0
+        while True:
+            t = toks[k][1]
+            if t in (")", "]"):
+                depth += 1
+            elif t in ("(", "["):
+                depth -= 1
+                if depth == 0:
+                    break
+            k -= 1
+    if k <= i:
+        raise ParseError(f"line {toks[j][2]}: a clause of '{toks[i][1]}' needs a "
+                         f"pattern before '<->'")
+    for kind, text, ln in toks[i + 1:k]:
+        if kind != "ident":
+            raise ParseError(
+                f"line {ln}: a clause's pattern must be a single term just before "
+                f"'<->'; put brackets round it"
+            )
+    return "<->", j, [t for _, t, _ in toks[i + 1:k]], k
+
+
+def _source(toks) -> str:
+    """Tokens back to readable text, for quoting a clause in a message."""
+    out = ""
+    for _, text, _ in toks:
+        if out and not (out.endswith(("(", "[")) or text in (")", "]", ",", "!")):
+            out += " "
+        out += text
+    return out
+
+
 def parse_program(src: str, prims=None) -> "Program":
     """Parse `def` bindings and `type` abbreviations into an environment."""
-    p = _Parser(lex(src), prims)
+    toks = lex(src)
+    p = _Parser(toks, prims)
+    for i, (kind, text, _) in enumerate(toks[:-1]):
+        if kind == "ident" and text == "def" and toks[i + 1][0] == "ident":
+            _, _, params, _ = _header(toks, i + 1)
+            p.arity[toks[i + 1][1]] = len(params)
     env: Dict[str, Term] = {}  # insertion-ordered, so source order is preserved
     types: List[Abbrev] = []
+    clauses: Dict[str, Tuple[List[str], List[S.Clause]]] = {}
+    last = None  # the previous definition's name: clauses must be contiguous
     while p.peek()[0] != "eof":
         if p.at("type"):
             p.next()
@@ -692,6 +917,7 @@ def parse_program(src: str, prims=None) -> "Program":
                 order.append(scope[pname])
             p.expect("=")
             types.append(Abbrev(name, tuple(order), p.typeexpr(scope)))
+            last = None
             continue
         p.expect("def")
         kind, name, ln = p.next()
@@ -699,10 +925,50 @@ def parse_program(src: str, prims=None) -> "Program":
             raise ParseError(f"line {ln}: expected a name after 'def'")
         if name in p.prims:
             raise ParseError(f"line {ln}: '{name}' is a primitive and cannot be redefined")
+        if name in ("L", "R", "let", "in"):
+            raise ParseError(f"line {ln}: '{name}' is reserved and cannot name a definition")
+
+        sep, j, params, k = _header(toks, p.i - 1)
+        if sep == "<->":
+            if name in env and name not in clauses:
+                raise ParseError(f"line {ln}: '{name}' is already defined")
+            if name in clauses:
+                if last != name:
+                    raise ParseError(
+                        f"line {ln}: the clauses of '{name}' must be written together; "
+                        f"another definition comes between them"
+                    )
+                if clauses[name][0] != params:
+                    raise ParseError(
+                        f"line {ln}: every clause of '{name}' must have the same "
+                        f"parameters ({' '.join(clauses[name][0]) or 'none'})"
+                    )
+            for pname in params:
+                if pname in p.prims or pname in p.arity:
+                    raise ParseError(
+                        f"line {ln}: '{pname}' names a primitive or a definition "
+                        f"and cannot be a parameter"
+                    )
+            p.i = k
+            p.params = set(params)
+            start = k
+            pat = p.datom(True)
+            if p.i != j:
+                raise ParseError(f"line {ln}: a clause's pattern must be a single "
+                                 f"term just before '<->'; put brackets round it")
+            p.expect("<->")
+            body = p.dterm()
+            p.params = set()
+            text = f"{name} {_source(toks[start:p.i])}"
+            clauses.setdefault(name, (params, []))[1].append(S.Clause(pat, body, ln, text))
+            env[name] = None  # placeholder, so source order is kept
+            last = name
+            continue
         if name in env:
             raise ParseError(f"line {ln}: '{name}' is already defined")
+        last = name
 
-        params: List[str] = []
+        params = []
         while not p.at("="):
             kind, text, pln = p.next()
             if kind != "ident":
@@ -724,4 +990,6 @@ def parse_program(src: str, prims=None) -> "Program":
         for name_ in reversed(params):
             body = Fun(name_, body)
         env[name] = body
+    for name, (params, group) in clauses.items():
+        env[name] = S.compile_clauses(params, group)
     return Program(env, types)

@@ -363,8 +363,8 @@ bounds how large a `Star` closure may grow before being declared infinite, and
 `--untyped` skips the type check that `run` and `law` otherwise apply.
 
 Tests: `python3 tests/test_rel42.py` (134), `python3 tests/test_types.py` (125),
-`python3 tests/test_q42.py` (103), `python3 tests/test_docs.py` (33) and
-`python3 tests/test_emit.py` (27) — 422 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
+`python3 tests/test_q42.py` (103), `python3 tests/test_docs.py` (33),
+`python3 tests/test_emit.py` (27) and `python3 tests/test_sugar.py` (34) — 456 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
 itself, including these counts.
 
 ## Q42 — the same language over ℂ
@@ -439,6 +439,7 @@ where you started.
 42, 42q           shorthand for `python3 -m rel42` / `python3 -m q42`
 rel42/core.py     values, terms, the dagger, primitives, the evaluator
 rel42/syntax.py   lexer, parser, pretty-printer (type-directed when given a type)
+rel42/sugar.py    clause definitions (SUGAR.md) compiled to ordinary 42
 rel42/types.py    types, equirecursive unification, inference
 rel42/meta.py     the encoding meta.42 reads: 42 programs and values, as values
 rel42/__main__.py CLI
@@ -457,7 +458,7 @@ meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7,
                   MANUAL §14).  `42 quote arith mul "(3, 4)"`
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
-tests/            422 tests, including the defining law checked exhaustively,
+tests/            456 tests, including the defining law checked exhaustively,
                   every output claimed in tour.42, that all 288 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted

@@ -493,7 +493,8 @@ class TestReadmeCounts(unittest.TestCase):
 
         loader = ut.TestLoader()
         counts = {}
-        for name in ["test_rel42", "test_types", "test_q42", "test_docs", "test_emit"]:
+        for name in ["test_rel42", "test_types", "test_q42", "test_docs", "test_emit",
+                     "test_sugar"]:
             counts[name] = loader.loadTestsFromName(name).countTestCases()
 
         for name, n in counts.items():
