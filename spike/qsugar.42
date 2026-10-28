@@ -30,8 +30,20 @@ def add4 (x0, (x1, (y0, y1)))  <->
     let (x1, y1)       = cx (x1, y1)        in
     (x0, (x1, (y0, y1)))
 
--- 00 -> 01 -> 10 -> 00, and 11 fixed: a permutation, so unitary
+-- 00 -> 01 -> 10 -> 00, and 11 fixed: a permutation, so unitary.  It compiles
+-- inside the core once inputs split on the second bit (QSUGAR.md section 4.2).
 def cyc (L (), L ())  <->  (L (), R ())
 def cyc (L (), R ())  <->  (R (), L ())
 def cyc (R (), L ())  <->  (L (), L ())
 def cyc (R (), R ())  <->  (R (), R ())
+
+-- Exchange 000 and 111, fix the rest: the smallest permutation whose input and
+-- output never split the same way, so it needs the general construction.
+def sw (L (), (L (), L ()))  <->  (R (), (R (), R ()))
+def sw (L (), (L (), R ()))  <->  (L (), (L (), R ()))
+def sw (L (), (R (), L ()))  <->  (L (), (R (), L ()))
+def sw (L (), (R (), R ()))  <->  (L (), (R (), R ()))
+def sw (R (), (L (), L ()))  <->  (R (), (L (), L ()))
+def sw (R (), (L (), R ()))  <->  (R (), (L (), R ()))
+def sw (R (), (R (), L ()))  <->  (R (), (R (), L ()))
+def sw (R (), (R (), R ()))  <->  (L (), (L (), L ()))

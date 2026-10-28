@@ -45,7 +45,11 @@ def parse_term(src: str) -> Term:
 
 
 def parse_program(src: str) -> Dict[str, Term]:
-    return _parse_program(src, PRIMS, allow_clauses=False)
+    # Imported here: q42.sugar needs q42.core, which this module's callers may
+    # still be loading.
+    from .sugar import Rules
+
+    return _parse_program(src, PRIMS, clause_rules=Rules())
 
 
 def ket(bits: str) -> Value:

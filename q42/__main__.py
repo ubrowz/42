@@ -430,6 +430,9 @@ def cmd_type(args) -> int:
 
 
 def cmd_show(args) -> int:
+    from rel42.sugar import simplify, turned_round
+    from rel42.syntax import show_clause
+
     env = _load(args.file)
     names = [args.main] if args.main else list(env)
     width = max((len(n) for n in names), default=0) + 1
@@ -437,6 +440,20 @@ def cmd_show(args) -> int:
         if name not in env:
             raise Q42Error(f"'{name}' is not defined in this file")
         body = env[name]
+        clauses = getattr(env, "clauses", {})
+        if name in clauses:
+            # As `42 show`: the clauses, the same clauses turned round (the
+            # adjoint, read off the page), then what they compile to.
+            params, group = clauses[name]
+            for c in group:
+                print(f"{name:<{width}}  {show_clause(name, params, c)[len(name) + 1:]}")
+            for c in group:
+                turned = show_clause(name, params, turned_round(c))
+                print(f"{name + '!':<{width}}  {turned[len(name) + 1:]}")
+            print(f"{name:<{width}}  = {show_term(body)}")
+            print(f"{name + '!':<{width}}  = {show_term(simplify(dagger(body)))}")
+            print()
+            continue
         print(f"{name:<{width}}  = {show_term(body)}")
         print(f"{name + '!':<{width}}  = {show_term(dagger(body))}")
         print()

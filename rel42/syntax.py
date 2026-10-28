@@ -883,11 +883,15 @@ def _source(toks) -> str:
     return out
 
 
-def parse_program(src: str, prims=None, allow_clauses: bool = True) -> "Program":
+def parse_program(src: str, prims=None, clause_rules=None) -> "Program":
     """Parse `def` bindings and `type` abbreviations into an environment.
 
-    `allow_clauses` is off for Q42, whose generators cannot express what a
-    clause compiles to (SUGAR.md section 9).
+    `clause_rules` is how a sibling language over the same grammar -- Q42 --
+    adds its own discipline to clause definitions (QSUGAR.md): its `check` sees
+    each definition's clauses before they are compiled, and its `accept` sees
+    the compiled term.  With rules in place, 42's own overlap warnings and its
+    dropping of dead unit checks are left out: the rules decide overlap, and a
+    unit check costs nothing where every value of `1` is `()`.
     """
     toks = lex(src)
     p = _Parser(toks, prims)
@@ -938,13 +942,6 @@ def parse_program(src: str, prims=None, allow_clauses: bool = True) -> "Program"
 
         sep, j, params, k = _header(toks, p.i - 1)
         if sep == "<->":
-            if not allow_clauses:
-                raise ParseError(
-                    f"line {ln}: '{name}' is a clause definition, and those are "
-                    f"42-only for now.  A clause compiles to `inl`, `inr`, `copy` "
-                    f"and `|`, none of which Q42 has; the stricter form Q42 needs "
-                    f"is SUGAR.md section 9.  Write it point-free."
-                )
             if name in env and name not in clauses:
                 raise ParseError(f"line {ln}: '{name}' is already defined")
             if name in clauses:
@@ -1008,6 +1005,11 @@ def parse_program(src: str, prims=None, allow_clauses: bool = True) -> "Program"
     warnings: List[str] = []
     unchecked: Dict[str, Term] = {}
     for name, (params, group) in clauses.items():
+        if clause_rules is not None:
+            clause_rules.check(name, params, group)
+            env[name] = S.compile_clauses(params, group)
+            clause_rules.accept(name, env[name], group)
+            continue
         env[name] = S.compile_clauses(params, group)
         unchecked[name] = S.compile_clauses(params, group, units=False)
         for i, j, witness in S.overlaps(group):

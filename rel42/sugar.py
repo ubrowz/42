@@ -730,12 +730,27 @@ def _to_front(t: DTerm, path):
     return prog, t, path
 
 
-def _split_position(terms):
-    """A position where every term has a label and both labels occur."""
+def _split_positions(terms):
+    """Every position where every term has a label and both labels occur."""
     for path in _paths(terms[0]):
         labels = [_label(x, path) for x in terms]
         if None not in labels and len(set(labels)) == 2:
-            return path, labels
+            yield path, labels
+
+
+def _matching_output(clauses, labels):
+    """An output position sorted the same way as `labels`, or exactly opposite.
+
+    Only the final term of a `let` chain is the output, so look there.
+    """
+    bodies = [_final(c.body) for c in clauses]
+    for cand in _paths(bodies[0]):
+        got = [_label(b, cand) for b in bodies]
+        if None in got or len(set(got)) != 2:
+            continue
+        if all((g == "L") == (l == "L") for g, l in zip(got, labels)) or \
+           all((g == "L") != (l == "L") for g, l in zip(got, labels)):
+            return cand, got
     return None, None
 
 
@@ -754,7 +769,17 @@ def _with_final(body: DTerm, new: DTerm) -> DTerm:
 def _cases(clauses: List[Clause], units: bool = True) -> Term:
     if len(clauses) == 1:
         return compile_clause(clauses[0], units)
-    path, labels = _split_position([c.pattern for c in clauses])
+    # Prefer an input split whose partition the outputs also make: that split
+    # ends in `dist!` rather than `join`, and in Q42 it is the only kind there
+    # is.  Failing that, take the first split there is.
+    path = labels = out_path = out_labels = None
+    for cand, labs in _split_positions([c.pattern for c in clauses]):
+        if path is None:
+            path, labels = cand, labs
+        o_path, o_labels = _matching_output(clauses, labs)
+        if o_path is not None:
+            path, labels, out_path, out_labels = cand, labs, o_path, o_labels
+            break
     if path is None:
         out = compile_clause(clauses[0], units)
         for c in clauses[1:]:
@@ -765,20 +790,6 @@ def _cases(clauses: List[Clause], units: bool = True) -> Term:
     moved = [_to_front(c.pattern, path) for c in clauses]
     pre, front = moved[0][0], moved[0][2]
     pats = [_strip(m[1], front) for m in moved]
-
-    # Is there an output position sorted the same way (or exactly opposite)?
-    # Only the final term of a `let` chain is the output, so look there.
-    out_path = out_labels = None
-    if True:
-        bodies = [_final(c.body) for c in clauses]
-        for cand in _paths(bodies[0]):
-            got = [_label(b, cand) for b in bodies]
-            if None in got or len(set(got)) != 2:
-                continue
-            if all((g == "L") == (l == "L") for g, l in zip(got, labels)) or \
-               all((g == "L") != (l == "L") for g, l in zip(got, labels)):
-                out_path, out_labels = cand, got
-                break
 
     if out_path is None:
         bodies = [c.body for c in clauses]

@@ -475,34 +475,147 @@ class Warnings(unittest.TestCase):
         self.assertNotIn("warning:", out.stdout)
 
 
-class Q42(unittest.TestCase):
-    def test_q42_refuses_clauses_with_the_reason(self):
+Q_SRC = """
+type qubit = 1 + 1
+def x     = swapsum
+def s     = id + (omega ; omega)
+def hcore = x ; s ; v ; s ; x
+def h     = unitprod! ; (omega * hcore) ; unitprod
+
+def cx (L (), q)  <->  (L (), q)
+def cx (R (), q)  <->  (R (), x q)
+
+def ccx (L (), qs)  <->  (L (), qs)
+def ccx (R (), qs)  <->  (R (), cx qs)
+
+def orcnot (L (), y)  <->  (L (), x y)
+def orcnot (R (), y)  <->  (R (), y)
+
+def add4 (x0, (x1, (y0, y1)))  <->
+    let (x0, (y0, y1)) = ccx (x0, (y0, y1)) in
+    let (x0, y0)       = cx (x0, y0)        in
+    let (x1, y1)       = cx (x1, y1)        in
+    (x0, (x1, (y0, y1)))
+
+def bell (a, b)  <->  let a = h a in cx (a, b)
+
+def cyc (L (), L ())  <->  (L (), R ())
+def cyc (L (), R ())  <->  (R (), L ())
+def cyc (R (), L ())  <->  (L (), L ())
+def cyc (R (), R ())  <->  (R (), R ())
+"""
+
+
+def _register(bits):
+    from rel42.core import Inl, Inr, Pair, UNIT
+    def bit(b):
+        return Inr(UNIT) if b else Inl(UNIT)
+    v = bit(bits[-1])
+    for b in reversed(bits[:-1]):
+        v = Pair(bit(b), v)
+    return v
+
+
+class Q42Clauses(unittest.TestCase):
+    """QSUGAR.md: Q42 accepts clauses under its own rules (plan step 1)."""
+
+    @classmethod
+    def setUpClass(cls):
         from q42.syntax import parse_program as qparse
+        cls.qparse = staticmethod(qparse)
+        cls.Q = expand_env(qparse(Q_SRC))
 
-        with self.assertRaises(Rel42Error) as cm:
-            qparse("def f x <-> x")
-        self.assertIn("42-only", str(cm.exception))
-        self.assertIn("section 9", str(cm.exception))
+    def column(self, env, name, bits, back=False):
+        from q42.core import column
+        return column(Ref(name, back), _register(bits), env)
 
-
-class Libraries(unittest.TestCase):
-    """Where a library was rewritten in clauses and a document still needs the
-    point-free form, the two must agree."""
-
-    def test_the_tape_moves_agree_with_theorem_42(self):
-        # THEOREM.md section 5.3 quotes theorem.42's point-free moves and says
-        # tm.42 writes the same ones as clauses.
-        point_free = expand_env(_load("theorem.42"))
-        clauses = expand_env(_load("tm.42"))
-        tapes = ["([], (L (), []))", "([L ()], (R (), [R ()]))",
-                 "([R (), L ()], (L (), [L (), R ()]))", "([], (R (), [L ()]))"]
-        for name in ("right", "left", "stepover"):
-            for s in tapes:
+    def test_clauses_equal_the_point_free_gates_exactly(self):
+        import itertools
+        cases = [("cx", "q42/gates.42", "cx", 2), ("ccx", "q42/gates.42", "ccx", 3),
+                 ("orcnot", "q42/deutsch.42", "orcnot", 2), ("add4", "q42/fib.42", "add4", 4),
+                 ("bell", "q42/gates.42", "bell", 2)]
+        for mine, path, theirs, n in cases:
+            with open(os.path.join(ROOT, path), encoding="utf-8") as fh:
+                ref = expand_env(self.qparse(fh.read()))
+            for bits in itertools.product([0, 1], repeat=n):
                 for back in (False, True):
-                    with self.subTest(name=name, tape=s, backward=back):
-                        v = parse_value(s)
-                        self.assertEqual(run(Ref(name, back), v, clauses),
-                                         run(Ref(name, back), v, point_free))
+                    with self.subTest(name=mine, bits=bits, backward=back):
+                        self.assertEqual(self.column(self.Q, mine, bits, back),
+                                         self.column(ref, theirs, bits, back))
+
+    def test_bell_compiles_to_what_gates_42_writes(self):
+        self.assertEqual(show_term(self.qparse(Q_SRC)["bell"]), "h * id ; cx")
+
+    def test_the_square(self):
+        # QSUGAR.md section 1: compiled by 42 the same clauses give a relation,
+        # and it is the set of nonzero entries of Q42's matrix.
+        import itertools
+        from q42.exact import is_zero
+        rel = expand_env(parse_program(Q_SRC))
+        for name, n in [("cx", 2), ("ccx", 3), ("orcnot", 2), ("add4", 4), ("cyc", 2)]:
+            for bits in itertools.product([0, 1], repeat=n):
+                for back in (False, True):
+                    with self.subTest(name=name, bits=bits, backward=back):
+                        amp = self.column(self.Q, name, bits, back)
+                        self.assertEqual(
+                            run(Ref(name, back), _register(bits), rel),
+                            {w for w, a in amp.items() if not is_zero(a)},
+                        )
+
+    def rejects(self, clauses, *fragments):
+        from q42.core import Q42Error
+        src = "def x = swapsum\n" + clauses
+        with self.assertRaises(Q42Error) as cm:
+            self.qparse(src)
+        for frag in fragments:
+            self.assertIn(frag, str(cm.exception))
+
+    def test_a_name_used_twice_is_refused(self):
+        self.rejects("def dup a <-> (a, a)", "`a` is used twice", "QMANUAL section 5.2")
+
+    def test_a_name_matched_twice_is_refused(self):
+        self.rejects("def eq (a, a) <-> a", "`a` is matched twice")
+
+    def test_a_gap_is_refused(self):
+        self.rejects("def f (L (), q) <-> (L (), q)", "no clause of `f` matches `(R _, _)`")
+
+    def test_overlapping_patterns_are_refused(self):
+        self.rejects("def f (a, b) <-> (a, b)\ndef f (L (), b) <-> (R (), b)",
+                     "patterns of clauses 1 and 2 of `f` both match")
+
+    def test_overlapping_terms_are_refused(self):
+        self.rejects("def f (L (), q) <-> (L (), q)\ndef f (R (), q) <-> (L (), q)",
+                     "terms of clauses 1 and 2 of `f` both produce")
+
+    def test_a_let_pattern_that_can_fail_is_refused(self):
+        self.rejects("def g a <-> a\ndef f a <-> let L () = g a in ()", "a `let` pattern can fail")
+
+    def test_a_call_in_a_pattern_is_refused(self):
+        self.rejects("def g a <-> a\ndef f (g a) <-> a", "the pattern calls a program")
+
+    def test_coverage_is_decided_by_splitting(self):
+        # No column has a constructor in every clause, yet the five cover the
+        # eight values of three bits exactly once.  Coverage accepts them; the
+        # refusal is the general construction's, not a gap or an overlap.
+        berry = "\n".join([
+            "def berry (L (), (R (), c)) <-> (L (), (R (), c))",
+            "def berry (R (), (b, L ())) <-> (R (), (b, L ()))",
+            "def berry (a, (L (), R ())) <-> (a, (L (), R ()))",
+            "def berry (L (), (L (), L ())) <-> (L (), (L (), L ()))",
+            "def berry (R (), (R (), R ())) <-> (R (), (R (), R ()))",
+        ])
+        self.rejects(berry, "needs the general construction")
+
+    def test_a_split_neither_side_shares_needs_the_general_construction(self):
+        # Exchange 000 and 111, fix the rest: the smallest such permutation.
+        states = [(a, b, c) for a in (0, 1) for b in (0, 1) for c in (0, 1)]
+        def v(s):
+            l = ["R ()" if x else "L ()" for x in s]
+            return f"({l[0]}, ({l[1]}, {l[2]}))"
+        image = {(0, 0, 0): (1, 1, 1), (1, 1, 1): (0, 0, 0)}
+        src = "\n".join(f"def sw {v(s)} <-> {v(image.get(s, s))}" for s in states)
+        self.rejects(src, "`sw` covers both sides exactly once",
+                     "QSUGAR.md section 4.2", "uses inl, inr, join")
 
 
 class Errors(unittest.TestCase):

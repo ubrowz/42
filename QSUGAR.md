@@ -250,19 +250,28 @@ with a `swapsum` between. No `inl`, `inr`, `join`, `copy` or `|` is ever needed.
 
 ### 4.2 When they do not, the general construction
 
-Not every permutation splits the same way on both sides. The 3-cycle on two bits
-`00 → 01 → 10 → 00`, with `11` fixed, is a permutation and hence unitary:
+Not every permutation splits the same way on both sides, and how often it does
+was measured rather than guessed. The case-tree builder tries every place the
+inputs could split and keeps one whose partition the outputs also make (SUGAR.md
+§6). With that, **all 24 permutations of two bits** compile inside the core.
+An earlier draft of this note gave the 3-cycle `00 → 01 → 10 → 00` as a
+counterexample. It is not one: split on the *second* bit, its outputs split the
+same way on the first.
+
+On three bits it changes: of 3000 random permutations, about three quarters
+need more than aligned splits. The smallest one moves only two values, and
+exchanges `000` with `111`:
 
 ```
-def cyc (L (), L ())  <->  (L (), R ())
-def cyc (L (), R ())  <->  (R (), L ())
-def cyc (R (), L ())  <->  (L (), L ())
-def cyc (R (), R ())  <->  (R (), R ())
+def sw (L (), (L (), L ()))  <->  (R (), (R (), R ()))
+def sw (R (), (R (), R ()))  <->  (L (), (L (), L ()))
+def sw (L (), (L (), R ()))  <->  (L (), (L (), R ()))
+… and the other five values to themselves
 ```
 
-Split the inputs on the first bit: one half goes to `{01, 10}` and the other to
-`{00, 11}`. Neither output bit sorts the outputs that way. The 42 compiler then
-falls back to `join` and `inl`/`inr` (checked: `spike/qsquare.py` reports `cyc`
+Wherever the inputs split, one side holds `000` or `111` and three fixed values,
+and the outputs, which swap them, never split the same way. The 42 compiler then
+falls back to `join` and `inl`/`inr` (checked: `spike/qsquare.py` reports `sw`
 as using `inl`, `inr` and `join`), which is right for 42 and unavailable in Q42.
 
 The general construction compiles the whole clause set at once. For clauses
@@ -346,18 +355,22 @@ of the general case is left for later (§9, item 4).
 
 ## 6. Messages
 
-Draft wording, in the style of the 42 messages (SUGAR.md §4, MANUAL §19):
+As implemented in `q42/sugar.py` (step 1 of §7), each triggered by a test:
 
 | Situation | Message |
 |---|---|
-| a name used twice in a term | ``in `f …`, `x` is used twice.  Q42 cannot copy a value: copying maps a space into a bigger one, so it is not unitary (QMANUAL §5.2).`` |
-| a name twice in a pattern | ``in `f …`, `x` is matched twice.  An equality test discards the pairs that differ, which is not unitary in Q42.`` |
-| overlap | ``clauses i and j of `f` both match `…`.  In Q42 a definition is the sum of its clauses, so they must not overlap.`` |
-| gap | ``no clause of `f` matches `…`.  In Q42 every input needs exactly one clause, or the definition is not unitary.`` |
-| output overlap or gap | the same two, for the terms read as patterns |
-| a `let` pattern that can fail | ``in `f …`, the pattern `…` can fail.  A call's result may be a superposition, so a pattern after a call may contain only names, pairs and ().`` |
-| a call in a pattern | ``in `f …`, the pattern calls `P`.  Calls in patterns are 42-only for now; match first, then call `P!` in a `let`.`` |
-| emitter, general case | ``f compiles, but not at register types (QMANUAL §9.4); it runs in the evaluator and cannot be emitted yet.`` |
+| a name used twice in a term | ``in `dup a <-> (a, a)`, `a` is used twice.  Q42 cannot copy a value: copying maps a space into a bigger one, so it is not unitary (QMANUAL section 5.2).`` |
+| a name twice in a pattern | ``in `eq (a, a) <-> a`, `a` is matched twice.  An equality test discards the pairs that differ, which is not unitary in Q42.`` |
+| a gap | ``no clause of `f` matches `(R _, _)`.  In Q42 every input needs exactly one clause, or the definition is not unitary.`` |
+| an overlap | ``the patterns of clauses 1 and 2 of `f` both match `(L (), _)`.  In Q42 a definition is the sum of its clauses, so they must not overlap.`` |
+| the same, on the output side | ``no clause of `f` produces …`` and ``the terms of clauses i and j of `f` both produce …`` |
+| a `let` pattern that can fail | ``in `f …`, a `let` pattern can fail.  A call's result may be a superposition, so a pattern after a call may contain only names, pairs and ().`` |
+| a call in a pattern | ``in `f …`, the pattern calls a program.  Calls in patterns are 42-only for now; match first, then call the program backwards in a `let`.`` |
+| needs §4.2 | ``` `sw` covers both sides exactly once, but its input and output do not split the same way, so it needs the general construction of QSUGAR.md section 4.2, which is not built yet (compiled with 42's compiler it uses inl, inr, join).``` |
+| emitter, general case | (step 3) ``f compiles, but not at register types (QMANUAL §9.4); it runs in the evaluator and cannot be emitted yet.`` |
+
+Values in Q42 messages are written with `L` and `R`: in Q42, `L ()` is a qubit,
+not the number `0` that 42's messages would call it.
 
 ## 7. Plan
 
@@ -368,7 +381,7 @@ Each step is a commit with every test passing, as for the 42 sugar.
    and MANUAL §7 and §19 say so, with an example, and tests check that it
    compiles exactly as fresh names would and that, turned round, it still
    compiles to the inverse.
-1. **Q42 accepts clauses: the rules and the aligned case.** The Q42 parser
+1. **Q42 accepts clauses: the rules and the aligned case.** *Done.* The Q42 parser
    stops refusing clauses. Before compiling, it checks §3.1–3.3, refuses calls
    in patterns, and decides coverage by the splitting of §3.2, with the
    messages of §6. Then it compiles with the 42 compiler. If the result stays
@@ -376,10 +389,15 @@ Each step is a commit with every test passing, as for the 42 sugar.
    general construction, not built yet". Tests: the rules and every message;
    and the square of §1 for every accepted definition whose calls stay inside
    `C`, generalising `spike/qsquare.py`. `cx`, `ccx`, `orcnot` and `add4` are
-   the first cases, written with rebinding as in §2.
+   the first cases, written with rebinding as in §2. As built: the shared
+   parser takes Q42's rules as a hook (`q42/sugar.py`); the clauses equal the
+   point-free gates *exactly*, amplitude for amplitude, and `bell (a, b) <->
+   let a = h a in cx (a, b)` compiles to `h * id ; cx`, which is `gates.42`'s
+   own definition; `42q show` prints clauses as `42 show` does.
 2. **The general construction** of §4.2, replacing that refusal, with the proof
-   of §4.3 written out (as THEOREM.md writes its proofs). `cyc` is the first
-   test.
+   of §4.3 written out (as THEOREM.md writes its proofs). `sw` and the Berry
+   set of §3.2 are the first tests; both pass coverage today and are refused
+   only for needing it.
 3. **The emitter.** Definitions whose compiled form stays at register types
    emit, which includes every aligned one. The rest run in the evaluator, and
    the emitter refuses them with §6's message.

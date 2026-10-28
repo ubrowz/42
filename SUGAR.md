@@ -367,8 +367,9 @@ equation that licenses this, for the first component of a pair, is:
 ```
 
 Both sides denote the same relation, and the right-hand side is what the course
-teaches. The compiler looks for the shallowest such position, reaching into
-pairs; a position other than the root or the root's left is first brought
+teaches. The compiler tries every such position, reaching into pairs, and
+prefers one whose partition the outputs also make (below), otherwise the
+shallowest; a position other than the root or the root's left is first brought
 forward with `swapprod` and `assocprod!`. Each branch is then compiled the same
 way, recursively.
 
@@ -566,7 +567,7 @@ What a relational target changes:
   warnings (`Program.warnings`); the command line prints warnings on stderr.
   `42 show` prints the three blocks of §5.
 - **Q42** parses with clauses switched off, and the refusal names §9.
-- **Tests** (`tests/test_sugar.py`, 62). Every example is checked against its
+- **Tests** (`tests/test_sugar.py`, 72). Every example is checked against its
   hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
   forwards and backwards. Turned-round clauses compile to the inverse. Printed
   clauses parse back. Case trees agree with the plain union on 34 untyped

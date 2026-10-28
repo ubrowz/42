@@ -364,7 +364,7 @@ bounds how large a `Star` closure may grow before being declared infinite, and
 
 Tests: `python3 tests/test_rel42.py` (134), `python3 tests/test_types.py` (125),
 `python3 tests/test_q42.py` (103), `python3 tests/test_docs.py` (33),
-`python3 tests/test_emit.py` (27) and `python3 tests/test_sugar.py` (62) — 484 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
+`python3 tests/test_emit.py` (27) and `python3 tests/test_sugar.py` (72) — 494 in all. Stdlib only, no dependencies, and `test_docs.py` checks the documentation
 itself, including these counts.
 
 ## Q42 — the same language over ℂ
@@ -458,13 +458,15 @@ meta.42           the core of 42, interpreted by a 42 program (THEOREM.md §7,
                   MANUAL §18).  `42 quote arith mul "(3, 4)"`
 qft.42            a Q42 circuit family, generated -- 42 as the host Q42 lacks
 prelude.42        worked examples
-tests/            484 tests, including the defining law checked exhaustively,
+tests/            494 tests, including the defining law checked exhaustively,
                   every output claimed in tour.42, that all 278 library
                   definitions typecheck, and that results land in the codomain
                   the checker predicted
 q42/emit.py       a term to gates on numbered qubits, and to OpenQASM 3
 q42/exact.py      amplitudes as elements of Z[1/sqrt2, i] rather than as
                   doubles, so that equality of two terms is decided
+q42/sugar.py      Q42's rules for clause definitions (QSUGAR.md): linear,
+                  both sides covered exactly once, compiled by rel42's compiler
 q42/              Q42 -- the same language over C instead of the Booleans.
                   Shares Value, Term, dagger, the parser and the type engine
                   with rel42; forks the primitive table and the evaluator.
