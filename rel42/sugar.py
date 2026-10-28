@@ -433,6 +433,89 @@ def _names(vs) -> List[str]:
     return [v.name for v in vs]
 
 
+# ---------------------------------------------------------------------------
+# Binding a name again.  Once a name's value has been consumed, nothing can
+# refer to it any more, so a later `let` may bind the same name to a new value:
+#
+#     let (n, p) = mul (a, n) in let (n, q) = mul (b, n) in (n, (p, q))
+#
+# Each such binding is renamed apart -- `n`, then `n#1`, `n#2` -- before
+# anything else looks at the clause, so the checks and the compiler below see
+# only distinct names.  `#` cannot occur in a written name, so nothing clashes,
+# and messages show the name as written.  What stays forbidden is binding a
+# name whose value is still in hand: that would make the earlier value
+# unreachable, which is forgetting it.
+# ---------------------------------------------------------------------------
+
+
+def _shown(name: str) -> str:
+    return name.split("#", 1)[0]
+
+
+def _rename(t: DTerm, names: Dict[str, str]) -> DTerm:
+    match t:
+        case DVar(n, line):
+            return DVar(names.get(n, n), line)
+        case DPair(a, b):
+            return DPair(_rename(a, names), _rename(b, names))
+        case DInl(x):
+            return DInl(_rename(x, names))
+        case DInr(x):
+            return DInr(_rename(x, names), t.form)
+        case DApp(h, x):
+            return DApp(h, _rename(x, names))
+    return t
+
+
+def rebindings_apart(c: Clause) -> Clause:
+    """The clause with every legal rebinding renamed to a fresh name."""
+    current: Dict[str, str] = {}      # written name -> internal name now bound
+    used_since: Dict[str, bool] = {}  # internal name -> consumed since bound
+    count: Dict[str, int] = {}
+
+    for v in variables(c.pattern):
+        current[v.name] = v.name
+        used_since[v.name] = False
+
+    def consume(t: DTerm) -> DTerm:
+        out = _rename(t, current)
+        for v in variables(out):
+            used_since[v.name] = True
+        return out
+
+    steps = []
+    body = c.body
+    while isinstance(body, DLet):
+        rhs = consume(body.rhs)
+        fresh: Dict[str, str] = {}
+        for v in variables(body.pat):
+            if v.name in fresh:
+                continue  # a repeat inside one pattern: an equality test
+            if v.name in current:
+                if not used_since[current[v.name]]:
+                    raise SugarError(
+                        f"line {v.line}: in `{c.text}`, `{v.name}` is bound again "
+                        f"while its value is still in hand.  A name may be reused "
+                        f"once its value has been consumed; here that would lose "
+                        f"the earlier value, so use a new name."
+                    )
+                count[v.name] = count.get(v.name, 0) + 1
+                fresh[v.name] = f"{v.name}#{count[v.name]}"
+            else:
+                fresh[v.name] = v.name
+        pat = _rename(body.pat, fresh)
+        for written, internal in fresh.items():
+            current[written] = internal
+            used_since[internal] = False
+        steps.append((pat, rhs, body.line))
+        body = body.body
+
+    out = consume(body)
+    for pat, rhs, line in reversed(steps):
+        out = DLet(pat, rhs, out, line)
+    return Clause(c.pattern, out, c.line, c.text)
+
+
 def _check(c: Clause, defined) -> None:
     """The use-count rule (SUGAR.md section 4), over the whole `let` chain."""
     bound: Dict[str, int] = {}  # name -> which binding site bound it
@@ -466,9 +549,9 @@ def _check(c: Clause, defined) -> None:
         for v in vs:
             if v.name not in bound:
                 raise SugarError(
-                    f"line {v.line}: in `{c.text}`, `{v.name}` is used but never "
-                    f"bound.  42 cannot invent a value: run backwards, it would "
-                    f"have to be thrown away.  Bind it in the pattern."
+                    f"line {v.line}: in `{c.text}`, `{_shown(v.name)}` is used but "
+                    f"never bound.  42 cannot invent a value: run backwards, it "
+                    f"would have to be thrown away.  Bind it in the pattern."
                 )
             used.add(v.name)
 
@@ -483,9 +566,10 @@ def _check(c: Clause, defined) -> None:
     for name in bound:
         if name not in used:
             raise SugarError(
-                f"line {c.line}: in `{c.text}`, the variable `{name}` is bound and "
-                f"never used.  42 cannot forget a value: run backwards, nothing "
-                f"would say what `{name}` was.  Return it, or consume it in a call."
+                f"line {c.line}: in `{c.text}`, the variable `{_shown(name)}` is "
+                f"bound and never used.  42 cannot forget a value: run backwards, "
+                f"nothing would say what `{_shown(name)}` was.  Return it, or "
+                f"consume it in a call."
             )
 
 
@@ -537,6 +621,7 @@ def compile_clauses(params: List[str], clauses: List[Clause], defined=frozenset(
     It means the union of the clauses; `_cases` compiles that union as a case
     tree where the patterns allow it (SUGAR.md section 6).
     """
+    clauses = [rebindings_apart(c) for c in clauses]
     for c in clauses:
         _check(c, defined)
     out = simplify(_cases(clauses, units))

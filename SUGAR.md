@@ -408,6 +408,22 @@ the middle of a clause, so it inverts the same way: reverse the chain and swap
 each `let`'s two sides. The use-count rule applies across the whole chain.
 Every variable is consumed exactly once after it is bound, counting copies.
 
+**A name may be bound again once its value is consumed** (decided with
+QSUGAR.md §3.4, for both languages):
+
+```
+def twoproducts (n, (a, b))  <->  let (n, p) = mul (a, n) in
+                                  let (n, q) = mul (b, n) in
+                                  (n, (p, q))
+```
+
+The compiler renames each such binding apart (`n`, `n#1`, `n#2`; `#` cannot
+occur in a written name) before checking and compiling, so this compiles to
+exactly the term the same clause with fresh names would (checked). Binding a
+name whose value is still in hand stays an error, because the earlier value
+would become unreachable. Turned round, the chain rebinds in the opposite order,
+which is legal for the same reason.
+
 `let` is what makes larger programs writable, because it is how intermediate
 results get names. It is also where most of the plumbing hides in today's 42.
 
@@ -550,7 +566,7 @@ What a relational target changes:
   warnings (`Program.warnings`); the command line prints warnings on stderr.
   `42 show` prints the three blocks of §5.
 - **Q42** parses with clauses switched off, and the refusal names §9.
-- **Tests** (`tests/test_sugar.py`, 58). Every example is checked against its
+- **Tests** (`tests/test_sugar.py`, 62). Every example is checked against its
   hand-written counterpart in `course.42`, `prelude.42` or `spike/sugar.42`,
   forwards and backwards. Turned-round clauses compile to the inverse. Printed
   clauses parse back. Case trees agree with the plain union on 34 untyped
@@ -595,8 +611,9 @@ What a relational target changes:
    Should non-exhaustive patterns warn at all?
 2. **Resugaring.** Running a point-free program on symbolic variables yields
    its clause form for everything except `^`. A `42 explain` built on this would
-   help *read* existing 42. It is not an inverse of desugaring, since routes are
-   canonicalised, and should not be described as one.
+   help *read* existing 42. What it prints is a clause form of the program, not
+   necessarily the clauses someone wrote: compiling chooses one route among many
+   equal ones, and the clause form it gives back is the one for that route.
 3. **The Q42 compilation result** of §9, which should be proved rather than
    assumed, and then the rule-2 compiler built on it.
 4. **A sharper overlap check for calls in patterns.** Treating a call as a

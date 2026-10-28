@@ -69,6 +69,11 @@ def add (0, n)    <->  n
 def add (m+1, n)  <->  add (m, n) + 1
 def double n      <->  add (n, n)
 
+def mul (0, n)      <->  (n, 0)
+def mul (m + 1, n)  <->  let (k, p) = mul (m, n) in (k, add (k, p))
+def twoproducts (n, (a, b))  <->  let (n, p) = mul (a, n) in let (n, q) = mul (b, n) in (n, (p, q))
+def twofresh (n, (a, b))     <->  let (n1, p) = mul (a, n) in let (n2, q) = mul (b, n1) in (n2, (p, q))
+
 def greet () <-> "hi"
 def two (n+2) <-> n
 def piped x <-> (swapprod ; swapprod) x
@@ -220,6 +225,28 @@ class Emission(unittest.TestCase):
         self.assertEqual(list(ENV)[:3], ["single", "append", "split"])
 
 
+class Rebinding(unittest.TestCase):
+    """QSUGAR.md section 3.4: a name may be bound again once its value is consumed."""
+
+    def test_rebinding_compiles_like_fresh_names(self):
+        self.assertEqual(ENV["twoproducts"], ENV["twofresh"])
+
+    def test_it_runs_both_ways(self):
+        self.assertEqual(fwd(ENV, "twoproducts", "(3, (2, 5))"), {parse_value("(3, (6, 15))")})
+        self.assertEqual(bwd(ENV, "twoproducts", "(3, (6, 15))"), {parse_value("(3, (2, 5))")})
+
+    def test_consumed_by_the_same_let(self):
+        env = parse_program("def g x <-> x\ndef f x <-> let x = g x in x")
+        self.assertEqual(run(Ref("f"), parse_value("3"), expand_env(env)), {parse_value("3")})
+
+    def test_messages_show_the_written_name(self):
+        with self.assertRaises(Rel42Error) as cm:
+            parse_program("def g x <-> x\n"
+                          "def f x <-> let x = g x in let x = g x in ()")
+        self.assertIn("the variable `x` is bound and never used", str(cm.exception))
+        self.assertNotIn("#", str(cm.exception))
+
+
 class CaseTrees(unittest.TestCase):
     """SUGAR.md section 6: the case tree is the union, compiled better."""
 
@@ -349,6 +376,7 @@ class TurnedRound(unittest.TestCase):
         "initlast2": LISTS,
         "deeper": LISTS,
         "same": ["(2, 2)", "(2, 3)"],
+        "twoproducts": ["(3, (2, 5))", "(0, (1, 1))", "(2, (0, 4))"],
     }
 
     def test_turned_round_clauses_are_the_inverse(self):
@@ -519,8 +547,9 @@ class Errors(unittest.TestCase):
         self.rejects("def f = id\ndef f x <-> x", "already defined")
         self.rejects("def f x <-> x\ndef f = id", "already defined")
 
-    def test_let_may_not_rebind(self):
-        self.rejects("def g x <-> x\ndef f x <-> let x = g x in x", "bound twice")
+    def test_a_name_still_in_hand_may_not_be_bound_again(self):
+        self.rejects("def g x <-> x\ndef f (x, y) <-> let x = g y in x",
+                     "`x` is bound again while its value is still in hand")
 
     def test_pattern_must_be_one_term(self):
         self.rejects("def f x : xs <-> x : xs", "single term")

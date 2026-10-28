@@ -915,8 +915,27 @@ let q1 = t1 in let q2 = t2 in e
 ```
 
 and the rule of §4.2 applies across the whole chain: every name is used once
-after it is bound, counting copies, and a name may not be bound again while it
-is in hand.
+after it is bound, counting copies.
+
+A name may be bound again once its value has been used. `mul` in `arith.42`
+hands its multiplier back (§9.3), so a value can be threaded through two
+multiplications under one name:
+
+```
+def twoproducts (n, (a, b))  <->  let (n, p) = mul (a, n) in
+                                  let (n, q) = mul (b, n) in
+                                  (n, (p, q))
+```
+
+Each `let` consumes `n` and binds a new `n` in its place, so nothing is lost and
+the clause turns round as usual. What is refused is binding a name whose value
+is still in hand, since that would make the earlier value unreachable:
+
+```
+error: line 1: in `g (x, y) <-> let x = g y in x`, `x` is bound again while its
+value is still in hand.  A name may be reused once its value has been consumed;
+here that would lose the earlier value, so use a new name.
+```
 
 A `let` is a small clause inside a clause, so it turns round the same way:
 `42 show` prints the chain reversed, each `let`'s two sides swapped.
@@ -2720,7 +2739,9 @@ parameter, a built-in, any of these followed by `!`, or any program in
 brackets.
 
 Rules: every name a clause binds is used, and every name it uses is bound
-(§4.2). A name used twice is copied; a name bound twice is an equality test. A
+(§4.2). A name used twice is copied; a name bound twice in one pattern is an
+equality test; a name may be bound again by a later `let` once its value has
+been used (§7). A
 pattern variable may not have the name of a definition, parameter or built-in.
 `L`, `R`, `let`, `in` and `def` are reserved. A definition's clauses are written
 together and share their parameters. A definition means the union of its
@@ -2832,7 +2853,7 @@ two kinds mix freely.
 | `x is used but never bound` | the clause would have to invent `x` | §2, §4.2 |
 | `the pattern variable x has the name of a definition` | rename the variable | §4.4 |
 | `x is a definition, so here it must be applied` | a definition's name used as a value | §4.4 |
-| `x is bound twice` | a `let` reused a name still in hand | §7 |
+| `x is bound again while its value is still in hand` | a `let` reused a name before its value was used | §7 |
 | `the clauses of f must be written together` | another definition sits between them | §4.1 |
 | `every clause of f must have the same parameters` | parameter lists differ | §13 |
 | `a clause's pattern must be a single term` | put brackets round the pattern | §4.1 |
