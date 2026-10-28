@@ -469,7 +469,8 @@ itself either can or cannot turn each input into each output, so you can write
 the whole program down as a grid: one row per input, one column per output, and a
 mark where the program can get from one to the other.
 
-Here is `not`, which is `swapsum`:
+Here is `not`, which is the primitive `swapsum`: it moves a value from one label
+to the other (the 42 manual's §14 lists the primitives used in this section):
 
 ```
         to  L ()  R ()
@@ -481,8 +482,9 @@ Here is `not`, which is `swapsum`:
 Read a **row** as "what this input can produce". `L ()` produces only `R ()`,
 which is what negation does.
 
-A program need not have exactly one mark per row. `inl!` removes an `L` label
-and rejects anything else, so its row for `R ()` is empty. That is 42's `{}`,
+A program need not have exactly one mark per row. `inl!`, the primitive `inl`
+run backwards, removes an `L` label and rejects anything else, so its row for
+`R ()` is empty. That is 42's `{}`,
 drawn:
 
 ```
@@ -492,8 +494,8 @@ drawn:
   R ()        .
 ```
 
-And `join!`, which forgets nothing going backwards and so must offer both
-labels, has two marks in one row. That is a set of two answers, drawn:
+And `join!` has two marks in one row. `join` removes a label and forgets which
+one it was; run backwards, it cannot know which to put back, so it offers both. That is a set of two answers, drawn:
 
 ```
         to  L ()  R ()
@@ -559,9 +561,10 @@ naturally as "from, to". `42q matrix` prints them the other way up: its **rows a
 outputs and its columns are inputs**. That is the universal convention in physics,
 because a gate is written as acting on a column of amplitudes, `U|ψ>`. The two
 pictures hold the same information, one being the other transposed, and the
-difference does not show on `h`, whose grid happens to be symmetric. It does show on, say, `x ; s`,
-where the lone `i` sits in row `|1>`, column `|0>`: the gate takes input `|0>` to
-output `i|1>`.
+difference does not show on `h`, whose grid happens to be symmetric. It does
+show on `x ; s`: `x` is NOT, and `s` is a gate §6.2 defines that leaves `|0>`
+alone and multiplies `|1>` by `i`. So `x ; s` takes `|0>` to `|1>` and then to
+`i|1>`, and its matrix has its lone `i` in row `|1>`, column `|0>`.
 
 Composition works exactly as in §3.3, with the OR and AND becoming ordinary `+`
 and `×`, since that is what they were standing in for. So compose `h` with itself
@@ -599,7 +602,7 @@ Two names for the record, since the literature uses them. A system with an
 addition and a multiplication but no need for subtraction is a **semiring**;
 `{0,1}` with `or`/`and` is one, and ℂ is another, so "Q42 is 42 over a different
 semiring" is a one-line way to say all of the above. And flipping-and-conjugating
-a matrix is called taking its **adjoint**, written `M†`. So `!` denotes the
+a matrix is its **adjoint** `M†`, from §2.3. So `!` denotes the
 converse of a relation in 42 and the adjoint of a matrix in Q42, which §4.1
 shows is the same operation twice.
 
@@ -613,8 +616,11 @@ accidental.
 
 ### 4.1 `inv` and `†` are the same operation
 
-Both settings are **dagger categories**: a structure with composition, an
-identity, and an inversion operation `†` satisfying
+Mathematicians call a collection of things that can be composed, with an
+identity for composition, a **category**: programs with `;` and `id` are one,
+and so are matrices with multiplication and the identity matrix. Both settings
+here are **dagger categories**, categories with an extra operation `†` that
+turns each thing around and satisfies
 
 ```
 (f ; g)†  =  g† ; f†                 inversion reverses composites
@@ -635,8 +641,12 @@ The two laws, side by side:
 Q42:   <x| P |y>       =    conj( <y| P! |x> )
 ```
 
-The same law, with membership replaced by amplitude equality. `<x| P |y>` is
-the matrix entry of `P` in row `x`, column `y`. You can check it:
+`inv(P)` is 42's `P!`. `<x| P |y>` is the matrix entry of `P` in row `x`,
+column `y`: the amplitude with which `P` takes `|y>` to `|x>`. So the second line
+says that the amplitude for `P` to go from `y` to `x` is the conjugate of the
+amplitude for `P!` to go back. It is the same law as the first, with membership
+replaced by amplitude equality. You can check it; `42q law` runs a gate on a
+state and compares each such pair of entries:
 
 ```
 $ 42q law gates h "|0>"
@@ -648,15 +658,21 @@ law holds
 
 ### 4.2 42's primitives were the right ones already
 
-42's primitives are the isomorphisms witnessing that `0, 1, +, ×` form a
-commutative semiring: `a + b ↔ b + a`, `1 × a ↔ a`, `(a + b) × c ↔ a×c + b×c`
-and so on. That collection has a name. It is a presentation of a **rig
-groupoid**, and is close to the language **Π** of James & Sabry, arrived
-at independently in 42.
+42's types obey the laws of arithmetic: `a + b` has as many values as
+`b + a`, `1 × a` as many as `a`, `(a + b) × c` as many as `a×c + b×c`, and so
+on. 42's primitives are exactly the conversions between the two sides of these
+laws: `swapsum` converts `a + b` into `b + a`, `unitprod` converts `1 × a` into
+`a`, `dist` converts `(a + b) × c` into `a×c + b×c`. Each is a bijection, an
+**isomorphism** in the mathematician's word. Types with these conversions form
+what is called a **rig groupoid** ("rig" because the laws are those of a ring
+without subtraction, "groupoid" because every conversion can be undone). The
+reversible programming language **Π** of James & Sabry (2012) is built from
+exactly these conversions; 42 arrived at the same set independently.
 
 This matters because of a result of Carette, Heunen, Kaarsgaard & Sabry
 (POPL 2024): a rig groupoid extended with **two maps and three equations** is
-computationally universal for quantum computing. Those two maps are §6. Q42 is
+computationally universal for quantum computing, that is, it can approximate
+any quantum computation as closely as you like. Those two maps are §6. Q42 is
 that construction, given 42's syntax: the point-free core, and clauses that
 compile to it (§7.3).
 
@@ -682,10 +698,12 @@ clauses.
 This one is exact. Over the booleans `x ∨ x = x`, so adding is **idempotent**.
 Over ℂ, `1 + 1 = 2`.
 
-`f | g` means "either", which as a matrix is `⟦f⟧ + ⟦g⟧`. Over the booleans
-`f | f` is `f`; over ℂ it would be `2f`, which is not the same relation and not
-even unitary. And `f^` is a least fixed point computed by saturation, repeating
-until nothing new appears, which is only meaningful when repetition stabilises.
+`f | g` means "either", which as a matrix is `⟦f⟧ + ⟦g⟧`, where `⟦f⟧` is the
+matrix of `f`. Over the booleans `f | f` is `f`; over ℂ it would be `2f`, which
+is not the same relation and not even unitary. And `f^` collects everything
+reachable by repeating `f` any number of times, stopping when nothing new
+appears (the 42 manual's §13); over ℂ, repeating adds amplitudes that never
+settle.
 
 Write `def bad = id | id` in a Q42 file and it is refused before it runs, with
 the reason: *"over C it would denote the sum of two matrices, so `f | f` would be
@@ -702,16 +720,23 @@ buy nothing but the ability to write non-unitary sums.
 `copy : a ↔ a × a` is dropped, and the reason is more interesting than "quantum
 states can't be copied".
 
-The **no-cloning theorem** says there is no unitary `U` with
-`U(|ψ> ⊗ |0>) = |ψ> ⊗ |ψ>` for *every* `ψ`. 42's `copy` does not attempt that.
-It maps each *basis* state `|x>` to `|x,x>` and extends linearly, so it sends
-`|0>+|1>` to `|00>+|11>`, which is the Bell state, not `(|0>+|1>)⊗(|0>+|1>)`.
-That is a perfectly legitimate quantum operation. In categorical quantum
-mechanics this map, with its adjoint, is a **classical structure**, and Coecke
-and Pavlović showed those correspond exactly to a choice of measurement basis.
+Write `|ψ> ⊗ |φ>` for the two-qubit state in which the first qubit is in state
+`ψ` and the second in state `φ`: the product state of §2.6, whose amplitudes are
+products of the two. The **no-cloning theorem** says there is no unitary `U`
+with `U(|ψ> ⊗ |0>) = |ψ> ⊗ |ψ>` for *every* `ψ`: no gate copies an unknown
+state onto a blank qubit. 42's `copy` does not attempt that. It maps each
+*basis* state `|x>` to `|x,x>`, and like every gate it acts on a superposition
+by acting on each basis state and adding the results with the same amplitudes.
+So it sends `|0>+|1>` to `|00>+|11>`, which is the Bell state of §2.6, not
+`(|0>+|1>)⊗(|0>+|1>)`. That is a perfectly legitimate quantum operation. In the
+categorical literature such a copying map is called a **classical structure**,
+and Coecke and Pavlović showed that each one amounts to choosing a
+*measurement basis*: the set of states a measurement tells apart, of which `|0>`
+and `|1>` is the standard one.
 
 So why is it out? Because it is not **square**. It maps a space of dimension `n`
-into one of dimension `n²`, and a unitary must map a space to itself. A
+into one of dimension `n²`, one qubit's 2 amplitudes into two qubits' 4, and a
+unitary must map a space to itself. A
 length-preserving map into a *larger* space is called an **isometry**; every
 unitary is an isometry, but not conversely.
 
@@ -726,8 +751,9 @@ only, so it is a measurement basis rather than an illegal cloner -- but it still
 has no adjoint that inverts it
 ```
 
-`inl`, `inr` and `zero` go for the same dimensional reason: `inl : a ↔ a + b`
-embeds `ℂⁿ` in `ℂⁿ⁺ᵐ`, and `zero` is the zero matrix, which inverts nothing.
+`inl`, `inr` and `zero` go for the same dimensional reason. Writing `ℂⁿ` for
+the space of states of a type with `n` values, `inl : a ↔ a + b` embeds `ℂⁿ` in
+the bigger `ℂⁿ⁺ᵐ`, and `zero` is the zero matrix, which inverts nothing.
 `join : a + a ↔ a` maps down rather than up, and is the mirror image of the same
 problem. It was 42's only source of many-valued answers, so with it goes all
 nondeterminism.
@@ -769,8 +795,9 @@ take some of the clause rules with them. Each change is one of §5.1–5.3 again
 - [6.2 Phases are the sum functor](#62-phases-are-the-sum-functor)
 - [6.3 Hadamard, and "up to phase"](#63-hadamard-and-up-to-phase)
 - [6.4 Control is `dist`, which you have already met](#64-control-is-dist-which-you-have-already-met)
+- [6.5 Which equations hold, and how Q42 decides](#65-which-equations-hold-and-how-q42-decides)
 
-Two primitives. Everything else in `q42/gates.42` is derived from them and from
+Two primitives. Everything else in `q42/gates.42` is built from them and from
 42's existing plumbing.
 
 ### 6.1 The generators
@@ -780,12 +807,30 @@ omega : 1 <-> 1            a scalar; an 8th root of 1
 v     : 1+1 <-> 1+1        a square root of `swapsum`
 ```
 
-`omega` acts on the unit type. It is a number rather than a gate, and
-multiplies whatever it is combined with. `v` acts on one qubit and squares to negation:
-apply it twice and you have flipped the bit, so it is "half a NOT", which has no
-classical meaning at all.
+`omega` acts on the unit type `1`, which has a single value `()` and so a
+one-dimensional space: its "matrix" is a single number. That number is
+`e^{iπ/4} = (1 + i)/√2`, the eighth of a turn from the complex-number primer of
+§2. It is called an **eighth root of 1** because multiplying it by itself eight
+times gives 1. On its own `omega` does nothing visible; combined with another
+gate (§6.2) it multiplies part of a state by that phase.
 
-They satisfy three equations, where `S = id + (omega ; omega)`:
+`v` acts on one qubit, and doing it twice is NOT: `v ; v = swapsum`, which is
+the gate `x` of §2.3. So it is "half a NOT", which has no classical meaning at
+all; no operation on bits, done twice, flips a bit. Its matrix is
+
+```
+V  =  1/2 × [ -1+i   -1-i ]
+            [ -1-i   -1+i ]
+```
+
+and multiplying it by itself does give `[[0, 1], [1, 0]]`. (You never write
+these numbers in a Q42 program; you write `omega` and `v`, and Q42 knows their
+values.)
+
+They satisfy three equations. Here `omega^8` means `omega` composed with itself
+eight times, `S` is the gate `id + (omega ; omega)` that §6.2 explains (it
+multiplies `|1>` by `i`), and `omega^2 . t` means the gate `t` with its whole
+matrix multiplied by the number `omega²`:
 
 ```
 (E1)  omega^8   =  id
@@ -793,62 +838,39 @@ They satisfy three equations, where `S = id + (omega ; omega)`:
 (E3)  v ; S ; v =  omega^2 . (S ; v ; S)
 ```
 
-(E1) and (E2) only say the two square roots exist. **(E3) is the one that does
-the work.** Without it, `omega = id` would satisfy everything and the language
-would collapse to classical reversible computing. (E3) says that two ways of
-decomposing a rotation, around one axis then another or the other way about,
-agree. That is the *Euler decomposition* of the Hadamard gate, and pinning it
-down is what forces `omega` to be a genuine eighth root of unity rather than 1.
+(E1) and (E2) only say what the two generators are: an eighth root of 1 and a
+square root of NOT. **(E3) is the one that does the work**: it is the one
+equation that ties `v` and `omega` together. Without it, `omega = 1` would
+satisfy everything, and since a phase of 1 changes nothing, the language would
+collapse to classical reversible computing. With it, the Hadamard gate becomes
+expressible (§6.3), and that is what makes the language quantum.
+
 And eighth is not a choice among many. Read (E3) as an equation in `omega`, with
-`v` the square root of `swapsum` that Q42 fixes, and it has exactly two
-solutions: `e^{iπ/4}` and `−e^{iπ/4}`, both primitive eighth roots of unity —
-nothing of order 16, and nothing that is not a root of unity at all. (The other
-two primitive eighth roots satisfy it only for the conjugate square root of
-`swapsum`.) A finer angle is therefore not a matter of relaxing a relation; it
-needs a further generator, which is the ladder §9.4 ends on.
-
-In the standard model `omega = e^{iπ/4}` and `v` is a specific square root of
-the NOT matrix. You never write a complex number in a Q42 program; you write
-`omega` and `v`.
-
-**What the three settle, and what they do not.** They are sound: two terms they
-prove equal do denote the same matrix. They are *complete* — every true equation
-provable — only in fragments, namely Clifford, Clifford+T on at most two qubits,
-and Gaussian Clifford+T. Beyond those, `ccz` for one, two Q42 terms can denote
-the same matrix with nothing derivable from (E1)–(E3) saying so. What the
-language offers in place of a proof is evaluation. Because the generators are
-discrete, every amplitude lies in the ring `Z[1/√2, i]`, and `q42/exact.py`
-evaluates in that ring rather than in floating point — so comparing two terms
-*decides*, and does not approximate. `h ; h` and `id` are the same matrix, not
-the same to twelve places, and the amplitude that cancels is absent rather than
-small. That is what `42q equal` does:
-
-```
-$ 42q equal gates x x
-x : qubit <-> qubit
-x : qubit <-> qubit
-  equal on 2 dimension(s)
-
-$ 42q equal gates s t
-s : qubit <-> qubit
-t : qubit <-> qubit
-  differ at row |1>, column |1>: 1i vs (0.707107+0.707107i)
-```
-
-RELATED §11 sets this against the ZX-calculus, which has a complete
-axiomatisation of all of Clifford+T and makes the opposite trade to get it.
+`v` the matrix above, and it has exactly two solutions: `e^{iπ/4}` and
+`−e^{iπ/4}`. Both are eighth roots of 1 and of no smaller root: the first power
+of either that equals 1 is the eighth (its *order* is 8). No solution has order
+16, and no solution fails to be a root of 1 at all. (The two other eighth roots
+of order 8 satisfy (E3) only for the other square root of NOT, `V`'s conjugate.)
+So a finer angle than an eighth of a turn cannot be had by relaxing an equation;
+it needs a further generator, which is the ladder §9.4 ends on.
 
 ### 6.2 Phases are the sum functor
 
-A phase gate multiplies `|1>` by a constant and leaves `|0>` alone. In 42's
+A **phase gate** multiplies `|1>` by a phase and leaves `|0>` alone. In 42's
 notation that is `id + <something>`, the sum functor acting on the right branch
-only:
+only: on `L ()`, which is `|0>`, do `id`; on `R ()`, which is `|1>`, do the
+something. Here the something is a power of `omega`:
 
 ```
 def t = id + omega                              -- diag(1, e^{i pi/4})
 def s = id + (omega ; omega)                    -- diag(1, i)
 def z = id + (omega ; omega ; omega ; omega)    -- diag(1, -1)
 ```
+
+`diag(a, b)` is the matrix with `a` and `b` on the diagonal and 0 elsewhere:
+`|0>` is multiplied by `a` and `|1>` by `b`. So `t` turns `|1>` an eighth of a
+turn, `s` a quarter (`omega` twice is `i`), and `z` half (`omega` four times is
+`−1`); `z` is the gate usually written `Z`.
 
 ```
 $ 42q matrix gates s
@@ -861,9 +883,12 @@ Nothing was added to the language to express this. `+` already meant "switch on
 the label", and a phase gate is a switch that does nothing on one branch.
 
 **The three are one group.** Look at what `t`, `s` and `z` have in common. Each
-is `id +` some power of `omega`, and by (E1) there are only eight such powers,
-which under multiplication form a cyclic group of order eight. The three gates
-above are its three nontrivial subgroups:
+is `id +` some power of `omega`, and by (E1) there are only eight such powers.
+Under multiplication they form a *group*: multiplying two of them gives another,
+and each has an inverse among them. It is a *cyclic* group of order eight,
+meaning all eight are powers of a single one, `omega`. A *subgroup* is a subset
+that is itself closed under multiplication, and the three gates above generate
+its three nontrivial subgroups:
 
 ```
 z  is  id + omega^4   generates  {1, -1}                  order 2
@@ -877,35 +902,52 @@ generates, written out in the language, and there is no fourth one to write.
 **This is what (E3) is for.** §6.1 put its job negatively — without it `omega`
 could be `id` and the language would collapse to classical reversible computing.
 The useful way to say it is that (E3) fixes *which* group the phases form, and
-that single choice carries the physical content of the language. The phases the
-Clifford gates give you are exactly the order-four subgroup: `s`, `z`, and
-nothing finer. Circuits confined to it are efficiently simulable on an ordinary
-computer by the Gottesman–Knill theorem, entanglement and interference included
-(§9.3). Order eight is Clifford+T, and is not. **The step from `s` to `t` is the
-step from a theory a laptop can simulate to one it cannot**, and in group terms
-it is one rung of that chain.
+that single choice carries the physical content of the language.
 
-The idea has a name outside Q42. Coecke & Duncan attach to each observable the
-group of phases available to it — its *phase group* — and show the invariant is
-sharp enough to separate physical theories: the qubit stabiliser theory and
-Spekkens' toy model agree about very nearly everything and differ in this, `Z₄`
-against `Z₂ × Z₂`, and that difference is exactly where the non-locality of the
-GHZ state lives. Q42's phase group is `Z₈`. RELATED §11.4 sets the two calculi
-side by side generator for generator.
+Two names from the field make the point sharper. The **Clifford** gates are the
+ones built from `h` (§6.3), `s` and the controlled-NOT of §2.6. Their phases are
+exactly the order-four subgroup: `s`, `z`, and nothing finer. By the
+**Gottesman–Knill theorem**, any circuit made of Clifford gates can be simulated
+efficiently on an ordinary computer, entanglement and interference included
+(§9.3). **Clifford+T** adds `t`, and with it the order-eight phases, and it can
+not, as far as anyone knows. **The step from `s` to `t` is the step from a theory
+a laptop can simulate to one it cannot**, and in group terms it is one rung of
+that chain.
+
+The idea has a name in the research literature. Coecke & Duncan attach to each
+*observable*, each quantity one can measure, the group of phases available to
+it, its *phase group*, and show that this one invariant is sharp enough to tell
+physical theories apart. Their example: quantum mechanics restricted to Clifford
+operations, and a classical model built by Spekkens to imitate it, agree about
+nearly everything, yet their phase groups differ, `Z₄` (the four phases
+`1, i, −1, −i`) against `Z₂ × Z₂` (four elements, each its own inverse), and that
+difference is exactly where they disagree about the three-qubit version of the
+Bell state, `(|000> + |111>)/√2` (`ghz` in `gates.42`): the real theory shows
+correlations, of the kind §2.6 described, that the imitation cannot. Q42's
+phase group is `Z₈`. RELATED §11.4 sets the two calculi side by side generator
+for generator.
 
 ### 6.3 Hadamard, and "up to phase"
 
+The Hadamard gate of §2.4 is built from `x`, `s` and `v`:
+
 ```
-def h = <scale by omega> (x ; s ; v ; s ; x)
+def hcore = x ; s ; v ; s ; x
+def h     = unitprod! ; (omega * hcore) ; unitprod
 ```
 
-which is the Euler decomposition of §6.1 written out. Note that `x ; s ; v ; s ; x`
-is a palindrome, so for once it reads the same in either direction.
+`hcore` is already the Hadamard, except that its whole matrix is the Hadamard's
+multiplied by the phase `omega⁻¹`, an eighth of a turn backwards. `h` corrects
+that: `unitprod!` pairs the qubit with a `()`, `omega * hcore` multiplies by
+`omega` on the `()` side while running `hcore` on the qubit, and `unitprod` drops
+the `()` again. (`x ; s ; v ; s ; x` is a palindrome, so for once it reads the
+same in either direction.)
 
-The `omega` in front is a **global phase**. Physically it is undetectable, since
-no measurement can distinguish `|ψ>` from `e^{iθ}|ψ>`, so many gate identities
-in the literature hold only "up to phase". Q42 tracks it exactly anyway, which is
-why `h` comes out as the textbook matrix on the nose rather than nearly:
+That extra factor is a **global phase** (§2.7): physically undetectable, since a
+phase on the whole state changes no measurement, which is why many gate
+identities in the literature hold only "up to phase", up to such a factor. Q42
+tracks it exactly anyway, which is why `h` comes out as the textbook matrix on
+the nose rather than nearly:
 
 ```
 $ 42q matrix gates h
@@ -925,7 +967,9 @@ def mat    = dist ; (unitprod + unitprod)       -- (1+1) x A  <->  A + A
 def ctrl m = mat ; (id + m) ; mat!
 ```
 
-split on the control bit, apply `m` on the `R` branch only, put it back. Every
+`mat` turns a pair (control qubit, rest) into a labelled value: the rest, under
+the control's label. `ctrl m` then applies `m` on the `R` branch only, the one
+where the control was `|1>`, and `mat!` puts the pair back together. Every
 controlled gate is one line:
 
 ```
@@ -933,6 +977,11 @@ def cx    = ctrl x                              -- CNOT
 def ccx   = ctrl cx                             -- Toffoli
 def cswap = ctrl swap                           -- Fredkin
 ```
+
+`cx` is the controlled-NOT of §2.6. `ccx` controls a controlled-NOT, so it flips
+its third qubit when *both* of the others are `|1>`: the Toffoli gate of §1.
+`swap` is `swapprod`, which exchanges two qubits, so `cswap`, the **Fredkin**
+gate, exchanges its second and third qubits when the first is `|1>`.
 
 Written as clauses (§7.3), a controlled gate is two lines, one for each value
 of the control, and `cx` compiles to exactly `ctrl x` with `mat` written out:
@@ -948,12 +997,58 @@ The inferred type says what control requires and nothing more:
 ctrl : (a <-> a) -> (qubit x a <-> qubit x a)
 ```
 
-the target must be an *endo*-relation, with the same type in and out, because
-both branches of `id + m` have to meet the `A + A` that `mat` produces.
+the target must have the same type in and out (an *endo*-relation, in the
+jargon), because both branches of `id + m` have to meet the `A + A` that `mat`
+produces.
 
 And its adjoint needs no definition. `ctrl! m` is `ctrl m!`, which in physics is
 `(Ctrl U)† = Ctrl U†`: the adjoint of a controlled gate is the controlled
 adjoint. That falls out of how `!` treats a parameter and is not arranged.
+
+### 6.5 Which equations hold, and how Q42 decides
+
+The three equations of §6.1 are rules for proving two programs equal, the way
+`x + 0 = x` is a rule of algebra. Two properties matter, and they are the ones
+a computer scientist asks of any proof system:
+
+- **Sound**: whatever the rules prove equal really is equal. That holds: two
+  terms (E1)–(E3) prove equal always denote the same matrix.
+- **Complete**: whatever really is equal, the rules can prove equal. That holds
+  only for some families of circuits, of which the best known are the Clifford
+  gates of §6.2 and Clifford+T on at most two qubits. Beyond those, two Q42
+  terms can denote the same matrix with nothing derivable from (E1)–(E3) saying
+  so. `ccz`, the Z gate controlled by two qubits (`ctrl cz`, with `cz = ctrl z`),
+  is an example of where that starts.
+
+What the language offers in place of a complete proof system is evaluation, and
+exact evaluation. Because the generators are fixed numbers, every amplitude a
+Q42 program can produce is built from integers, `i` and `1/√2` by adding,
+subtracting and multiplying: mathematicians write that set `Z[1/√2, i]`. Such a
+number can be stored exactly, as a few integers, the way a fraction can be
+stored as two. `q42/exact.py` evaluates in that set rather than in floating
+point, so comparing two terms *decides* whether they are equal instead of
+approximating: `h ; h` and `id` are the same matrix, not the same to twelve
+places, and an amplitude that cancels is absent rather than small. That is what
+`42q equal` does:
+
+```
+$ 42q equal gates x x
+x : qubit <-> qubit
+x : qubit <-> qubit
+  equal on 2 dimension(s)
+
+$ 42q equal gates s t
+s : qubit <-> qubit
+t : qubit <-> qubit
+  differ at row |1>, column |1>: 1i vs (0.707107+0.707107i)
+```
+
+`s` and `t` differ exactly where §6.2 says: on `|1>`, a quarter turn against an
+eighth.
+
+RELATED §11 sets this against the ZX-calculus, a graphical language for quantum
+circuits which has rules complete for all of Clifford+T, and makes the opposite
+trade to get them.
 
 ---
 
@@ -1060,7 +1155,7 @@ is unitary, are in `QSUGAR.md`.
 42q law     FILE GATE STATE  check that `!` really is the adjoint
 42q unitary FILE [GATE]      check `t ; t! = id` over the whole basis
 42q matrix  FILE [GATE]      print the matrix
-42q equal   FILE GATE GATE   decide whether two gates are the same -- 6.1
+42q equal   FILE GATE GATE   decide whether two gates are the same -- 6.5
 42q emit    FILE [GATE]      write it out as OpenQASM 3 -- see section 9.4
 42q type    FILE [GATE]      infer the type
 42q show    FILE [GATE]      print a definition, its adjoint, and what it compiles to
