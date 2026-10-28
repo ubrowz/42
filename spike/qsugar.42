@@ -1,0 +1,37 @@
+-- spike/qsugar.42 -- the examples of QSUGAR.md, as 42 clause definitions.
+--
+-- Q42 does not accept clauses yet.  These are written in the discipline the
+-- note proposes for Q42 -- every name used exactly once, both sides covering
+-- their type exactly once -- and compiled today by the 42 compiler, which is
+-- what the note's section 4.1 is about.  spike/qsquare.py checks each against
+-- the point-free Q42 definition it is meant to equal.
+--
+--     ./42 show spike/qsugar cx
+--     python3 spike/qsquare.py
+
+def not (L x)  <->  R x
+def not (R x)  <->  L x
+
+def cx (L (), q)  <->  (L (), q)
+def cx (R (), q)  <->  (R (), not q)
+
+def ccx (L (), qs)  <->  (L (), qs)
+def ccx (R (), qs)  <->  (R (), cx qs)
+
+-- Deutsch's oracle for f(x) = not x, as a truth table
+def orcnot (L (), y)  <->  (L (), not y)
+def orcnot (R (), y)  <->  (R (), y)
+
+-- fib.42's adder, written as a circuit: each name is a wire, and a wire's name
+-- is bound again after a gate consumes it (QSUGAR.md section 3.4).
+def add4 (x0, (x1, (y0, y1)))  <->
+    let (x0, (y0, y1)) = ccx (x0, (y0, y1)) in
+    let (x0, y0)       = cx (x0, y0)        in
+    let (x1, y1)       = cx (x1, y1)        in
+    (x0, (x1, (y0, y1)))
+
+-- 00 -> 01 -> 10 -> 00, and 11 fixed: a permutation, so unitary
+def cyc (L (), L ())  <->  (L (), R ())
+def cyc (L (), R ())  <->  (R (), L ())
+def cyc (R (), L ())  <->  (L (), L ())
+def cyc (R (), R ())  <->  (R (), R ())
