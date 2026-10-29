@@ -439,7 +439,7 @@ def relink(body: str) -> str:
         anchor = m.group(2) or ""
         return f'href="{target_for(m.group(1))}{anchor}"'
 
-    return re.sub(r'href="([\w.-]+\.(?:md|42|py|tex|bib))(#[\w-]*)?"', fix, body)
+    return re.sub(r'href="([\w.-][\w./-]*\.(?:md|42|py|tex|bib))(#[\w-]*)?"', fix, body)
 
 
 def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> str:
@@ -457,6 +457,7 @@ def page(title: str, heading: str, blurb: str, body: str, toc, current: str) -> 
         (HOSTED["qmanual.html"], "Q42 manual"),
         (HOSTED["related.html"], "related work"),
         (HOSTED["theorem.html"], "the theorem"),
+        (HOSTED["casestudy.html"], "case study"),
         (REPO, "source"),
     ]
     def tab(href: str, label: str) -> str:
@@ -630,6 +631,7 @@ HOME = """<!doctype html>
         <a href="manual.html">42 manual</a>
         <a href="course.html">course</a>
         <a href="qmanual.html">Q42 manual</a>
+        <a href="casestudy.html">case study</a>
         <a href="{repo}">source on GitHub</a>
       </nav>
     </header>

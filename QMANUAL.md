@@ -1985,6 +1985,14 @@ compared exactly, and it pays for that with no mid-program measurement.
 RELATED.md §8 and §11 place it against these languages, and
 against verification languages like QWIRE and Qunity, in more detail.
 
+To see the comparison on a real program, [the case study](casestudy/CASESTUDY.md)
+writes the modular adder at the heart of Shor's algorithm in Q42, checks it on
+every valid input against a readable specification in 42, and builds the same
+circuit in Qiskit. The two come out identical, gate for gate, before and after
+Qiskit's optimiser. The case study is also candid about what that does not
+show: Q42's checks are exact, but a Qiskit user can test the same inputs, and
+the cheapest known adder relies on measuring mid-circuit, which Q42 excludes.
+
 ---
 
 ## 10. Reference
