@@ -1081,6 +1081,7 @@ trade to get them.
 - [7.4 The commands](#74-the-commands)
 - [7.5 Superpositions in, and why that needed new machinery](#75-superpositions-in-and-why-that-needed-new-machinery)
 - [7.6 Measuring the result](#76-measuring-the-result)
+- [7.7 From a problem to a circuit](#77-from-a-problem-to-a-circuit)
 
 ### 7.1 A qubit is `1 + 1`
 
@@ -1256,6 +1257,105 @@ answering its question: **one query, one qubit, and the answer is certain.**
 Measurement is *terminal*: it happens after the program, never inside it. That
 is a deliberate line rather than a limitation of the command, and §9.2 explains
 what it costs and why.
+
+### 7.7 From a problem to a circuit
+
+The commands above take a gate that already exists. A real task starts further
+back, with a problem stated in ordinary terms, and ends with a circuit a quantum
+computer can run. Getting from one to the other takes five steps, and the
+running example here is the **modular adder**, `(a, b) ↦ (a, (a + b) mod N)`
+for a fixed `N` and `a, b < N`, the arithmetic that Shor's factoring algorithm
+(§9.1) is built from. The files are in `casestudy/`, and
+[the case study](casestudy/CASESTUDY.md) gives the whole program and its results.
+
+**1. State the problem in 42.** Write down what the answer should be, as a 42
+program. The language is 42, not Q42, on purpose. A specification may work on
+unbounded numbers, use a value twice, give no answer for inputs it does not care
+about, and combine cases with `|`, and Q42 forbids all four (§5). Those
+freedoms are what keep a specification short enough to be obviously right:
+
+```
+def reduce = keep | wrap                 -- keep s if s < n, else subtract n
+
+def modadd (a, (b, n))  <->
+    let (a, n) = lt (a, n) in
+    let (b, n) = lt (b, n) in
+    (a, reduce (add (a, b), n))
+```
+
+`lt` passes a pair through when its first number is the smaller and gives no
+answer otherwise, so `modadd` is simply undefined unless `a, b < n`. 42 runs it:
+
+```
+$ 42 casestudy/spec modadd "(3, (4, 5))"
+modadd(3, (4, 5)) =
+  (3, (2, 5))
+  -- 1 result
+```
+
+**2. Write the program in Q42.** Now decide *how* the answer is computed on a
+fixed number of qubits. This is design work, and nothing derives it from step 1.
+It means choosing how numbers are laid out in registers (§7.2), choosing a
+construction (here the standard one, built from ripple-carry adders that pass a
+carry bit along the register as column addition does), and choosing the
+**ancillas**: extra qubits that start at `|0>`, serve as scratch space, and must
+be returned to `|0>` at the end, since a qubit left holding a leftover value
+stays entangled with the result and spoils it (§2.6). A Q42 program that simply
+listed the specification's cases would also be correct, but compiled as written
+it becomes a circuit that tests every case separately, exponentially larger than
+a good construction.
+
+The program's type says exactly how many qubits it needs, before anything runs.
+`42q type casestudy/modadd mod3` reports nine `qubit`s for `N = 3`: two for each
+of `a` and `b`, and five ancillas.
+
+**3. Check the program against the specification.** On every input the
+specification answers, run both: 42 runs the specification, Q42 runs the
+program, and the two must agree. Q42's amplitudes are exact (§6.5), so the
+check is that the program's output is *exactly one* basis state, with amplitude
+exactly 1, holding the specification's answer, with every ancilla back at `|0>`.
+Inputs the specification does not answer are not compared, which is the right
+notion of correctness when nothing else will ever be fed in. Separately,
+`42q unitary` confirms that the program is reversible on its whole space.
+
+There is no single command for this step. `casestudy/check.py` is the harness
+for the adder, about a hundred lines of Python that call both interpreters, and
+it adapts to other programs by changing how inputs and answers are encoded.
+
+**4. Emit the circuit.** `42q emit` turns the program into OpenQASM 3, the
+standard text format for circuits (§9.4), and `--gates` lists the same gates in
+a form that is easier to read:
+
+```
+$ 42q emit casestudy/modadd mod3 --gates
+mod3 : 9 qubit(s), 77 gate(s)
+  cx 0, 2
+  cx 0, 5
+  ccx 5, 2, 0
+  ...
+```
+
+`cx` is the controlled NOT and `ccx` the Toffoli gate, which flips its third
+qubit when the first two are both 1 (§6.4); the numbers are qubit positions.
+
+**5. Check the circuit against the specification.** Run the emitted gate list
+on the same inputs, with a simulator that shares no code with Q42, and compare
+with the specification again. For arithmetic like this, whose gates only
+permute basis states, following one bit string through the gates is a complete
+simulation, and `check.py` does that. For a circuit with genuinely quantum gates,
+`tools/qasm_sim.py` computes the matrix of a gate list instead, and the test
+suite uses it to check every circuit Q42's own libraries emit this way.
+
+**Why two checks.** They catch different mistakes. Step 3 catches a wrong
+*program*: the construction does not compute what the specification says.
+Step 5 catches a wrong *translation*: the program is right, but emitting it
+changed its meaning. Step 5 alone would not tell you which of the two had
+failed, and step 3 alone would trust the emitter.
+
+After step 5 the OpenQASM goes to a standard toolchain such as Qiskit, which
+fits it to a particular machine's qubits and connections (§9.4). For the
+modular adder the case study compares the result with the same construction
+built in Qiskit: the two circuits are identical, gate for gate.
 
 ---
 
