@@ -253,11 +253,25 @@ kind of guarantee.
 QMANUAL §9.5 describes, that `!` exists for every term with no condition, does
 not show in a program that never measures anyway.
 
-**The readable specification does not compile to a circuit.** It is a 42
-program over unbounded numbers, partial, and it copies. That is what makes it
-readable, and it is why the circuit had to be written separately and checked
-against it, rather than derived from it. Q42 does not close that gap; it makes
-the check cheap.
+**The circuit is not derived from the specification; it is written separately
+and checked against it.** `42q emit` turns Q42 definitions into circuits, but
+`spec.42` breaks four of Q42's rules, and each is part of what makes it
+readable:
+
+- it works on unbounded numbers, and a circuit has a fixed number of qubits
+  (QMANUAL §8.1);
+- it uses `a` twice, which copies it, and copying is not unitary (§5.2);
+- it is partial, with no result for `a ≥ N`, where a Q42 term must be defined
+  and reversible on every input;
+- it uses `|`, a union, which Q42 drops because it needs `1 + 1 = 1` (§5.1).
+
+A specification Q42 *would* accept has to cover every fixed-width input exactly
+once, out-of-range values and dirty ancillas included. That is in effect a table
+of cases, and compiled as written it becomes a circuit that tests each case,
+exponentially larger than the ripple-carry construction. Choosing the compact
+construction is design work no compiler here does, and none in Qiskit does
+either. Q42 does not close the gap between the specification and the circuit;
+it makes checking one against the other cheap and exact.
 
 **Families were written out by hand.** `add1` to `add4` are four definitions,
 each wrapping the one below. A 42 program could generate them for any width,

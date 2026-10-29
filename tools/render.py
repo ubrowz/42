@@ -418,6 +418,7 @@ SITE_PAGE = {
     "QMANUAL.md": "qmanual.html",
     "RELATED.md": "related.html",
     "THEOREM.md": "theorem.html",
+    "casestudy/CASESTUDY.md": "casestudy.html",
 }
 
 
@@ -482,6 +483,7 @@ HOSTED = {
     "qmanual.html": "qmanual.html",
     "related.html": "related.html",
     "theorem.html": "theorem.html",
+    "casestudy.html": "casestudy.html",
 }
 
 REPO = "https://github.com/ubrowz/42"
@@ -520,6 +522,13 @@ DOCS = [
         "42 &mdash; What 42 Can Compute",
         "A proof that the relations denotable in 42 are exactly the recursively "
         "enumerable ones, with Turing completeness as the single-valued case.",
+    ),
+    (
+        "casestudy/CASESTUDY.md", "casestudy.html", "Q42 Case Study",
+        "Case study &mdash; a modular adder",
+        "The adder inside Shor's algorithm, written in Q42, checked against a "
+        "42 specification on every valid input, and compared gate for gate "
+        "with the same circuit built in Qiskit.",
     ),
 ]
 
@@ -716,6 +725,10 @@ hh |0&gt;
         <span>Where it sits among Inv, PisoLang, Janus, RFUN and the
         &Pi; branch &mdash; and where it began: 4<sub>2</sub>, specified in
         1993, of which this is the second instantiation.</span></a>
+      <a href="casestudy.html"><b>Case study: a modular adder</b>
+        <span>The arithmetic inside Shor's algorithm in Q42: checked against a
+        42 specification, and identical, gate for gate, to the same circuit
+        built in Qiskit. What that does and does not show.</span></a>
     </div>
 
     <p class="eyebrow">Running it</p>
@@ -737,6 +750,7 @@ $ ./42q gates bell "|00&gt;"</code></pre></div>
           <dt>rel42/</dt><dd>the 42 interpreter: values, terms, types, dagger</dd>
           <dt>q42/</dt><dd>the same over &#8450;, plus the OpenQASM 3 emitter</dd>
           <dt>*.42</dt><dd>libraries: arithmetic, rationals, text, a Turing machine</dd>
+          <dt>casestudy/</dt><dd>a modular adder in Q42, against a spec and Qiskit</dd>
           <dt>tools/</dt><dd>the renderer for this site, and a circuit simulator</dd>
           <dt>tests/</dt><dd>one of which executes every transcript in the manuals</dd>
         </dl>

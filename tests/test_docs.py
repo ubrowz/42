@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
 DOCS = ["MANUAL.md", "COURSE.md", "QMANUAL.md", "README.md", "RELATED.md",
-        "Q42.md", "THEOREM.md"]
+        "Q42.md", "THEOREM.md", "casestudy/CASESTUDY.md"]
 
 #: Commands the docs show in order to display an error.  They are expected to
 #: fail; what matters is that they still fail with the message shown.
@@ -132,6 +132,9 @@ class TestTranscripts(unittest.TestCase):
 
     def test_manual(self):
         self.assertGreater(self.run_doc("MANUAL.md"), 5)
+
+    def test_case_study(self):
+        self.assertGreater(self.run_doc("casestudy/CASESTUDY.md"), 0)
 
     def test_course(self):
         self.assertGreater(self.run_doc("COURSE.md"), 10)

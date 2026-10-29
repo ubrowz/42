@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Q42 Case Study</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The adder inside Shor&#x27;s algorithm, written in Q42, checked against a 42 specification on every valid input, and compared gate for gate with the same circuit built in Qiskit.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root {
+  --paper:      #fcfcfd;
+  --raised:     #f4f6f8;
+  --ink:        #16191f;
+  --muted:      #5c6470;
+  --faint:      #8b93a1;
+  --rule:       #e2e5ea;
+  --accent:     #0b6e6e;
+  --accent-dim: #0b6e6e1a;
+  --shadow:     0 1px 2px #16191f0d;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino,
+           "Book Antiqua", Georgia, serif;
+  --mono:  ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+           "Cascadia Mono", "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+    --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+    --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101317; --raised: #171b21; --ink: #e6e9ee; --muted: #98a2b0;
+  --faint: #6d7788; --rule: #262c35; --accent: #4fd1c5;
+  --accent-dim: #4fd1c522; --shadow: 0 1px 2px #00000040;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shell ---- */
+.shell { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); gap: 3.5rem;
+         max-width: 74rem; margin: 0 auto; padding: 0 2rem; align-items: start; }
+@media (max-width: 60rem) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 1.25rem; }
+}
+
+/* ---- masthead ---- */
+.mast { display: flex; flex-direction: column; gap: .5rem;
+        padding: 2.75rem 0 1.5rem; border-bottom: 1px solid var(--rule);
+        grid-column: 1 / -1; }
+.mark { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--accent); }
+.mark b { font-weight: 500; }
+.mast h1 { margin: 0; font-size: 2.1rem; line-height: 1.15; letter-spacing: -.015em;
+           text-wrap: balance; font-weight: 600; }
+.mast p { margin: 0; color: var(--muted); max-width: 46ch; }
+.switch { display: flex; gap: .4rem; margin-top: .85rem; flex-wrap: wrap; }
+.switch a { font-family: var(--mono); font-size: .78rem; letter-spacing: .02em;
+            text-decoration: none; color: var(--muted); border: 1px solid var(--rule);
+            border-radius: 2px; padding: .3rem .65rem; background: var(--paper); }
+.switch a:hover { color: var(--accent); border-color: var(--accent); }
+.switch a[aria-current="page"] { color: var(--paper); background: var(--ink);
+                                 border-color: var(--ink); }
+
+/* ---- table of contents ---- */
+.rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem);
+        overflow-y: auto; padding: 2rem 0 3rem; font-family: var(--mono);
+        font-size: .8rem; line-height: 1.5; }
+.rail h2 { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+           color: var(--faint); margin: 0 0 .9rem; font-family: var(--mono);
+           font-weight: 500; }
+.rail ol { list-style: none; margin: 0; padding: 0;
+           display: flex; flex-direction: column; gap: .12rem; }
+.rail a { display: block; text-decoration: none; color: var(--muted);
+          padding: .2rem .55rem; border-left: 2px solid transparent;
+          border-radius: 0 2px 2px 0; }
+.rail a:hover { color: var(--ink); background: var(--raised); }
+.rail a.sub { padding-left: 1.5rem; color: var(--faint); font-size: .76rem; }
+.rail a.here { color: var(--accent); border-left-color: var(--accent);
+               background: var(--accent-dim); }
+@media (max-width: 60rem) {
+  .rail { position: static; max-height: none; border-bottom: 1px solid var(--rule);
+          padding: 1.25rem 0; }
+  .rail ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); }
+  .rail a.sub { display: none; }
+}
+
+/* ---- prose ---- */
+main { padding: 2rem 0 6rem; min-width: 0; max-width: 68ch; }
+main > :first-child { margin-top: 0; }
+h1, h2, h3, h4 { line-height: 1.22; letter-spacing: -.012em; text-wrap: balance;
+                 font-weight: 600; position: relative; }
+h1 { font-size: 1.9rem; margin: 3rem 0 1rem; }
+h2 { font-size: 1.5rem; margin: 3.25rem 0 1rem; padding-bottom: .4rem;
+     border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.15rem; margin: 2.25rem 0 .75rem; }
+h4 { font-size: 1rem; margin: 1.75rem 0 .6rem; color: var(--muted); }
+p { margin: 0 0 1.05rem; }
+a { color: var(--accent); text-underline-offset: .18em;
+    text-decoration-thickness: .06em; }
+strong { font-weight: 650; }
+ul, ol { margin: 0 0 1.05rem; padding-left: 1.35rem;
+         display: flex; flex-direction: column; gap: .38rem; }
+li { padding-left: .15rem; }
+li::marker { color: var(--faint); }
+hr { border: 0; height: 1px; background: var(--rule); margin: 2.75rem 0; }
+
+.anchor { position: absolute; left: -1.1rem; width: 1.1rem; text-align: left;
+          color: var(--faint); text-decoration: none; opacity: 0;
+          font-family: var(--mono); font-weight: 400; }
+h2:hover .anchor, h3:hover .anchor, h4:hover .anchor, .anchor:focus { opacity: 1; }
+@media (max-width: 60rem) { .anchor { display: none; } }
+
+blockquote { margin: 1.4rem 0; padding: .1rem 0 .1rem 1.15rem;
+             border-left: 2px solid var(--accent); color: var(--muted); }
+blockquote p { margin: 0; }
+
+/* ---- code ---- */
+code { font-family: var(--mono); font-size: .855em; }
+p code, li code, td code, th code, blockquote code, h2 code, h3 code, h4 code {
+  background: var(--raised); border: 1px solid var(--rule);
+  border-radius: 3px; padding: .07em .32em; white-space: nowrap;
+}
+.code { margin: 0 0 1.3rem; background: var(--raised);
+        border: 1px solid var(--rule); border-radius: 4px;
+        overflow-x: auto; box-shadow: var(--shadow); }
+.code pre { margin: 0; padding: .95rem 1.15rem; }
+.code code { background: none; border: 0; padding: 0; white-space: pre;
+             font-size: .83rem; line-height: 1.58; }
+
+/* ---- tables ---- */
+.scroller { overflow-x: auto; margin: 0 0 1.4rem; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem;
+        font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .5rem .8rem; border-bottom: 1px solid var(--rule);
+         vertical-align: top; }
+th { font-family: var(--mono); font-size: .74rem; letter-spacing: .06em;
+     text-transform: uppercase; color: var(--faint); font-weight: 500;
+     border-bottom-color: var(--ink); }
+tbody tr:last-child td { border-bottom: 0; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px;
+                 border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="mast">
+    <div class="mark"><b>42</b> &nbsp;x &isin; P(y) &nbsp;&harr;&nbsp; y &isin; inv(P)(x)</div>
+    <h1>Case study &mdash; a modular adder</h1>
+    <p>The adder inside Shor's algorithm, written in Q42, checked against a 42 specification on every valid input, and compared gate for gate with the same circuit built in Qiskit.</p>
+    <nav class="switch"><a href="index.html">home</a><a href="manual.html">42 manual</a><a href="course.html">course</a><a href="qmanual.html">Q42 manual</a><a href="related.html">related work</a><a href="theorem.html">the theorem</a><a href="https://github.com/ubrowz/42">source</a></nav>
+  </header>
+  <nav class="rail" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol><li><a class="" href="#1-the-operation">1. The operation</a></li><li><a class="" href="#2-the-three-files">2. The three files</a></li><li><a class="sub" href="#the-specification">The specification</a></li><li><a class="sub" href="#the-circuit">The circuit</a></li><li><a class="" href="#3-the-checks">3. The checks</a></li><li><a class="" href="#4-the-counts">4. The counts</a></li><li><a class="" href="#5-what-this-shows-and-what-it-does-not">5. What this shows, and what it does not</a></li></ol>
+  </nav>
+  <main><p>Shor's factoring algorithm spends almost all of its gates on one classical operation, modular arithmetic, made reversible so that it can run on qubits. Writing that arithmetic as a circuit is the most laborious part of implementing the algorithm, and it is the kind of program Q42 ought to be good at: classical, reversible, and in need of checking. This case study writes the basic building block, the <strong>modular adder</strong>, in Q42 and asks three questions:</p>
+<ol><li>Can Q42 show that the circuit computes what a readable specification says?</li><li>Is the circuit Q42 emits as small as the same circuit built in Qiskit?</li><li>What does writing it in Q42 buy, and what does it cost?</li></ol>
+<p>The short answers: yes; it is the same circuit, gate for gate; and the gain is real but smaller than a "verified compiler" headline would suggest. The details follow, and the last section says plainly what the study does and does not support.</p>
+<h2 id="1-the-operation"><a class="anchor" href="#1-the-operation" aria-label="Link to this section">#</a>1. The operation</h2>
+<p>For a fixed modulus <code>N</code> and two numbers <code>a, b &lt; N</code>:</p>
+<div class="code"><pre><code>(a, b)  ↦  (a, (a + b) mod N)</code></pre></div>
+<p><code>a</code> is kept, because an operation that forgot it could not be reversed: from the sum alone you cannot tell which <code>a</code> produced it. This is the adder that Shor's modular multiplication is assembled from.</p>
+<p>Numbers live in <strong>registers</strong>, a row of qubits each holding one bit. An <code>n</code>-bit register holds <code>0 … 2ⁿ − 1</code>, least significant bit first, so the 3-bit register <code>(b0, (b1, b2))</code> holds <code>b0 + 2·b1 + 4·b2</code>. The circuit also needs <strong>ancillas</strong>: extra qubits that start at <code>|0&gt;</code>, are used as scratch space, and must be back at <code>|0&gt;</code> at the end, since a qubit left holding garbage stays entangled with the result and spoils it.</p>
+<h2 id="2-the-three-files"><a class="anchor" href="#2-the-three-files" aria-label="Link to this section">#</a>2. The three files</h2>
+<div class="scroller"><table><thead><tr><th>file</th><th>language</th><th>what it is</th></tr></thead><tbody><tr><td><code>spec.42</code></td><td>42</td><td>the specification, written to be read</td></tr><tr><td><code>modadd.42</code></td><td>Q42</td><td>the circuit</td></tr><tr><td><code>check.py</code></td><td>Python</td><td>runs both on every valid input and compares</td></tr></tbody></table></div>
+<p><code>baseline.py</code> builds the same circuit in Qiskit; it is the only file that needs Qiskit installed.</p>
+<h3 id="the-specification"><a class="anchor" href="#the-specification" aria-label="Link to this section">#</a>The specification</h3>
+<p>The specification is ordinary 42 over the natural numbers: add, then subtract <code>N</code> if the sum reached it.</p>
+<div class="code"><pre><code>def keep (s, n)  &lt;-&gt;  lt (s, n)          -- s &lt; n: leave it
+def wrap (s, n)  &lt;-&gt;  sub (s, n)         -- s &gt;= n: subtract n
+def reduce = keep | wrap
+
+def modadd (a, (b, n))  &lt;-&gt;
+    let (a, n) = lt (a, n) in
+    let (b, n) = lt (b, n) in
+    (a, reduce (add (a, b), n))</code></pre></div>
+<p><code>lt</code> is a filter that passes <code>(a, n)</code> through when <code>a &lt; n</code> and gives no result otherwise, so <code>modadd</code> is simply undefined outside <code>a, b &lt; n</code>. It uses <code>a</code> twice, which copies it; it takes <code>N</code> as an input rather than wiring it in; and it works on unbounded numbers. None of that is a circuit, and none of it needs to be. It is the definition you would write on a whiteboard, and 42 runs it:</p>
+<div class="code"><pre><code>$ 42 casestudy/spec.42 modadd "(3, (4, 5))"
+modadd(3, (4, 5)) =
+  (3, (2, 5))
+  -- 1 result</code></pre></div>
+<h3 id="the-circuit"><a class="anchor" href="#the-circuit" aria-label="Link to this section">#</a>The circuit</h3>
+<p>The circuit is Vedral, Barenco &amp; Ekert's construction (1996), the standard one. With an extra top bit <code>z</code> on <code>b</code>, so that it can hold numbers up to <code>2N</code>, it runs five additions:</p>
+<ol><li><code>b := a + b</code>.</li><li><code>b := b − N</code>. If the sum was below <code>N</code> this goes negative, and in the two's-complement representation, where the top bit marks a negative number,</li></ol>
+<p><code>z</code> becomes 1.</p>
+<ol><li>Copy <code>z</code> into an ancilla <code>s</code>, then <code>b := b + s·N</code>: add <code>N</code> back if, and only if, step 2 went negative. Now <code>b</code> holds <code>(a + b) mod N</code>.</li><li><code>s</code> must be returned to <code>|0&gt;</code>, but it still records whether step 2 went negative. That fact can be recovered from the result: it went negative exactly when the result is at least <code>a</code>. So compute <code>b := b − a</code>, read the sign into <code>s</code> (which clears it), and <code>b := b + a</code> to restore the result.</li></ol>
+<p>Each addition is Cuccaro, Draper, Kutin &amp; Moulton's <strong>ripple-carry adder</strong> (2004): the carry is passed bit by bit along the register, like column addition on paper, using one ancilla <code>c</code> and two three-qubit blocks, <code>maj</code> (compute the carry) and <code>uma</code> (uncompute it and leave the sum bit). Written as clauses, in which a name is a wire (QMANUAL §7.3):</p>
+<div class="code"><pre><code>def maj (c, (b, a))  &lt;-&gt;
+    let (a, b)      = cx (a, b)        in
+    let (a, c)      = cx (a, c)        in
+    let (c, (b, a)) = ccx (c, (b, a))  in
+    (c, (b, a))</code></pre></div>
+<p><code>cx</code> is the controlled NOT, flipping its second qubit when the first is 1, and <code>ccx</code> is the Toffoli gate, flipping its third when the first two are both 1. They are defined in the same file, as clauses. The <code>n</code>-bit adder is one <code>maj</code> … <code>uma</code> pair around the <code>(n−1)</code>-bit adder. The modular adder itself:</p>
+<div class="code"><pre><code>def modadd add load cload (a, (b, (z, (c, (k, s)))))  &lt;-&gt;
+    let (c, (a, (b, z))) = add (c, (a, (b, z)))   in   -- b := a + b
+    let k                = load k                 in
+    let (c, (k, (b, z))) = add! (c, (k, (b, z)))  in   -- b := b - N
+    let k                = load k                 in
+    let (z, s)           = cx (z, s)              in   -- s := (a + b &lt; N)
+    let (s, k)           = cload (s, k)           in
+    let (c, (k, (b, z))) = add (c, (k, (b, z)))   in   -- b := b + s N
+    let (s, k)           = cload (s, k)           in
+    let (c, (a, (b, z))) = add! (c, (a, (b, z)))  in   -- b := b - a
+    let z                = x z                    in
+    let (z, s)           = cx (z, s)              in   -- s := 0
+    let z                = x z                    in
+    let (c, (a, (b, z))) = add (c, (a, (b, z)))   in   -- b := b + a
+    (a, (b, (z, (c, (k, s)))))</code></pre></div>
+<p><code>add</code>, <code>load</code> and <code>cload</code> are <strong>parameters</strong>: programs passed in, so one definition serves every width and every modulus. <code>load</code> writes the constant <code>N</code> into an empty register <code>k</code> with <code>x</code> gates, and <code>cload</code> does the same under the control of <code>s</code>. Subtraction is <code>add!</code>, the adder run backwards; no subtractor is written anywhere. The instances are one line each:</p>
+<div class="code"><pre><code>def mod13 = modadd add4 load13 cload13</code></pre></div>
+<h2 id="3-the-checks"><a class="anchor" href="#3-the-checks" aria-label="Link to this section">#</a>3. The checks</h2>
+<p><code>check.py</code> tests four adders: <code>N = 3</code> (2 bits), <code>N = 5</code> and <code>N = 7</code> (3 bits) and <code>N = 13</code> (4 bits). For each, on every input <code>a, b &lt; N</code>:</p>
+<ul><li><strong>The specification</strong>, in 42, gives the expected answer.</li><li><strong>The Q42 term</strong> is applied to the corresponding basis state with every ancilla at <code>|0&gt;</code>. The result must be exactly one basis state, with amplitude exactly 1, holding the expected answer and every ancilla back at <code>|0&gt;</code>. Amplitudes are exact rather than floating point (QMANUAL §6.5), so this is equality, not closeness.</li><li><strong>The emitted circuit</strong>: <code>42q emit</code> turns the term into a list of gates on numbered qubits, and a ten-line simulator, sharing no code with Q42, runs that list on the input bits. Because the circuit only permutes basis states, following one bit string through the gates is a complete simulation.</li></ul>
+<div class="code"><pre><code>$ python3 casestudy/check.py
+  [ok ] mod3: all 9 inputs a, b &lt; 3 agree with spec.42
+  [ok ] mod3: so does the emitted circuit
+  [ok ] mod5: all 25 inputs a, b &lt; 5 agree with spec.42
+  [ok ] mod5: so does the emitted circuit
+  [ok ] mod7: all 49 inputs a, b &lt; 7 agree with spec.42
+  [ok ] mod7: so does the emitted circuit
+  [ok ] mod13: all 169 inputs a, b &lt; 13 agree with spec.42
+  [ok ] mod13: so does the emitted circuit</code></pre></div>
+<p>Separately, <code>42q unitary</code> confirms that <code>mod3</code> composed with its inverse is the identity on all <code>2⁹ = 512</code> basis states, not only the valid ones (9 seconds).</p>
+<p><strong>What is not checked.</strong> The specification has no answer for <code>a ≥ N</code> or <code>b ≥ N</code>, or for ancillas not at <code>|0&gt;</code>, while the circuit, being a permutation of all basis states, still does something there. The two are compared only where the specification speaks. That is the honest notion of correctness for this circuit, since Shor's algorithm never feeds it anything else, but it is narrower than the whole-matrix equality <code>42q equal</code> decides.</p>
+<p><strong>What the checks found.</strong> The first run of the 3-bit adders failed in the emitter, not in the program. <code>42q emit</code> mishandled <code>swapprod!</code>, the inverse of the primitive that exchanges two blocks of wires, whenever the two blocks had different widths. <code>add3!</code> was the first program to meet that case. The emitter now treats <code>swapprod!</code> as <code>swapprod</code>, which is what it is, and <code>tests/test_emit.py</code> has a regression test that compares the emitted circuit with Q42's own matrix.</p>
+<h2 id="4-the-counts"><a class="anchor" href="#4-the-counts" aria-label="Link to this section">#</a>4. The counts</h2>
+<p><code>check.py</code> counts the emitted gates:</p>
+<div class="scroller"><table><thead><tr><th>adder</th><th>bits</th><th>qubits</th><th>Toffoli</th><th>CNOT</th><th>X</th></tr></thead><tbody><tr><td><code>mod3</code></td><td>2</td><td>9</td><td>20</td><td>51</td><td>6</td></tr><tr><td><code>mod5</code></td><td>3</td><td>12</td><td>30</td><td>71</td><td>6</td></tr><tr><td><code>mod7</code></td><td>3</td><td>12</td><td>30</td><td>73</td><td>8</td></tr><tr><td><code>mod13</code></td><td>4</td><td>15</td><td>40</td><td>93</td><td>8</td></tr></tbody></table></div>
+<p>These are exactly the hand counts: five adders of <code>2n</code> Toffolis and <code>4n + 1</code> CNOTs each, plus two CNOTs and two X gates for <code>s</code>, plus the gates that load <code>N</code>. Routing costs nothing: every <code>let</code> rearranges wires, and the emitter turns rearrangement into relabelling, not gates.</p>
+<p><code>baseline.py</code> builds the same construction in Qiskit, from Qiskit's own implementation of the Cuccaro adder (<code>CDKMRippleCarryAdder</code>), checks it on the same inputs, and then reads Q42's emitted OpenQASM into Qiskit, so that both are counted by the same code. Both then go through Qiskit's transpiler at its highest optimisation level, once into Toffoli, CNOT and X, and once into <strong>Clifford+T</strong>, the gate set of error-corrected machines (QMANUAL §9.4), where the <strong>T-count</strong>, the number of T gates, is the usual measure of cost:</p>
+<div class="scroller"><table><thead><tr><th></th><th>qubits</th><th>Toffoli</th><th>CNOT</th><th>optimised: Toffoli</th><th>CNOT</th><th>Clifford+T: T-count</th><th>CNOT</th><th>depth</th></tr></thead><tbody><tr><td><code>mod3</code> Q42</td><td>9</td><td>20</td><td>51</td><td>20</td><td>41</td><td>120</td><td>161</td><td>244</td></tr><tr><td><code>mod3</code> Qiskit</td><td>9</td><td>20</td><td>51</td><td>20</td><td>41</td><td>120</td><td>161</td><td>244</td></tr><tr><td><code>mod5</code> Q42</td><td>12</td><td>30</td><td>71</td><td>30</td><td>57</td><td>180</td><td>237</td><td>364</td></tr><tr><td><code>mod5</code> Qiskit</td><td>12</td><td>30</td><td>71</td><td>30</td><td>57</td><td>180</td><td>237</td><td>364</td></tr><tr><td><code>mod7</code> Q42</td><td>12</td><td>30</td><td>73</td><td>30</td><td>61</td><td>180</td><td>241</td><td>364</td></tr><tr><td><code>mod7</code> Qiskit</td><td>12</td><td>30</td><td>73</td><td>30</td><td>61</td><td>180</td><td>241</td><td>364</td></tr><tr><td><code>mod13</code> Q42</td><td>15</td><td>40</td><td>93</td><td>40</td><td>77</td><td>240</td><td>317</td><td>484</td></tr><tr><td><code>mod13</code> Qiskit</td><td>15</td><td>40</td><td>93</td><td>40</td><td>77</td><td>240</td><td>317</td><td>484</td></tr></tbody></table></div>
+<p>Identical on every row, which is the expected outcome: it is the same construction, and Q42's emitter adds nothing. Two smaller observations:</p>
+<ul><li>Qiskit's optimiser removes about a fifth of the CNOTs, from neighbouring adders whose gates cancel. Q42's emitter does no such optimisation and leaves it to the downstream compiler, as QMANUAL §9.4 intends. A Q42 user would run the same optimiser.</li><li>Qiskit 2.6.1 was used (<code>qiskit_qasm3_import</code> 0.6 to read OpenQASM 3).</li></ul>
+<h2 id="5-what-this-shows-and-what-it-does-not"><a class="anchor" href="#5-what-this-shows-and-what-it-does-not" aria-label="Link to this section">#</a>5. What this shows, and what it does not</h2>
+<p><strong>Q42 has no penalty.</strong> A modular adder written in Q42 is the same circuit, gate for gate, as the same construction built from Qiskit's library, before and after optimisation. Writing it with names for wires was no harder than writing it in Qiskit, and about as long: the modular adder is fourteen steps in Q42 and eighteen lines in <code>baseline.py</code>, which loads <code>N</code> in loops rather than definitions.</p>
+<p><strong>The checks are real, but not unique.</strong> Every valid input was checked three ways, with exact amplitudes and an independent simulator, and the full <code>mod3</code> term was checked unitary. But a Qiskit user could also test their circuit on every valid input, by classical simulation in Python. What Q42 adds is smaller than "verification": the specification is an executable program in a sibling language rather than a hand-written test oracle, the inverse needs no separate check, and equality is exact. Those are conveniences, not a different kind of guarantee.</p>
+<p><strong>The inverse is free, and so it is elsewhere.</strong> Every subtraction here is <code>add!</code>. In Qiskit it is <code>add.inverse()</code>, equally free. The difference QMANUAL §9.5 describes, that <code>!</code> exists for every term with no condition, does not show in a program that never measures anyway.</p>
+<p><strong>The circuit is not derived from the specification; it is written separately and checked against it.</strong> <code>42q emit</code> turns Q42 definitions into circuits, but <code>spec.42</code> breaks four of Q42's rules, and each is part of what makes it readable:</p>
+<ul><li>it works on unbounded numbers, and a circuit has a fixed number of qubits (QMANUAL §8.1);</li><li>it uses <code>a</code> twice, which copies it, and copying is not unitary (§5.2);</li><li>it is partial, with no result for <code>a ≥ N</code>, where a Q42 term must be defined and reversible on every input;</li><li>it uses <code>|</code>, a union, which Q42 drops because it needs <code>1 + 1 = 1</code> (§5.1).</li></ul>
+<p>A specification Q42 <em>would</em> accept has to cover every fixed-width input exactly once, out-of-range values and dirty ancillas included. That is in effect a table of cases, and compiled as written it becomes a circuit that tests each case, exponentially larger than the ripple-carry construction. Choosing the compact construction is design work no compiler here does, and none in Qiskit does either. Q42 does not close the gap between the specification and the circuit; it makes checking one against the other cheap and exact.</p>
+<p><strong>Families were written out by hand.</strong> <code>add1</code> to <code>add4</code> are four definitions, each wrapping the one below. A 42 program could generate them for any width, as <code>qft.42</code> does for the quantum Fourier transform (RELATED.md §11.6); this study did not, since four widths were enough to compare.</p>
+<p><strong>The construction is not the state of the art.</strong> Vedral–Barenco–Ekert with Cuccaro adders is the standard textbook circuit, chosen because Qiskit has the same pieces, so that the comparison is like for like. Cheaper adders exist. The best known, Gidney's (2018), roughly halves the T-count of the adders before it, and does so by uncomputing its temporary values with a measurement and a correction chosen by its outcome: exactly the mid-circuit measurement Q42 excludes (QMANUAL §9.2). Q42 can express the measurement-free equivalent, but that gives up the saving. This is the most concrete cost of Q42's design the study turned up.</p>
+<p><strong>Verdict.</strong> For the question of whether Q42 is a practical route to checked reversible arithmetic: it works end to end, from a readable specification to an OpenQASM circuit that matches Qiskit's gate for gate, with no penalty, and its checks caught a real bug. It does not beat the mainstream toolchain on any count, and the advantage it does have, exact checking against an executable specification, is a matter of convenience. The case for Q42 as a research language and a teaching tool is unaffected; the case for it as a better way to build oracles is not made by this study.</p></main>
+</div>
+<script>
+const links = [...document.querySelectorAll('.rail a')];
+const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const seen = new Set();
+const spy = new IntersectionObserver(entries => {
+  for (const e of entries) e.isIntersecting ? seen.add(e.target.id) : seen.delete(e.target.id);
+  const order = [...byId.keys()].filter(id => seen.has(id));
+  links.forEach(a => a.classList.remove('here'));
+  const active = byId.get(order[0]);
+  if (active) active.classList.add('here');
+}, { rootMargin: '0px 0px -70% 0px' });
+document.querySelectorAll('h2[id], h3[id]').forEach(h => spy.observe(h));
+</script>
+</body>
+</html>
