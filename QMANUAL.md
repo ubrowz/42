@@ -1356,6 +1356,21 @@ of the nine that remain, it runs the specification, encodes the answer
 *forwards*, and requires the program to produce exactly that basis state. The
 second line is step 5, below.
 
+Nothing in `42q check` is about adders: the program, the specification and the
+encoder are all arguments, and `--decode` takes a second encoder when the
+answers are laid out differently from the inputs. What is specific to a problem
+is the encoder, which fixes which qubits hold which value. The command has one
+real limit, and it follows from what a 42 specification can say. A
+specification speaks of values, not amplitudes, so the check applies to
+programs that behave classically on the inputs it covers, taking each one to a
+single basis state: arithmetic, oracles, and the other reversible classical
+parts of a quantum algorithm. A genuinely quantum program, such as the Hadamard
+gate or the quantum Fourier transform, produces a superposition, which no 42
+specification can describe; to compare two quantum programs, use `42q equal`
+(§6.5). The command also reports two conditions when they fail: the encoder
+must not give two values for one basis state, and the specification must give
+one answer per input, since a program produces only one.
+
 **4. Emit the circuit.** `42q emit` turns the program into OpenQASM 3, the
 standard text format for circuits (§9.4), and `--gates` lists the same gates in
 a form that is easier to read:
