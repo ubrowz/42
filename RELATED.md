@@ -534,8 +534,8 @@ multiplier costs one component and buys injectivity. Same move, same reason.
   but 42 needs its version because `!` is eliminated at parse time, so a variable
   without its own flag would make `m!` and `m` parse identically.
 
-  **On `map`, this document was wrong, and the truth is more specific.** It is
-  not that a parameter cannot be applied to a list. `map` is *writable and
+  **On `map`, the gap is more specific than it looks.** It is not that a
+  parameter cannot be applied to a list. `map` is *writable and
   well-typed* in 42: a list is already a sum, so the sum functor does the case
   split with no plumbing at all:
 
@@ -720,11 +720,10 @@ sharper, more elementary statement of it: closure is a least fixed point wanting
 
 ### 5.3 Control and the rig structure are the same thing
 
-*One rig to control them all* answers a question this document had
-been posing loosely, whether Q42's `ctrl` should be primitive or derived, and
-the answer is that the question dissolves. Heunen, Kaarsgaard and Lemonnier give
-**seven** equations for control (not eight, as this document previously said from
-its abstract), and prove that adding them to a prop of base circuits constructs
+*One rig to control them all* answers the question whether Q42's `ctrl`
+should be primitive or derived, and the answer is that the question
+dissolves. Heunen, Kaarsgaard and Lemonnier give
+**seven** equations for control, and prove that adding them to a prop of base circuits constructs
 the *free rig category* on that prop. Their title claim, stated in the
 introduction:
 
@@ -1843,7 +1842,7 @@ The comparison earns its place because the field's usual division — languages
 with a semantics on one side, toolchains that generate circuits on the other —
 puts Q42 on both sides of it. §8.3 says the Π
 lineage has no backend, and that is about *lowering*. This section is about
-*generation*. They are not the same lack, and Q42 no longer has either: it has an
+*generation*. They are not the same lack, and Q42 has neither: it has an
 emitter (§9.4) and it has a generator. What it does not have is everything in
 between.
 

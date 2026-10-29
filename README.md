@@ -308,9 +308,9 @@ print as `nat`. Declarations are tried in source order, first match winning, so
 put the specific ones first.
 
 `x` is the product operator in a type, so it cannot name a variable. The printer
-therefore never generates it either — which incidentally fixed a latent
-ambiguity, since `cipher.42` has a definition with 27 type variables and used to
-print `(x + x) x (a + b)`.
+therefore never generates it either, which matters more than it sounds:
+`cipher.42` has a definition with 27 type variables, and naming them in
+alphabetical order would otherwise reach `x` and print `(x + x) x (a + b)`.
 
 ## Usage
 

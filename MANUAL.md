@@ -1689,11 +1689,11 @@ So the machine is not one-to-one, and §6 is why you get told rather than
 being stopped from writing it. A language that insisted on one answer backwards
 would have made you strip trailing zeros before this program could exist.
 
-There is a lesson in here worth the detour. The first version of `init` was
-just `carry`, which labels any configuration as a starting one, including ones
-with the head halfway along the tape. Forwards that made no difference and
-every test passed. Backwards it produced five answers instead of two, and the
-three extra ones were half-finished machines. The fix is to say where the head
+There is a lesson in here worth the detour. Suppose `init` were just
+`carry`, which labels any configuration as a starting one, including ones
+with the head halfway along the tape. Forwards that would make no difference
+and every test would pass. Backwards it would produce five answers instead of
+two, and the three extra ones would be half-finished machines. The fix is to say where the head
 starts:
 
 ```
@@ -2880,7 +2880,7 @@ two kinds mix freely.
 
    *Diagnosis:* ask for the type. `42 type FILE` reports any
    definition whose shapes cannot line up at all, and `run` refuses an argument
-   that does not fit the domain (§6), so this class of bug now announces itself
+   that does not fit the domain (§6), so this class of bug announces itself
    rather than yielding `{}`. If you got `{}` in spite of that, the mismatch is
    *inside* a definition whose two ends still agree, and the type of each piece
    is the way in: `type FILE NAME` prints one.
