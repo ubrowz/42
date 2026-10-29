@@ -178,14 +178,6 @@ the specification speaks. That is the honest notion of correctness for this
 circuit, since Shor's algorithm never feeds it anything else, but it is
 narrower than the whole-matrix equality `42q equal` decides.
 
-**What the checks found.** The first run of the 3-bit adders failed in the
-emitter, not in the program. `42q emit` mishandled `swapprod!`, the inverse of
-the primitive that exchanges two blocks of wires, whenever the two blocks had
-different widths. `add3!` was the first program to meet that case. The emitter
-now treats `swapprod!` as `swapprod`, which is what it is, and
-`tests/test_emit.py` has a regression test that compares the emitted circuit
-with Q42's own matrix.
-
 ## 4. The counts
 
 `check.py` counts the emitted gates:
@@ -290,9 +282,8 @@ This is the most concrete cost of Q42's design the study turned up.
 
 **Verdict.** For the question of whether Q42 is a practical route to checked
 reversible arithmetic: it works end to end, from a readable specification to an
-OpenQASM circuit that matches Qiskit's gate for gate, with no penalty, and its
-checks caught a real bug. It does not beat the mainstream toolchain on any count,
-and the advantage it does have, exact checking against an executable
-specification, is a matter of convenience. The case for Q42 as a research
+OpenQASM circuit that matches Qiskit's gate for gate, with no penalty. It does
+not beat the mainstream toolchain on any count, and the advantage it does have,
+exact checking against an executable specification, is a matter of convenience. The case for Q42 as a research
 language and a teaching tool is unaffected; the case for it as a better way to
 build oracles is not made by this study.
