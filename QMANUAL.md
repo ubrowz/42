@@ -1914,6 +1914,54 @@ as a fact about groups rather than about simulation: `s` generates the
 order-four phase group and `t` the order-eight one, and the boundary
 Gottesman–Knill draws falls between them.
 
+**What a quantum computer is fast at: the Fourier transform as an example.**
+Simulation is the cost on a classical machine. The opposite question, what a
+quantum computer does cheaply, has an answer that is easy to state too
+generously, and the quantum Fourier transform shows why.
+
+The classical Fast Fourier Transform on `N` numbers takes about `N log N`
+operations. The quantum Fourier transform on `n` qubits acts on all `N = 2ⁿ`
+amplitudes at once, and takes about `n²/2` gates: a Hadamard on each qubit and
+a controlled rotation for each pair. Leaving out the smallest rotations, the
+approximate transform of §9.1, brings that down to about `n log n` gates with
+negligible error. For thirty qubits, about a billion amplitudes, that is some
+`3 × 10¹⁰` operations classically against roughly five hundred gates.
+
+It is nonetheless **not a faster FFT**, because the data cannot get in or out.
+Loading a billion arbitrary numbers into amplitudes costs, in general, about a
+billion operations, which spends the whole saving before the transform starts.
+And the result cannot be read: a measurement gives *one* basis state, chosen
+with probability `|amplitude|²` (§7.6), so recovering all the coefficients
+would take exponentially many runs. For transforming data you already have, a
+sound file or an image, a quantum computer is no help.
+
+Where it pays is *inside* an algorithm, when the state is produced by the
+computation itself and only a global property of the result is wanted. In
+Shor's algorithm the modular arithmetic (the case study's adder is its
+building block) produces a state whose amplitudes repeat with an unknown
+period. The Fourier transform turns that period into sharp peaks, a single
+measurement lands near one of them with good probability, and a little
+classical arithmetic recovers the period from it. Nothing is loaded and almost
+nothing is read, so the exponential gap survives. Phase estimation, the other
+large user of the transform, works the same way. That is the general shape of a
+quantum speedup: the gain lives in what stays inside the machine.
+
+Two refinements matter on real hardware:
+
+- **On error-corrected machines the rotations dominate the cost.** Only a
+  finite set of gates is cheap there (§9.4), so each small-angle rotation is
+  assembled from a sequence of T gates, longer the more precisely it must be
+  right. That is why the approximate transform is standard: the smallest
+  rotations cost the most and matter the least. Q42's eighth turns (§6.2) are
+  the same constraint, in plain view.
+- **When the transform is followed at once by a measurement,** as in Shor's
+  algorithm, it can be done one qubit at a time: measure a qubit, then choose
+  the next rotations from the outcome (Griffiths & Niu, 1996). That replaces
+  every two-qubit gate with a one-qubit gate chosen by a classical bit, a real
+  saving on hardware. It needs measurement in the middle of the program, which
+  Q42 excludes (§9.2), so Q42 runs the version in which every rotation is under
+  quantum control instead.
+
 In summary: Q42 is a language and a proof-checker for the unitary
 layer of quantum computing, complete for that layer, with measurement at its
 edge (§9.2) and simulation cost as the price everybody pays.
