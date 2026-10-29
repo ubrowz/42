@@ -414,6 +414,194 @@ def cmd_equal(args) -> int:
     return 1
 
 
+def _leaves(v) -> list:
+    """A basis value's qubits in wire order, whatever the nesting: 0 or 1 each."""
+    from rel42.core import Inl, Pair
+
+    if isinstance(v, Pair):
+        return _leaves(v.a) + _leaves(v.b)
+    return [0 if isinstance(v, Inl) else 1]
+
+
+def _ket(v) -> str:
+    return "|" + "".join(map(str, _leaves(v))) + ">"
+
+
+def _kets(col, bits: bool = False) -> str:
+    """A column as kets, with each amplitude shown unless it is exactly 1."""
+    if not col:
+        return "nothing (the zero vector)"
+    out = []
+    for k, a in sorted(col.items(), key=lambda kv: kv[0] if bits else _leaves(kv[0])):
+        ket = "|" + "".join(map(str, k)) + ">" if bits else _ket(k)
+        one = _same(a, ONE_AMP) if not bits else abs(a - 1) < 1e-9
+        out.append(ket if one else f"{show_amplitude(complex(a))} {ket}")
+    return " + ".join(out)
+
+
+#: Gates that only permute basis states, so a bit string can be followed through
+#: them one gate at a time, at any width.
+_CLASSICAL = {"x", "cx", "ccx", "swap", "cswap"}
+
+
+def _run_bits(gates, bits: list) -> list:
+    w = list(bits)
+    for g in gates:
+        name, qs = g[0], list(g[1])
+        if name in ("swap", "cswap"):
+            if name == "swap" or w[qs[0]]:
+                a, b = qs[-2:]
+                w[a], w[b] = w[b], w[a]
+        elif all(w[q] for q in qs[:-1]):
+            w[qs[-1]] ^= 1
+    return w
+
+
+def _circuit_columns(gates, n: int):
+    """A function from an input bit list to the output column, as {bits: amp}.
+
+    Classical gates are followed bit by bit.  Anything else goes through
+    `tools/qasm_sim.py`, which shares no code with this evaluator, one gate
+    matrix at a time on a state vector: exponential in `n`, so refused past
+    `_SIM_LIMIT` qubits.
+    """
+    if all(g[0] in _CLASSICAL for g in gates):
+        return lambda bits: {tuple(_run_bits(gates, bits)): 1}
+    if n > _SIM_LIMIT:
+        return None
+    import os
+
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "tools"))
+    import cmath
+
+    from qasm_sim import gate_matrix
+
+    # A global phase is a scalar, not a matrix, as in `qasm_sim.unitary_of`.
+    phase, mats = 1 + 0j, []
+    for g in gates:
+        angle = g[2] if len(g) > 2 else None
+        if g[0] == "gphase":
+            phase *= cmath.exp(1j * float(angle))
+        else:
+            mats.append(gate_matrix(g[0], g[1], n, angle))
+
+    def col(bits):
+        vec = [0j] * (1 << n)
+        vec[sum(b << (n - 1 - i) for i, b in enumerate(bits))] = phase
+        for m in mats:
+            vec = [sum(m[r][c] * vec[c] for c in range(len(vec)) if vec[c])
+                   for r in range(len(vec))]
+        return {tuple((r >> (n - 1 - i)) & 1 for i in range(n)): a
+                for r, a in enumerate(vec) if abs(a) > 1e-9}
+    return col
+
+
+_SIM_LIMIT = 10
+
+
+def cmd_check(args) -> int:
+    """Check a Q42 program against a specification written in 42.
+
+    QMANUAL §7.7 steps 3 and 5.  The encoder, a 42 definition in the
+    specification's file, says which basis state stands for which value.  Every
+    basis state of the program's domain is run backwards through it: a state
+    that encodes nothing, or an input the specification gives no answer for, is
+    not compared.  For the rest, the specification's answer is encoded, and
+    the program -- and then its emitted circuit -- must produce exactly that
+    basis state, with amplitude 1.
+    """
+    from rel42.core import run
+    from rel42.syntax import parse_program as parse42, show
+    from .emit import NotEmittable, emit
+
+    env = _load_reduced(args.file)
+    term = _resolve(env, args.main)
+    at = ground(_typed(env, args.main, term), args.qubits)
+
+    import os
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for path in (args.spec_file, args.spec_file + ".42",
+                 os.path.join(root, args.spec_file),
+                 os.path.join(root, args.spec_file + ".42")):
+        if os.path.isfile(path):
+            args.spec_file = path
+            break
+    with open(args.spec_file, "r", encoding="utf-8") as fh:
+        spec = expand_env(parse42(fh.read()))
+    for name in (args.spec, args.encode, args.decode or args.encode):
+        if name not in spec:
+            raise Q42Error(f"'{name}' is not defined in {args.spec_file}")
+    enc, dec = Ref(args.encode), Ref(args.decode or args.encode)
+
+    try:
+        gates, wires = emit(term, at.dom, env)
+        circuit = _circuit_columns(gates, wires)
+        why_not = None if circuit else f"{wires} qubits and non-classical gates"
+    except (NotEmittable, Rel42Error) as e:
+        circuit, why_not = None, f"it does not emit: {e}"
+
+    # One state at a time, never a matrix, so a larger space than `matrix` or
+    # `unitary` would accept is affordable: about a millisecond a state.
+    basis = basis_of(at.dom, limit=1 << 18)
+    print(f"{args.main} against {args.spec}, through {args.encode}"
+          + (f" and {args.decode}" if args.decode else ""))
+    compared = unencoded = unanswered = 0
+    for v in basis:
+        xs = run(dagger(enc), v, spec)
+        if not xs:
+            unencoded += 1
+            continue
+        if len(xs) > 1:
+            print(f"  [FAIL] {args.encode} is ambiguous: {_ket(v)} encodes "
+                  + " and ".join(sorted(show(x) for x in xs)))
+            return 1
+        (x,) = xs
+        ys = run(Ref(args.spec), x, spec)
+        if not ys:
+            unanswered += 1
+            continue
+        want = set()
+        for y in ys:
+            want |= run(dec, y, spec)
+        if len(want) != 1:
+            print(f"  [FAIL] {args.spec} {show(x)} gives "
+                  f"{', '.join(sorted(show(y) for y in ys))}, which encodes to "
+                  f"{len(want)} basis states; a program can produce only one")
+            return 1
+        (w,) = want
+        got = {u: a for u, a in column(term, v, env).items() if not _same(a, 0)}
+        if set(got) != {w} or not _same(got[w], ONE_AMP):
+            print(f"  [FAIL] the program, on {_ket(v)} ({show(x)}):")
+            print(f"         the spec says {_ket(w)} ({show(next(iter(ys)))})")
+            print(f"         the program gives {_kets(got)}")
+            return 1
+        if circuit:
+            out = circuit(_leaves(v))
+            key = tuple(_leaves(w))
+            if set(out) != {key} or abs(out[key] - 1) > 1e-9:
+                print(f"  [FAIL] the emitted circuit, on {_ket(v)} ({show(x)}):")
+                print(f"         the spec says {_ket(w)}")
+                print("         the circuit gives "
+                      + _kets({k: a for k, a in out.items()}, bits=True))
+                return 1
+        compared += 1
+
+    print(f"  [ok ] the program: {compared} input(s) agree, exactly")
+    if circuit:
+        print(f"  [ok ] the circuit: {compared} input(s) agree "
+              f"({len(gates)} gate(s) on {wires} qubit(s))")
+    else:
+        print(f"  [-- ] the circuit was not checked: {why_not}")
+    print(f"  of {len(basis)} basis states, {unencoded} encode no input and "
+          f"{unanswered} encode one {args.spec} does not answer; not compared")
+    if compared == 0:
+        print("  nothing was compared: does the encoder fit the program's register?")
+        return 1
+    return 0
+
+
 def cmd_type(args) -> int:
     env = _load(args.file)
     if args.main and args.main not in env:
@@ -526,6 +714,20 @@ def main(argv=None) -> int:
     p.add_argument("-q", "--qubits", type=int,
                    help="width to ground a polymorphic type at")
     p.set_defaults(fn=cmd_equal)
+
+    p = sub.add_parser("check", help="check a definition against a 42 specification")
+    p.add_argument("file")
+    p.add_argument("main")
+    p.add_argument("spec_file", metavar="SPECFILE", help="a 42 file")
+    p.add_argument("spec", metavar="SPEC", help="the specification in it")
+    p.add_argument("-e", "--encode", default="encode",
+                   help="the 42 definition taking a value to its basis state "
+                        "(default: encode)")
+    p.add_argument("-d", "--decode",
+                   help="a different encoder for the answers, if they differ")
+    p.add_argument("-q", "--qubits", type=int,
+                   help="width to ground a polymorphic type at")
+    p.set_defaults(fn=cmd_check)
 
     p = sub.add_parser("type", help="infer the type of each definition")
     p.add_argument("file")

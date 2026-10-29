@@ -8,9 +8,10 @@ not:
     /tmp/qvenv/bin/pip install qiskit qiskit_qasm3_import
     /tmp/qvenv/bin/python casestudy/baseline.py
 
-For each adder in check.py it builds the same construction in Qiskit, from
+For each adder in ADDERS it builds the same construction in Qiskit, from
 Qiskit's own ripple-carry adder (`CDKMRippleCarryAdder`, the Cuccaro adder), and
-checks it on every input a, b < N.  It then reads Q42's emitted OpenQASM into
+checks it on every input a, b < N against spec.42, through the same encoders
+`42q check` uses.  It then reads Q42's emitted OpenQASM into
 Qiskit, so that both circuits are counted by the same code, and runs both
 through Qiskit's transpiler at its highest optimisation level, once into
 {ccx, cx, x} and once into Clifford+T, where a Toffoli costs seven T gates.
@@ -24,10 +25,17 @@ from qiskit import QuantumCircuit, QuantumRegister, qasm3, transpile
 from qiskit.circuit.library import CDKMRippleCarryAdder
 
 HERE = pathlib.Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent))
 sys.setrecursionlimit(20000)
 
-import check  # noqa: E402
+from q42.__main__ import _leaves, _load_reduced, _resolve, _run_bits, _typed  # noqa: E402
+from q42.emit import emit, to_qasm                                     # noqa: E402
+from q42.types import ground                                           # noqa: E402
+from rel42.core import Pair, Ref, expand_env, run                      # noqa: E402
+from rel42.syntax import from_nat, parse_program                       # noqa: E402
+
+#: name in modadd.42, bits per number, modulus; the encoder is enc<N>
+ADDERS = [("mod3", 2, 3), ("mod5", 3, 5), ("mod7", 3, 7), ("mod13", 4, 13)]
 
 CLIFFORD_T = ["h", "s", "sdg", "t", "tdg", "cx", "x"]
 
@@ -66,18 +74,26 @@ def qiskit_modadd(n: int, N: int) -> QuantumCircuit:
 
 
 def gates_of(qc: QuantumCircuit):
-    """A circuit in {ccx, cx, x, swap} as check.py's gate tuples."""
+    """A circuit in {ccx, cx, x, swap} as gate tuples on wire indices."""
     return [(i.operation.name, [qc.find_bit(q).index for q in i.qubits]) for i in qc.data]
 
 
-def verify(qc: QuantumCircuit, senv, n: int, N: int) -> None:
+def one(vs):
+    (v,) = vs
+    return v
+
+
+def verify(qc: QuantumCircuit, spec, n: int, N: int) -> None:
+    """On every a, b < N: encode, run the circuit, compare with the spec's answer."""
     gates = gates_of(transpile(qc, basis_gates=["ccx", "cx", "x", "swap"],
                                optimization_level=0))
+    enc = Ref(f"enc{N}")
     for x in range(N):
         for y in range(N):
-            want = check.bits(check.state(x, check.spec(senv, x, y, N), n))
-            got = check.simulate(gates, check.bits(check.state(x, y, n)))
-            assert got == want, f"qiskit: {x} + {y} mod {N} gives {got}"
+            given = Pair(from_nat(x), Pair(from_nat(y), from_nat(N)))
+            want = one(run(enc, one(run(Ref("modadd"), given, spec)), spec))
+            got = _run_bits(gates, _leaves(one(run(enc, given, spec))))
+            assert got == _leaves(want), f"qiskit: {x} + {y} mod {N} gives {got}"
 
 
 def row(label: str, qc: QuantumCircuit) -> str:
@@ -93,16 +109,16 @@ def row(label: str, qc: QuantumCircuit) -> str:
 
 
 def main() -> int:
-    qenv = check._load_reduced(str(HERE / "modadd.42"))
-    senv = check.expand_env(check.parse_program((HERE / "spec.42").read_text("utf-8")))
+    qenv = _load_reduced(str(HERE / "modadd.42"))
+    spec = expand_env(parse_program((HERE / "spec.42").read_text("utf-8")))
     print(f"  {'':14} {'qubits':>6} {'ccx':>4} {'cx':>4}  opt:ccx {'cx':>6}"
           f"  T-count {'cx':>6} {'depth':>6}")
-    for name, n, N in check.ADDERS:
-        ours = check.circuit(qenv, name)
-        from q42.emit import to_qasm
-        q42 = qasm3.loads(to_qasm(*ours, name))
+    for name, n, N in ADDERS:
+        term = _resolve(qenv, name)
+        gates, wires = emit(term, ground(_typed(qenv, name, term)).dom, qenv)
+        q42 = qasm3.loads(to_qasm(gates, wires, name))
         theirs = qiskit_modadd(n, N)
-        verify(theirs, senv, n, N)
+        verify(theirs, spec, n, N)
         print(row(f"{name} Q42", q42))
         print(row(f"{name} Qiskit", theirs))
     return 0

@@ -824,6 +824,32 @@ class TestCli(unittest.TestCase):
             code = main(list(argv))
         return code, out.getvalue() + err.getvalue()
 
+    def check_against_identity(self, gate):
+        """`42q check` of a one-qubit gate against the identity, written in 42."""
+        import tempfile
+
+        spec = ("def ident b <-> b\n"
+                "def encode (L ()) <-> L ()\n"
+                "def encode (R ()) <-> R ()\n")
+        with tempfile.NamedTemporaryFile("w", suffix=".42", delete=False) as fh:
+            fh.write(spec)
+        try:
+            return self.call("check", GATES, gate, fh.name, "ident")
+        finally:
+            os.unlink(fh.name)
+
+    def test_check_runs_a_quantum_circuit_through_the_simulator(self):
+        """`h ; h` is the identity, and its circuit has `h` and phases in it."""
+        code, out = self.check_against_identity("hh")
+        self.assertEqual(code, 0, out)
+        self.assertIn("the program: 2 input(s) agree, exactly", out)
+        self.assertIn("the circuit: 2 input(s) agree", out)
+
+    def test_check_refuses_a_superposition_where_a_basis_state_was_due(self):
+        code, out = self.check_against_identity("h")
+        self.assertEqual(code, 1)
+        self.assertIn("0.707107 |0> + 0.707107 |1>", out)
+
     def test_run(self):
         code, out = self.call("run", GATES, "bell", "|00>")
         self.assertEqual(code, 0)

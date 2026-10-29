@@ -1182,6 +1182,8 @@ is unitary, are in `QSUGAR.md`.
 42q unitary FILE [GATE]      check `t ; t! = id` over the whole basis
 42q matrix  FILE [GATE]      print the matrix
 42q equal   FILE GATE GATE   decide whether two gates are the same -- 6.5
+42q check   FILE GATE SPECFILE SPEC --encode ENC
+                             check a gate against a 42 specification -- 7.7
 42q emit    FILE [GATE]      write it out as OpenQASM 3 -- see section 9.4
 42q type    FILE [GATE]      infer the type
 42q show    FILE [GATE]      print a definition, its adjoint, and what it compiles to
@@ -1318,9 +1320,41 @@ Inputs the specification does not answer are not compared, which is the right
 notion of correctness when nothing else will ever be fed in. Separately,
 `42q unitary` confirms that the program is reversible on its whole space.
 
-There is no single command for this step. `casestudy/check.py` is the harness
-for the adder, about a hundred lines of Python that call both interpreters, and
-it adapts to other programs by changing how inputs and answers are encoded.
+To compare, the two need a common language for their values: the specification
+speaks of numbers, the program of qubits. An **encoder** says which basis state
+stands for which value, and it is one more 42 definition, written beside the
+specification:
+
+```
+def halve 0        <->  (L (), 0)              -- n  as  (n mod 2, n div 2)
+def halve 1        <->  (R (), 0)
+def halve (n + 2)  <->  let (b, h) = halve n in (b, h + 1)
+
+def bits1 n  <->  let (b, 0) = halve n in b
+def bits2 n  <->  let (b, h) = halve n in (b, bits1 h)
+
+def enc3 (a, (b, 3))  <->  (bits2 a, (bits2 b, (L (), (L (), (bits2 0, L ())))))
+```
+
+`bits2` writes a number below 4 as two qubits, least significant first, and
+`enc3` lays out `a`, `b` and the five ancillas, all `|0>`, in the order `mod3`
+takes them. `42q check` then does the comparison:
+
+```
+$ 42q check casestudy/modadd mod3 casestudy/spec modadd --encode enc3
+mod3 against modadd, through enc3
+  [ok ] the program: 9 input(s) agree, exactly
+  [ok ] the circuit: 9 input(s) agree (77 gate(s) on 9 qubit(s))
+  of 512 basis states, 496 encode no input and 7 encode one modadd does not answer; not compared
+```
+
+It goes through every basis state of the program's input, and runs the encoder
+*backwards* on it, which is where 42's two directions earn their keep: a state
+that encodes no value at all, such as one with an ancilla set, is skipped, and
+so is a value the specification gives no answer for, such as `a = 3`. For each
+of the nine that remain, it runs the specification, encodes the answer
+*forwards*, and requires the program to produce exactly that basis state. The
+second line is step 5, below.
 
 **4. Emit the circuit.** `42q emit` turns the program into OpenQASM 3, the
 standard text format for circuits (§9.4), and `--gates` lists the same gates in
@@ -1340,11 +1374,13 @@ qubit when the first two are both 1 (§6.4); the numbers are qubit positions.
 
 **5. Check the circuit against the specification.** Run the emitted gate list
 on the same inputs, with a simulator that shares no code with Q42, and compare
-with the specification again. For arithmetic like this, whose gates only
+with the specification again. `42q check` does this in the same run, and it is
+the second line of its report. For arithmetic like this, whose gates only
 permute basis states, following one bit string through the gates is a complete
-simulation, and `check.py` does that. For a circuit with genuinely quantum gates,
-`tools/qasm_sim.py` computes the matrix of a gate list instead, and the test
-suite uses it to check every circuit Q42's own libraries emit this way.
+simulation, and it works at any width. A circuit with genuinely quantum gates in
+it goes through `tools/qasm_sim.py` instead, one gate matrix at a time, which
+is exponential in the number of qubits, so `42q check` does that only up to ten
+qubits and says so when it skips the circuit.
 
 **Why two checks.** They catch different mistakes. Step 3 catches a wrong
 *program*: the construction does not compute what the specification says.
@@ -2143,6 +2179,7 @@ Absent, with reasons in §5: `zero`, `inl`, `inr`, `copy`, `join`, `|`, `^`.
 | `42q unitary FILE [GATE]` | check `t ; t! = id` over the basis |
 | `42q matrix FILE [GATE]` | print the matrix; `--qubits N` to fix a width |
 | `42q equal FILE GATE GATE` | decide whether two definitions are the same gate |
+| `42q check FILE GATE SPECFILE SPEC` | check a gate, and its emitted circuit, against a 42 specification, through `--encode ENC` (§7.7) |
 | `42q emit FILE [GATE]` | write it out as OpenQASM 3; `--qubits N`, `--gates` |
 | `42q type FILE [GATE]` | infer the type |
 | `42q show FILE [GATE]` | print a definition, its adjoint, and what it compiles to |

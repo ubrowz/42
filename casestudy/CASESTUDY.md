@@ -42,7 +42,7 @@ result and spoils it.
 |---|---|---|
 | `spec.42` | 42 | the specification, written to be read |
 | `modadd.42` | Q42 | the circuit |
-| `check.py` | Python | runs both on every valid input and compares |
+| `spec.42` | 42 | also the encoders: which basis state stands for which input |
 
 `baseline.py` builds the same circuit in Qiskit; it is the only file that needs
 Qiskit installed.
@@ -142,8 +142,11 @@ def mod13 = modadd add4 load13 cload13
 
 ## 3. The checks
 
-`check.py` tests four adders: `N = 3` (2 bits), `N = 5` and `N = 7` (3 bits)
-and `N = 13` (4 bits). For each, on every input `a, b < N`:
+`42q check` (QMANUAL §7.7) tests four adders: `N = 3` (2 bits), `N = 5` and
+`N = 7` (3 bits) and `N = 13` (4 bits). An encoder in `spec.42`, `enc3` for
+`N = 3` and so on, says which basis state stands for which input, and the
+command runs it backwards over every basis state to find the inputs. For each
+input `a, b < N`:
 
 - **The specification**, in 42, gives the expected answer.
 - **The Q42 term** is applied to the corresponding basis state with every
@@ -152,21 +155,21 @@ and `N = 13` (4 bits). For each, on every input `a, b < N`:
   Amplitudes are exact rather than floating point (QMANUAL §6.5), so this is
   equality, not closeness.
 - **The emitted circuit**: `42q emit` turns the term into a list of gates on
-  numbered qubits, and a ten-line simulator, sharing no code with Q42, runs that
-  list on the input bits. Because the circuit only permutes basis states,
-  following one bit string through the gates is a complete simulation.
+  numbered qubits, and a simulator sharing no code with Q42 runs that list on
+  the input bits. Because the circuit only permutes basis states, following one
+  bit string through the gates is a complete simulation.
 
 ```
-$ python3 casestudy/check.py
-  [ok ] mod3: all 9 inputs a, b < 3 agree with spec.42
-  [ok ] mod3: so does the emitted circuit
-  [ok ] mod5: all 25 inputs a, b < 5 agree with spec.42
-  [ok ] mod5: so does the emitted circuit
-  [ok ] mod7: all 49 inputs a, b < 7 agree with spec.42
-  [ok ] mod7: so does the emitted circuit
-  [ok ] mod13: all 169 inputs a, b < 13 agree with spec.42
-  [ok ] mod13: so does the emitted circuit
+$ 42q check casestudy/modadd mod13 casestudy/spec modadd --encode enc13
+mod13 against modadd, through enc13
+  [ok ] the program: 169 input(s) agree, exactly
+  [ok ] the circuit: 169 input(s) agree (141 gate(s) on 15 qubit(s))
+  of 32768 basis states, 32512 encode no input and 87 encode one modadd does not answer; not compared
 ```
+
+The other three are the same command with `mod3` and `enc3`, `mod5` and
+`enc5`, `mod7` and `enc7`. The 4-bit adder takes about five seconds, most of
+it running the encoder backwards over 32768 basis states.
 
 Separately, `42q unitary` confirms that `mod3` composed with its inverse is the
 identity on all `2⁹ = 512` basis states, not only the valid ones (9 seconds).
@@ -180,7 +183,7 @@ narrower than the whole-matrix equality `42q equal` decides.
 
 ## 4. The counts
 
-`check.py` counts the emitted gates:
+`42q emit --gates` lists the emitted gates; counted:
 
 | adder | bits | qubits | Toffoli | CNOT | X |
 |---|---|---|---|---|---|

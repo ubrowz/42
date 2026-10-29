@@ -14,7 +14,9 @@
 --   42q emit    casestudy/modadd mod13               -- OpenQASM 3, 15 qubits
 --
 -- A number is a register, least significant bit first: (b0, (b1, b2)) is
--- b0 + 2 b1 + 4 b2.  casestudy/check.py checks every adder against spec.42.
+-- b0 + 2 b1 + 4 b2.  `42q check` tests each adder against spec.42:
+--
+--   42q check casestudy/modadd mod13 casestudy/spec modadd --encode enc13
 
 type qubit = 1 + 1
 

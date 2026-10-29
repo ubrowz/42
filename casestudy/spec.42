@@ -4,8 +4,8 @@
 --
 -- This is ordinary 42 over the natural numbers: it copies `a`, it is undefined
 -- outside a, b < n, and `n` is an input rather than wired in.  None of that is
--- a circuit, and none of it needs to be.  casestudy/check.py runs it beside the
--- Q42 adder on every valid input and compares.
+-- a circuit, and none of it needs to be.  `42q check` runs it beside the Q42
+-- adder on every valid input and compares, through the encoders at the end.
 
 type nat = mu X. 1 + X
 
@@ -27,3 +27,28 @@ def modadd (a, (b, n))  <->
     let (a, n) = lt (a, n) in
     let (b, n) = lt (b, n) in
     (a, reduce (add (a, b), n))
+
+
+-- ---------------------------------------------------------------------------
+-- The encoders: which basis state of the circuit stands for which input.
+-- `42q check` runs one backwards over every basis state, to find the inputs,
+-- and forwards over the specification's answers, to find the expected state.
+--
+-- A number is a register, least significant bit first, and `halve` splits off
+-- that bit:  halve n = (n mod 2, n div 2).  The ancillas are all |0>.
+-- ---------------------------------------------------------------------------
+
+def halve 0        <->  (L (), 0)
+def halve 1        <->  (R (), 0)
+def halve (n + 2)  <->  let (b, h) = halve n in (b, h + 1)
+
+def bits1 n  <->  let (b, 0) = halve n in b
+def bits2 n  <->  let (b, h) = halve n in (b, bits1 h)
+def bits3 n  <->  let (b, h) = halve n in (b, bits2 h)
+def bits4 n  <->  let (b, h) = halve n in (b, bits3 h)
+
+-- (a, (b, N))  as  (a, (b, (z, (c, (k, s)))))  in modadd.42
+def enc3  (a, (b, 3))   <->  (bits2 a, (bits2 b, (L (), (L (), (bits2 0, L ())))))
+def enc5  (a, (b, 5))   <->  (bits3 a, (bits3 b, (L (), (L (), (bits3 0, L ())))))
+def enc7  (a, (b, 7))   <->  (bits3 a, (bits3 b, (L (), (L (), (bits3 0, L ())))))
+def enc13 (a, (b, 13))  <->  (bits4 a, (bits4 b, (L (), (L (), (bits4 0, L ())))))
