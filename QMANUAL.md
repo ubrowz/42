@@ -1366,8 +1366,10 @@ programs that behave classically on the inputs it covers, taking each one to a
 single basis state: arithmetic, oracles, and the other reversible classical
 parts of a quantum algorithm. A genuinely quantum program, such as the Hadamard
 gate or the quantum Fourier transform, produces a superposition, which no 42
-specification can describe; to compare two quantum programs, use `42q equal`
-(§6.5). The command also reports two conditions when they fail: the encoder
+specification can describe. Q42 writes such programs perfectly well (§9.1 lists
+them); it is only this way of checking them that does not apply. They are
+checked instead with `42q matrix`, `42q unitary`, and `42q equal` against
+another version (§6.5). The command also reports two conditions when they fail: the encoder
 must not give two values for one basis state, and the specification must give
 one answer per input, since a program produces only one.
 
@@ -1743,6 +1745,26 @@ Grover's search (§2.5) that amplifies the right answer, the arithmetic modulo
 `N` inside Shor's factoring algorithm, and the quantum Fourier transform, the
 quantum version of the discrete Fourier transform and the core of Shor's. §8.4 writes out
 Deutsch's algorithm in six lines.
+
+These are genuinely quantum programs, using superposition, interference and
+entanglement, not classical ones run on qubits, and the repository has them as
+files: the Hadamard gate `h` and the entangling `bell` and `ghz` in
+`q42/gates.42`, Deutsch's algorithm in `q42/deutsch.42`, teleportation in
+`q42/teleport.42`, Grover's search in `q42/grover.42`, and the quantum Fourier
+transform on three qubits, exactly, in `q42/qft3.42`. What Q42 leaves out is
+measuring in the middle of a program (§9.2), not quantum behaviour.
+
+The Fourier transform shows the one qualification. Q42's phases are eighth
+turns (§6.2), and the transform on four or more qubits also wants a
+sixteenth turn, and finer ones as it grows, which no single Q42 gate gives.
+`qft.42`, a 42 program that generates the transform for any width, therefore
+leaves those small rotations out, giving the *approximate* transform, which is
+also what hardware usually runs. Where the exact one is needed, a finer
+rotation can be approximated by a longer sequence of Q42 gates to whatever
+precision is wanted, about a hundred gates for one part in 10¹⁰, which is the
+universality above at work. So every quantum program can be written: some
+angles exactly, the rest to a chosen precision, which is the trade-off
+error-corrected hardware makes too (§9.4).
 
 **Gate identities, checked mechanically.** What Carette et al.'s calculus (§4.2;
 they call it `√Π`) contributes is an *equational theory*, a set of rules for
