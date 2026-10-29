@@ -1962,6 +1962,56 @@ Two refinements matter on real hardware:
   Q42 excludes (§9.2), so Q42 runs the version in which every rotation is under
   quantum control instead.
 
+**Could a quantum computer run a large language model?** The question is
+natural, because the visible input and output, a prompt and its answer, are a
+few thousand tokens each, which looks like exactly the narrow interface the
+Fourier transform needs. It is not, because in a language model the data that
+matters is not the prompt but the model:
+
+- **The weights are the input.** A modern model has tens to hundreds of billions
+  of parameters, and every token it produces passes through essentially all of
+  them. They would have to be loaded into the machine, which is the loading
+  problem above on an enormous scale. The hardware proposed for it, "quantum
+  RAM", does not exist in practical form, and whether it can be built cheaply is
+  doubtful.
+- **The work is dense matrix multiplication** of numbers already held in
+  memory, which is what GPUs are built for, and for which no general quantum
+  speedup is known.
+- **The network is nonlinear and the machine is not.** A neural network depends
+  on nonlinear steps, its activation functions and the softmax of attention,
+  while every quantum gate is a matrix applied to amplitudes (§2.3), so linear.
+  Nonlinearity needs measurement or costly workarounds.
+- **Every token is a measurement.** Producing a token means reading one out,
+  which collapses the state (§7.6), so it must be rebuilt for the next token,
+  hundreds of times per answer.
+- **The scales are far apart.** A GPU performs on the order of 10¹⁴ operations a
+  second, and a large model needs roughly that much per token; an
+  error-corrected quantum gate takes microseconds to milliseconds, and the
+  machines in prospect have tens to hundreds of reliable qubits, against the
+  gigabytes of state a model holds.
+
+The history of the field is a caution here. Several "quantum machine learning"
+algorithms proposed between about 2008 and 2016 claimed exponential speedups.
+In 2018 Ewin Tang showed that the best known of them, for recommendation
+systems, could be matched by a classical algorithm given the same assumptions
+about access to the data, and others followed: the speedups had been hidden in
+the assumption that the data was already loaded.
+
+Where quantum computing and machine learning do meet is elsewhere. When the
+data is itself quantum, coming from experiments, sensors or quantum
+simulations, there are proven advantages: a quantum computer can learn
+properties of quantum states from far fewer experiments (Huang et al., 2022),
+because the input is already in the machine and nothing has to be loaded. And
+the other direction is real and growing: machine learning is used to decode
+the errors of quantum error correction, to calibrate hardware, and to design
+circuits.
+
+So a language model is close to the worst workload for a quantum computer: a
+large body of classical data, multiplied by dense matrices. That is also the
+general picture. A quantum computer is a specialised accelerator, driven by a
+classical one throughout, for problems with the structure the Fourier
+transform example shows, and not a replacement for ordinary computers.
+
 In summary: Q42 is a language and a proof-checker for the unitary
 layer of quantum computing, complete for that layer, with measurement at its
 edge (§9.2) and simulation cost as the price everybody pays.
