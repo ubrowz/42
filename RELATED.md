@@ -1867,6 +1867,117 @@ and Q42's is unusual only in its host. A language can be behind on one axis and
 unaccompanied on another. Q42 is both, and saying only the second would be the
 easier document to write and the wrong one.
 
+## 12. The frontier, as of 2026
+
+The sections above place 42 and Q42 against their nearest relatives. This one
+looks wider, at where the algorithmic, compiler and language side of quantum
+computing is moving, since the hardware race gets the headlines and this side
+gets less attention than it deserves. It is a survey as of mid-2026, and it will
+date.
+
+### 12.1 Algorithms
+
+**Shor keeps getting cheaper.** The estimated hardware for breaking RSA-2048 has
+fallen by more than an order of magnitude in six years: about twenty million
+noisy qubits for eight hours (Gidney & Ekerå, 2019), then under a million for
+under a week (Gidney, 2025), with similar reductions for elliptic-curve
+cryptography. These are improvements in algorithms and compilation, not in
+hardware, and they are a main reason the migration to post-quantum cryptography
+is already under way.
+
+**Factoring itself has a new algorithm.** Regev (2023) gave the first
+substantial change to Shor's approach in decades, a multidimensional version
+with asymptotically fewer gates; follow-up work has reduced its qubit cost.
+Whether it beats Shor in practice is still open.
+
+**One framework now covers most algorithms.** Quantum singular value
+transformation (Gilyén, Su, Low & Wiebe, 2019) expresses search, Hamiltonian
+simulation, linear systems and phase estimation as polynomial transformations
+of a matrix embedded in a unitary. It has become the standard way to design and
+analyse algorithms, above all for simulating chemistry and materials, the
+application most likely to matter first.
+
+**New speedups are claimed, and contested.** Decoded Quantum Interferometry
+(Jordan et al., 2024) is a genuinely new approach to certain structured
+optimisation problems, with a possible superpolynomial speedup, and verifiable
+advantage experiments continue on current hardware. Against them, the programme
+of *dequantisation*, begun by Tang's classical algorithm for recommendation
+systems (2018), keeps showing that speedups which assumed the data already
+loaded can be matched classically. Much of the field's real movement is in that
+exchange of claim and rebuttal.
+
+### 12.2 Error correction as a compiler problem
+
+Increasingly the decisive progress for fault-tolerant machines is in software
+rather than in qubits:
+
+- **Cheaper non-Clifford gates.** Magic state cultivation (Gidney, Shutty &
+  Jones, 2024) reduces the cost of the `T` states every non-Clifford gate
+  consumes by a large factor. That attacks the dominant cost directly: QMANUAL
+  §9.3 and §9.4 explain why rotations and `T` gates are where the expense of a
+  fault-tolerant computation lies.
+- **Better codes.** Quantum LDPC codes, such as the bivariate bicycle code of
+  Bravyi et al. (2024), store a logical qubit in far fewer physical ones than the
+  surface code, and need new compilation techniques to compute on.
+- **Decoding in real time.** Errors have to be diagnosed faster than they
+  accumulate, and both neural decoders (Bausch et al., 2024, DeepMind's
+  AlphaQubit) and fast classical ones are an active race.
+- **Lattice surgery** — the operations an error-corrected machine actually
+  performs — is becoming a compilation layer of its own, below OpenQASM.
+
+### 12.3 Languages and toolchains
+
+- **Mid-circuit measurement as a first-class feature.** Quantinuum's Guppy and
+  its intermediate representation HUGR, and the dynamic circuits of OpenQASM 3,
+  are designed around measuring in the middle of a program and branching on the
+  result. §8.2 describes Guppy as the shape of language hardware capabilities
+  produce; this is now the main direction of travel.
+- **High-level languages with automatic uncomputation.** Silq (§8.3) began it.
+  Qrisp (Fraunhofer) carries it towards practice with typed quantum variables;
+  Qwerty (2024) programs in terms of bases rather than gates; Tower (Yuan &
+  Carbin, 2022) puts data structures, lists and pointers, into superposition.
+- **Synthesis in place of hand-written circuits.** Classiq's Qmod describes
+  what a function should compute, and a synthesiser chooses a circuit under
+  constraints on qubits and depth: the gap between a specification and a
+  circuit, attacked commercially.
+- **Resource estimation as programming.** Google's Qualtran and Microsoft's
+  Azure Quantum Resource Estimator express a fault-tolerant algorithm as
+  composable blocks and return exact counts of qubits, `T` gates and time. The
+  Shor estimates of §12.1 are produced and checked this way.
+- **Hybrid compilation.** NVIDIA's CUDA-Q and Xanadu's Catalyst, the latter
+  built on the MLIR compiler infrastructure, compile quantum kernels together
+  with classical and GPU code, treating the quantum processor as an
+  accelerator.
+- **Formal verification.** VOQC (Hietala et al., 2021) is a verified circuit
+  optimiser; an implementation of Shor's algorithm has been certified end to
+  end in Coq (Peng et al., 2023); Qafny and the verification languages of §11.5
+  continue the line.
+- **Machine learning for circuits.** AlphaTensor-Quantum (DeepMind) uses
+  reinforcement learning to reduce `T`-counts, in some cases below the best
+  known constructions.
+
+### 12.4 Where 42 and Q42 stand
+
+Against that frontier, Q42 touches four of the currents and stands apart from
+one.
+
+| current | Q42's counterpart |
+|---|---|
+| verified compilation | an emitter checked against an independent simulator; `42q check` of a gate and its circuit against a specification |
+| synthesis from a specification | the specification in 42 and the circuit in Q42, written separately and checked against each other (QMANUAL §7.7) rather than synthesised |
+| automatic uncomputation | `P ; Q ; P!`, derived but placed by hand (§8.3, QMANUAL §9.1) |
+| resource estimation | exact gate and qubit counts from `42q emit`, for one width at a time |
+| **mid-circuit measurement** | **excluded by design** (QMANUAL §9.2) |
+
+The last row is the substantive one. The hardware-driven languages are moving
+towards measurement and classical feedback inside the program, because that is
+what saves qubits and time on real machines, and two of the cheapest
+constructions met in QMANUAL, Gidney's adder and the measured Fourier
+transform, depend on it. Q42 keeps every term unitary instead, which is what
+makes `!` total and equality decidable. That is a deliberate position, not a
+gap waiting to be filled, but it places Q42 on the semantics side of the field's
+main current rather than in it.
+
 ## References
 
 - P. G. M. Jansen. *Reversible Programming in 4₂.* Master's thesis, University
@@ -2001,3 +2112,19 @@ easier document to write and the wrong one.
 - B. Coecke, D. Pavlović. *Quantum measurements without sums.*
 - S. Abramsky, A. Brandenburger. *The sheaf-theoretic structure of non-locality
   and contextuality.*
+- C. Gidney, M. Ekerå. *How to factor 2048 bit RSA integers in 8 hours using
+  20 million noisy qubits.* Quantum 5, 433, 2021.
+- C. Gidney. *How to factor 2048 bit RSA integers with less than a million
+  noisy qubits.* arXiv, 2025.
+- O. Regev. *An Efficient Quantum Factoring Algorithm.* arXiv, 2023.
+- A. Gilyén, Y. Su, G. H. Low, N. Wiebe. *Quantum singular value transformation
+  and beyond: exponential improvements for quantum matrix arithmetics.* STOC 2019.
+- E. Tang. *A quantum-inspired classical algorithm for recommendation systems.*
+  STOC 2019.
+- S. Bravyi, A. W. Cross, J. M. Gambetta, D. Maslov, P. Rall, T. J. Yoder.
+  *High-threshold and low-overhead fault-tolerant quantum memory.* Nature 627,
+  2024.
+- C. Yuan, M. Carbin. *Tower: Data Structures in Quantum Superposition.*
+  OOPSLA 2022.
+- K. Hietala, R. Rand, S.-H. Hung, X. Wu, M. Hicks. *A Verified Optimizer for
+  Quantum Circuits.* POPL 2021.
