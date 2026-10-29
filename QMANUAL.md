@@ -1403,6 +1403,39 @@ Step 5 catches a wrong *translation*: the program is right, but emitting it
 changed its meaning. Step 5 alone would not tell you which of the two had
 failed, and step 3 alone would trust the emitter.
 
+**Is the specification necessary?** No. Nothing requires steps 1, 3 and 5:
+a Q42 program can be written, emitted and run without a specification, and most
+programs, quantum or not, are written without a formal one. What takes its
+place in ordinary programming is testing, and Q42 has the lighter-weight
+versions of that too: `42q FILE GATE STATE` on a few inputs, `42q unitary` for
+reversibility, `42q equal` against a version already trusted. The specification
+is the exhaustive form of something done informally anyway.
+
+The balance tips further towards writing one here than in ordinary programming,
+for three reasons:
+
+- **The check is complete, not a sample.** For an ordinary program an
+  executable specification still only allows testing, since the inputs never
+  run out. A Q42 program has a register of fixed size, so `42q check` covers
+  *every* input the specification answers. The same effort buys a proof over
+  the valid inputs rather than evidence.
+- **Some quantum mistakes do not show in the answer.** An ancilla left at `|1>`
+  can leave the result register exactly right, so trying a few inputs and
+  reading the result finds nothing wrong. But the stray qubit is entangled with
+  the result (§2.6), and once the program is part of a larger algorithm it
+  silently destroys the interference the algorithm depends on (§2.5).
+  `42q check` requires every ancilla back at `|0>`, so it catches the mistake.
+- **Debugging on a quantum computer is much harder.** A running machine cannot
+  be paused to look at its state, a measurement gives one random outcome and
+  destroys the rest (§7.6), and every run costs time and money. The habits of
+  ordinary debugging, printing a value or stepping through, have no equivalent
+  there, so a mistake caught before the circuit leaves the simulator is worth
+  more.
+
+The specification applies only where it can: to the parts of a program that
+behave classically. For the genuinely quantum parts there is no 42
+specification to write.
+
 After step 5 the OpenQASM goes to a standard toolchain such as Qiskit, which
 fits it to a particular machine's qubits and connections (§9.4). For the
 modular adder the case study compares the result with the same construction
