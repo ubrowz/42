@@ -36,6 +36,27 @@ class Value:
     __slots__ = ()
 
 
+def _cached_hash(tag: str, *fields: str):
+    """A value's hash: its constructor and its fields, computed once.
+
+    The hash a frozen dataclass generates has two faults for values.  It
+    leaves out the class, so `Inl x` and `Inr x` hash alike, and with them every
+    basis state of a register: a dict of states is then one long collision
+    chain.  And it walks the whole tree each time the value is a key.  This one
+    includes the constructor and is kept in the instance's `__dict__`, which
+    equality ignores.
+    """
+
+    def __hash__(self) -> int:
+        d = self.__dict__
+        h = d.get("_hash")
+        if h is None:
+            h = d["_hash"] = hash((tag,) + tuple(getattr(self, f) for f in fields))
+        return h
+
+    return __hash__
+
+
 @dataclass(frozen=True)
 class Unit(Value):
     """The unique inhabitant of the type 1."""
@@ -50,12 +71,16 @@ class Inl(Value):
 
     v: Value
 
+    __hash__ = _cached_hash('Inl', 'v')
+
 
 @dataclass(frozen=True)
 class Inr(Value):
     """Right injection into a sum."""
 
     v: Value
+
+    __hash__ = _cached_hash('Inr', 'v')
 
 
 @dataclass(frozen=True)
@@ -64,6 +89,8 @@ class Pair(Value):
 
     a: Value
     b: Value
+
+    __hash__ = _cached_hash('Pair', 'a', 'b')
 
 
 VSet = Set[Value]
