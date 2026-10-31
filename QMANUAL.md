@@ -1885,13 +1885,22 @@ results of earlier ones; and **qubit reuse**, measuring a qubit to reset it for
 another use, which matters when hardware has a fixed qubit budget and not at
 all in a simulator. None of these is what Q42 is for.
 
-Two smaller boundaries follow from the same place:
+Three smaller boundaries follow from the same place:
 
 - **No mid-program state preparation.** A Q42 program is a unitary on a fixed
   space, so there is no conjuring a fresh `|0>` half way through; that would
   change the dimension. Inputs come from the command line instead.
 - **No noise.** No decoherence, no gate fidelities, no error model. Everything
   here is the idealised unitary layer.
+- **No recursion that does anything.** A definition may call itself, but a call
+  that is ever reached never stops. A unitary reaches every basis value of its
+  output, so a call that is reached at all receives every value of its input
+  type. Inside its own body a definition has one type, so that is the
+  definition's own type, and the call receives again the very inputs that led
+  to it. A definition whose unfolding stops therefore never makes its call.
+  Recursion over a register, one qubit per call, would need the call at a
+  smaller type, and the type checker rejects it. Loops over widths are written
+  in 42, which generates the Q42 terms (§9.5).
 
 ### 9.3 The comparison that is not the right one
 
@@ -2124,9 +2133,9 @@ What is Q42's own is the lowering, and it is short. Two parts:
   re-bracket, `swapprod` is carried in the layout, and `assocsum` and `unitsum`
   cannot occur at a register type in the first place. Only `swapsum`, `omega` and
   `v` produce output.
-- **depth bounding**: a circuit is finite, so a recursive definition must unroll
-  to a fixed depth, and the emitter does not check that it does; it stops on a
-  depth budget rather than proving termination.
+- **depth bounding**: the emitter unrolls definitions on a depth budget. A
+  recursive call that is reached never stops (§9.2), so the budget catches
+  exactly such a definition and reports it.
 
 Control needs no rule of its own, which is worth knowing: at a type `a + b` the
 first qubit is the tag, and `f + g` means f under tag 0 and g under tag 1. From
